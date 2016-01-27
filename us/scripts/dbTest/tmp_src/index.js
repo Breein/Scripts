@@ -1,20 +1,11 @@
 var db = require('./../../../lib/idb');
 var $ = require('./../../../lib/dom');
+var ajax = require('./../../../lib/request');
 var bindEvent = require('./../../../lib/events');
 
 var $idb, $ts, $dbAnswer;
 
-
-
-
-
-
-makeTS();
-
-console.log($ts);
-
-
-makeConnect("Test", true);
+//makeConnect("Test", true);
 
 var button = $('<input>').attr("type", "button").attr("value", "Click!").node();
 
@@ -35,7 +26,7 @@ function click(){
   //]);
   $idb.db.close();
   $idb.version++;
-  makeConnect("Test");
+  //makeConnect("Test");
 }
 
 setTimeout(function(){
@@ -43,8 +34,18 @@ setTimeout(function(){
   //idb.deleteDB();
 }, 500);
 
+console.log("Start");
+ajax("http://www.ganjawars.ru/me/", "GET", null).then((result)=>{
+  console.log(result);
+  result = "Changed!";
 
-async function getData(){
+  return result;
+}).then((result)=>{
+  console.log(result);
+});
+console.log("End");
+
+function getData(){
 
   //console.log("One:");
   //db.add("members", {
@@ -83,9 +84,9 @@ async function getData(){
   //console.log(result);
 }
 
-async function makeConnect(name, first){
-  if(first)$idb = await db(name);
-  $idb = await $idb.connectDB();
+function makeConnect(name, first){
+  if(first)$idb = db(name);
+  $idb = $idb.connectDB();
 
   console.log($idb);
 }

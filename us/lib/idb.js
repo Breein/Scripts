@@ -207,8 +207,7 @@ DB.prototype = {
       this.store = this.tx.objectStore(table);
 
       this.store.put(data);
-      console.log("Success added");
-      console.log(data);
+      console.log("Success added to " + table);
     }catch(e){
       console.log("Failed added");
       console.log(e);

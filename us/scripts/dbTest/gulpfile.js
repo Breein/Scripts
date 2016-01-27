@@ -43,8 +43,8 @@ gulp.task('bundle', function(){
     return '`' + fs.readFileSync(str[1], 'utf8') + '`';
   }
 
-  return browserify('./tmp_src/index.js', {debug: true})
-    .transform(babelify.configure({"optional": [ "runtime"], stage: 0}))
+  return browserify('./tmp_src/index.js')
+    .transform(babelify.configure({ stage: 0}))
     .bundle()
     .pipe(source('bundle.js'))
     .pipe(buffer())
