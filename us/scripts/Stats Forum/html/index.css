@@ -1,0 +1,152 @@
+table[type="padding"] td {
+    padding: 2px 5px 2px 5px;
+}
+tr[type="light"] {
+    background-color: #d8e8d8;
+}
+tr[type="lightChecked"] {
+    background-color: #c7dfc7;
+}
+tr[type^="light"]:hover {
+    background-color: #beccbe;
+}
+tr[type="header"] {
+    background-color: #d0eed0; font-weight: bold;
+}
+#sf_header_SI img, #sf_header_TL img{
+    float: right;
+}
+td[sort], td[filter]{
+    cursor: pointer;
+}
+td[sort]:hover, td[filter]:hover{
+    background-color: #cae1ca;
+}
+.sf_left {
+    padding-left: 5px;
+}
+#sf_STI {
+    padding: 0;
+}
+#sf_shadowLayer{
+    position: absolute;
+    width: 0;
+    height: 0;
+    z-index: 1;
+    background-color: #000000;
+    left: 0;
+    top: 0;
+    opacity: 0.7;
+    display: none;
+    cursor: pointer;
+}
+div[type="window"]{
+    position: absolute;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    z-index: 2;
+    display: none;
+}
+
+input[type="button"]{
+    font-weight: 500;
+    font-family: Verdana;
+    background-color: rgb(208,238,208);
+    font-size: 10px;
+    height: 20px;
+}
+input[type="text"][class="sf_hideInput"]{
+    font-weight: 500;
+    font-family: Verdana;
+    background-color: #f0fff0;
+    font-size: 12px;
+    text-align: center;
+    width: 50px;
+    border-style: none;
+}
+input[type="checkbox"][name="sf_membersList"],[name="sf_themesList"]{
+    display: none;
+}
+div[class^="sf_count"]{
+    border: solid 1px #000000;
+    width: 100px;
+    line-height: 24px;
+    float: left;
+    height: 24px;
+}
+div[class="sf_count disabled"]{
+    border: solid 1px #C0c0c0;
+    color: #c0c0c0;
+}
+div[class="sf_space"]{
+    border: none;
+    width: 15px;
+    height: 24px;
+    float: left;
+}
+input[type="text"][class="sf_count disabled"]{
+    color: #c0c0c0;
+    width: 65px;
+    border-style: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+input[type="text"][class="sf_count enabled"]{
+    width: 65px;
+    border-style: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+#sf_calendar{
+    left: 0;
+    top: 0;
+}
+#sf_calendar td{
+    text-align: center;
+    height: 20px;
+    border: solid 1px #339933;
+    padding: 5px;
+}
+#sf_calendar td[type="day"]:hover, #sf_calendar td[type="control"]:hover{
+    background: #D8E8D8;
+    cursor: pointer;
+}
+span[type="calendarCall"]{
+    cursor: pointer;
+}
+div[type^="multipleSelect"]{
+    background: #f0fff0;
+    position: absolute;
+    height: 24px;
+    overflow-y: hidden;
+}
+div[type="multipleSelect enabled"]:hover{
+    position: absolute;
+    overflow-y: visible;
+    height: 174px;
+    border: solid 1px #000000;
+    margin-left: -1px;
+    margin-top: -1px;
+}
+div[type^="option"]{
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: left;
+    border-top: dotted 1px #c0c0c0;
+}
+div[type="option selected"]{
+    background: #c3e5c3;
+}
+div[type^="option"]:hover{
+    background: #d9ecd9;
+    cursor: pointer;
+}
+span[id^="sf_bCheckAll"]{
+    float: right;
+    margin-right: 5px;
+    font-size: 9px;
+    cursor: pointer;
+}

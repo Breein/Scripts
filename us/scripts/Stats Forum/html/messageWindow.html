@@ -1,0 +1,47 @@
+<table width="700" height="395" align="center" style="margin: 20px 25px; background-color: #f0fff0;" type="padding">
+    <tr type="header" height="35">
+        <td align="center" style="color: #990000;" colspan="3">Рассылка почты</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 5px 2px 5px;" align="right">Кому:</td>
+        <td style="padding: 8px 5px 2px 5px; width: 200px;"><select style="width: 200px;" name="mid"></select></td>
+        <td style="padding: 8px 5px 2px 5px; width: 350px;" align="left"> Всего: <span type="count"></td>
+    </tr>
+    <tr>
+        <td align="right">Тема:</td>
+        <td style="padding: 2px 5px 8px 5px;" colspan="2"><input type="text" maxlength="50" style="width:100%" value="" name="subject"></td>
+    </tr>
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="3">Утилиты</td>
+    </tr>
+    <tr>
+        <td align="right" style="padding: 8px 5px 2px 5px;">Режим:</td>
+        <td style="padding: 8px 5px 2px 5px; width: 200px;" colspan="2">
+            <select style="width: 300px;" name="workMode">
+                <option value="mail">Почта</option>
+                <option value="invite">Почта и приглашение</option>
+                <option value="goAway">Почта и изгнание</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td align="right">Синдикат:</td>
+        <td style="padding: 2px 5px 8px 5px; width: 200px;" colspan="2"><select style="width: 300px;" name="sid"></select></td>
+    </tr>
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="3">Сообщение</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="padding: 8px 8px 2px 8px;">
+            <textarea style="width:100%" rows="10" name="message"></textarea>
+        </td>
+    </tr>
+    <tr>
+        <td align="center" colspan="3" height="35">
+            <input type="button" id="sf_sendMessages" value="Запустить">
+        </td>
+    </tr>
+    <tr height="5" bgcolor="#d0eed0">
+        <td colspan="3"></td>
+    </tr>
+</table>

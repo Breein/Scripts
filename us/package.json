@@ -1,0 +1,25 @@
+{
+  "name": "userscripts",
+  "version": "0.0.1",
+  "description": "stub",
+  "dependencies": {
+    "babel": "^5.4.7",
+    "babel-core": "^5.6.15",
+    "babel-runtime": "^5.4.7",
+    "chokidar": "latest",
+    "babelify": "^6.1.2",
+    "gulp-babel": "^5.1.0",
+    "gulp": "latest",
+    "eslint": "latest",
+    "handlebars": "^4.0.5",
+    "hbsfy": "^2.4.1",
+    "run-sequence": "^1.1.5",
+    "browserify": "latest",
+    "vinyl-transform": "latest",
+    "vinyl-source-stream": "latest",
+    "vinyl-buffer": "latest",
+    "gulp-uglify": "latest",
+    "gulp-concat-util": "latest",
+    "gulp-rename": "latest"
+  }
+}
