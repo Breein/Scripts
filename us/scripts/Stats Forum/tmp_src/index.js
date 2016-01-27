@@ -438,13 +438,10 @@ async function addToDB(){
       themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL"], "themes", $ss)
     };
 
-    $forum = await $idb.getOne("forums", "id", 54845);
+    $forum = await $idb.getOne("forums", "id", $cd.fid);
+    $forum = repack($forum, "forum");
 
-    console.log($forum);
-
-    //$forum = repack($forum, "forum");
-
-    //createGUI();
+    createGUI();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
