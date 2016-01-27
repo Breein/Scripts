@@ -136,6 +136,25 @@ Common.prototype = {
    */
   randomNumber: function (min, max){
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+
+  /**
+   *
+   * @param {*} value
+   * @param {*[]} array
+   * @returns {boolean}
+   */
+  exist: function(value, array){
+    var length;
+
+    length = array.length;
+
+    while(length--){
+      if(array[length] == value){
+        return true;
+      }
+    }
+    return false;
   }
 };
 

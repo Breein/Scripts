@@ -1076,7 +1076,7 @@ async function parseForum(index, mode, stopDate){
 
 
 
-    parseForum.gkDelay(750, this, [index, mode, stopDate]);
+    //parseForum.gkDelay(750, this, [index, mode, stopDate]);
 
     //try{
     //  REQ(url, 'GET', null, true,
@@ -1114,21 +1114,21 @@ async function parseForum(index, mode, stopDate){
   }
   /////////////////////////////
 
-  function parse(tr){
-    var td, thread, player, start, date, tid;
-    var theme;
+  async function parse(tr){
+    var td, tid, theme, player, member;
 
     td = tr.cells;
     tid = getId();
 
     //date = getDate();
 
-    theme = $idb.getOne(`themes_${$forum.id}`, "id", tid);
+    theme = await $idb.getOne(`themes_${$forum.id}`, "id", tid);
 
-    console.log(theme);
+    console.log("Begin:");
 
     if(theme == null){
       $forum.themes[1]++;
+      $idb.add(`forums`, repack($forum, "forum"));
 
       theme = generateThemes(tid);
       theme.name = getName();
@@ -1142,8 +1142,46 @@ async function parseForum(index, mode, stopDate){
       theme.pages = getPages();
     }
 
-    console.log(theme);
+    $idb.add(`themes_${$forum.id}`, repack(theme, "theme"));
+    player = await $idb.getOne(`players`, "id", theme.author[0]);
 
+    if(player == null){
+      player = generatePlayers(theme.author[0]);
+      player.name = theme.author[1];
+      player.forums.push($forum.id);
+
+      member = generateMembers(theme.author[0]);
+      member.start.push(theme.id);
+    }else{
+      player = repack(player, "player");
+      if(!$c.exist($forum.id, player.forums)) player.forums.push($forum.id);
+
+      member = await $idb.getOne(`members_${$forum.id}`, "id", player.id);
+      member = repack(member, "member");
+
+      if(!$c.exist(theme.id, member.start)){
+        member.start.push(theme.id);
+        console.log(member);
+        console.log("TRUE");
+      }else{
+        console.log("FALSE");
+      }
+    }
+
+    $idb.add(`players`, repack(player, "player"));
+
+    member = repack(member, "member");
+    console.log(member);
+
+    $idb.add(`members_${$forum.id}`, member);
+
+    var t = await $idb.getOne(`members_${$forum.id}`, "id", player.id);
+    console.log("M:");
+    console.log(t);
+
+    //console.log(theme);
+    //console.log(player);
+    console.log("End ----");
     //if(mode){
     //  addTheme();
     //}else{
@@ -1156,38 +1194,6 @@ async function parseForum(index, mode, stopDate){
     //    }
     //  }
     //}
-    /////////////////////////////
-
-    function addTheme(){
-      if (thread == null) {
-        $cd.f.threads.all++;
-        $cd.f.themes[$cd.tid] = {};
-        thread = $cd.f.themes[$cd.tid];
-
-        thread.check = 0;
-        thread.name = getName();
-        thread.posts = getPosts();
-        thread.date = date;
-        thread.author = getAuthor();
-      } else {
-        thread.posts = getPosts();
-      }
-      player = $sd.players[thread.author.id];
-
-      if (player == null) {
-        $sd.players[thread.author.id] = generatePlayer(thread.author.name);
-        player = $sd.players[thread.author.id];
-      }
-
-      if (player.forums[$cd.fid] == null) {
-        player.forums[$cd.fid] = generateForumPlayer();
-      }
-      start = player.forums[$cd.fid].start;
-
-      if (!start.gkExist($cd.tid)) {
-        start.push($cd.tid);
-      }
-    }
     /////////////////////////////
 
     function getId(){
@@ -1236,8 +1242,8 @@ async function parseForum(index, mode, stopDate){
 
       date = tr.previousSibling.data;
       date = date.match(/(\d+)/g);
-      date = `${date[1]}/${date[2]}/${date[0]} ${date[3]}:${date[4]}:${date[5]}}`;
-      date = Date.parse(date);
+      date = `${date[1]}/${date[2]}/${date[0]} ${date[3]}:${date[4]}:${date[5]}`;
+      date = Date.parse(date) / 1000;
 
       return date;
     }
@@ -1835,33 +1841,33 @@ function doGoAway(sid, id){
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function generatePlayer(name){
-  return {
-    name: name,
-    status: {
-      text: '',
-      date: 0
-    },
-    forums:{}
-  };
-}
-
-function generateForumPlayer(){
-  return {
-    sn: 0,
-    enter: 0,
-    exit: 0,
-    goAway: 0,
-    invite: 0,
-    member: false,
-    posts: 0,
-    last: 0,
-    words: [0, 0],
-    start: [],
-    themes: []
-  };
-}
+//
+//function generatePlayer(name){
+//  return {
+//    name: name,
+//    status: {
+//      text: '',
+//      date: 0
+//    },
+//    forums:{}
+//  };
+//}
+//
+//function generateForumPlayer(){
+//  return {
+//    sn: 0,
+//    enter: 0,
+//    exit: 0,
+//    goAway: 0,
+//    invite: 0,
+//    member: false,
+//    posts: 0,
+//    last: 0,
+//    words: [0, 0],
+//    start: [],
+//    themes: []
+//  };
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderBaseHTML(){

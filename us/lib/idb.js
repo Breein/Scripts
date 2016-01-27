@@ -152,11 +152,7 @@ DB.prototype = {
 
       if(index == "id"){
         this.store.get(value).onsuccess = function(event){
-          if(event.target.result){
             onsuccess(event.target.result);
-          }else{
-            onsuccess(null);
-          }
         }
       }else{
         this.index = this.store.index(index);
@@ -212,6 +208,7 @@ DB.prototype = {
 
       this.store.put(data);
       console.log("Success added");
+      console.log(data);
     }catch(e){
       console.log("Failed added");
       console.log(e);
