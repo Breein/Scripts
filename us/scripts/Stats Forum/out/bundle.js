@@ -1037,6 +1037,103 @@ module.exports = function (nodesID, settingsKey, settings) {
 },{"./dom":2,"./events":3}],8:[function(require,module,exports){
 "use strict";
 
+function GeneratorData() {
+  this.object = null;
+}
+
+GeneratorData.prototype = {
+  /**
+   * @param {number} id
+   * @returns {object}
+   */
+  player: function player(id) {
+    return {
+      id: id,
+      name: "",
+      status: "",
+      date: 0,
+      forums: []
+    };
+  },
+
+  /**
+   * @param {number} id
+   * @returns {object}
+   */
+  forum: function forum(id) {
+    return {
+      id: id,
+      name: "",
+      sid: 0,
+      posts: 0,
+      words: 0,
+      page: [0, 0],
+      themes: [0, 0],
+      log: [0, 0]
+    };
+  },
+
+  /**
+   * @param {number} id
+   * @returns {object}
+   */
+  theme: function theme(id) {
+    return {
+      id: id,
+      name: "",
+      author: [0, ""],
+      posts: [0, 0],
+      pages: [0, 0],
+      start: 0
+    };
+  },
+
+  /**
+   * @param {number} id
+   * @returns {object}
+   */
+  member: function member(id) {
+    return {
+      id: id,
+      posts: 0,
+      last: 0,
+      start: [],
+      write: [],
+      words: 0,
+      wordsAverage: 0,
+      carma: 0,
+      carmaAverage: 0,
+      sn: 0,
+      enter: 0,
+      exit: 0,
+      kick: 0,
+      invite: 0
+    };
+  },
+
+  /**
+   * @param {number} id
+   * @returns {object}
+   */
+  timestamp: function timestamp(id) {
+    return {
+      id: id,
+      time: [],
+      data: []
+    };
+  }
+};
+
+/**
+ * @returns {GeneratorData}
+ */
+module.exports = function () {
+  return new GeneratorData();
+};
+
+},{}],9:[function(require,module,exports){
+"use strict";
+
 module.exports = {
     loading: "data:image/gif;base64,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",
     inTeam: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAABgUExURaHCpdDlz5m2nJ69orLVs5q5npawmKnLq/3//fb89aPFp5Stl5e0mpKxlqXIqejx5py7oJ7Aopa4mZu6n6vGrJy8oI+kkcLZw4utjt3t3Z+/o+P24PL48a7Qr7fVt////1D+6W0AAAAgdFJOU/////////////////////////////////////////8AXFwb7QAAAORJREFUeNrM0tGSgyAMBdCYCGpEF4mhK632//9y8aUjtLOvu/f1zGUyCfD8JfCHGC2+MsYSY9e+crQUrxjnHRIA85zT7a3GC+KsIl6JFlBl7jp7QbeIJ8pdSN2e+wVa9d5TSovh+53TPBfojQqaJKHpmwW4REERVZmO/guIKzToeLt98+OxBqiaI+LEw7Bv/eEo5XcrdNOtH4YmyDn1G45h67fgKGOq0Dmc1madvColggKz5XJA8ZL3VKPN6iyKEdK8jitGNNadbXN2DbhYnEyXlAc5t8vMPlbHxkviP/h9H/MjwAB5L0bCGQGg2gAAAABJRU5ErkJggg==",
@@ -1051,80 +1148,71 @@ module.exports = {
     memberIco: " data:image/png;base64,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"
 };
 
-},{}],9:[function(require,module,exports){
-/**
- *
- * @returns {object}
- */
-
+},{}],10:[function(require,module,exports){
 "use strict";
 
-module.exports = function () {
-  var ts;
+function PackerData() {
+  this.object = null;
+}
 
-  ts = {
-    player: {
-      id: "id",
-      name: "a",
-      status: "b",
-      date: "c",
-      forums: "d"
-    },
-    forum: {
-      id: "id",
-      name: "a",
-      sid: "b",
-      posts: "c",
-      words: "d",
-      page: "e",
-      themes: "f",
-      log: "g"
-    },
-    theme: {
-      id: "id",
-      name: "a",
-      author: "b",
-      posts: "c",
-      pages: "d",
-      start: "e"
-    },
-    member: {
-      id: "id",
-      posts: "a",
-      last: "b",
-      start: "c",
-      write: "d",
-      words: "e",
-      wordsAverage: "f",
-      carma: "g",
-      carmaAverage: "h",
-      sn: "i",
-      enter: "j",
-      exit: "k",
-      kick: "l",
-      invite: "m"
-    },
-    timestamp: {
-      id: "id",
-      time: "a",
-      data: "b"
-    }
-  };
+PackerData.prototype = {
+  /**
+   * @param {object} o
+   * @returns {object}
+   */
+  isPacked: function isPacked(o) {
+    return o.a ? true : false;
+  },
 
-  makeTS();
+  /**
+   * @param {object} o
+   * @returns {object}
+   */
+  player: function player(o) {
+    return this.isPacked(o) ? { id: o.id, name: o.a, status: o.b, date: o.c, forums: o.d } : { id: o.id, a: o.name, b: o.status, c: o.date, d: o.forums };
+  },
 
-  return ts;
+  /**
+   * @param {object} o
+   * @returns {object}
+   */
+  forum: function forum(o) {
+    return this.isPacked(o) ? { id: o.id, name: o.a, sid: o.b, posts: o.c, words: o.d, page: o.e, themes: o.f, log: o.g } : { id: o.id, a: o.name, b: o.sid, c: o.posts, d: o.words, e: o.page, f: o.themes, g: o.log };
+  },
 
-  function makeTS() {
-    Object.keys(ts).forEach(function (t) {
-      Object.keys(ts[t]).forEach(function (key) {
-        ts[t][ts[t][key]] = key;
-      });
-    });
+  /**
+   * @param {object} o
+   * @returns {object}
+   */
+  theme: function theme(o) {
+    return this.isPacked(o) ? { id: o.id, name: o.a, author: o.b, posts: o.c, pages: o.d, start: o.e } : { id: o.id, a: o.name, b: o.author, c: o.posts, d: o.pages, e: o.start };
+  },
+
+  /**
+   * @param {object} o
+   * @returns {object}
+   */
+  member: function member(o) {
+    return this.isPacked(o) ? { id: o.id, posts: o.a, last: o.b, start: o.c, write: o.d, words: o.e, wordsAverage: o.f, carma: o.g, carmaAverage: o.h, sn: o.i, enter: o.j, exit: o.k, kick: o.l, invite: o.m } : { id: o.id, a: o.posts, b: o.last, c: o.start, d: o.write, e: o.words, f: o.wordsAverage, g: o.carma, h: o.carmaAverage, i: o.sn, j: o.enter, k: o.exit, l: o.kick, m: o.invite };
+  },
+
+  /**
+   * @param {object} o
+   * @returns {object}
+   */
+  timestamp: function timestamp(o) {
+    return this.isPacked(o) ? { id: o.id, time: o.a, data: o.b } : { id: o.id, a: o.time, b: o.data };
   }
 };
 
-},{}],10:[function(require,module,exports){
+/**
+ * @returns {PackerData}
+ */
+module.exports = function () {
+  return new PackerData();
+};
+
+},{}],11:[function(require,module,exports){
 'use strict';
 
 require('./../../../lib/prototypes')();
@@ -1135,7 +1223,8 @@ var ajax = require('./../../../lib/request');
 var createTable = require('./../../../lib/table');
 
 var $c = require('./../../../lib/common')();
-var $ts = require('./../src/structure')();
+var Create = require('./../src/generator')();
+var Pack = require('./../src/packer')();
 var $ico = require('./../src/icons');
 
 var $nameScript = "Stats forums [GW]";
@@ -1304,77 +1393,16 @@ function makeConnect(name, first) {
     });
   }
 }
-
-function generatePlayers(id) {
-  return {
-    id: id,
-    name: "",
-    status: "",
-    date: 0,
-    forums: []
-  };
-}
-
-function generateMembers(id) {
-  return {
-    id: id,
-    posts: 0,
-    last: 0,
-    start: [],
-    write: [],
-    words: 0,
-    wordsAverage: 0,
-    carma: 0,
-    carmaAverage: 0,
-    sn: 0,
-    enter: 0,
-    exit: 0,
-    kick: 0,
-    invite: 0
-  };
-}
-
-function generateForums(id) {
-  return {
-    id: id,
-    name: "",
-    sid: 0,
-    posts: 0,
-    words: 0,
-    page: [0, 0],
-    themes: [0, 0],
-    log: [0, 0]
-  };
-}
-
-function generateThemes(id) {
-  return {
-    id: id,
-    name: "",
-    author: [0, ""],
-    posts: [0, 0],
-    pages: [0, 0],
-    start: 0
-  };
-}
-
-function generateTimestamps(id) {
-  return {
-    id: id,
-    time: [],
-    data: []
-  };
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addToDB() {
   var forum;
 
   if (!$idb.exist('themes_' + $cd.fid)) {
-    forum = generateForums($cd.fid);
+    forum = Create.forum($cd.fid);
     forum.name = $cd.fName;
     forum.sid = $cd.sid;
-    forum = repack(forum, "forum");
+    forum = Pack.forum(forum);
 
     $idb.add("forums", forum);
     $idb.setModifyingTableList([{ name: 'themes_' + $cd.fid, key: "id" }, { name: 'members_' + $cd.fid, key: "id" }, { name: 'timestamp_' + $cd.fid, key: "id" }]);
@@ -1391,7 +1419,7 @@ function addToDB() {
 
     $idb.getOne("forums", "id", $cd.fid).then(function (res) {
       $forum = res;
-      $forum = repack($forum, "forum");
+      $forum = Pack.forum($forum);
       createGUI();
     });
   }
@@ -2102,7 +2130,7 @@ function getMaxPageForum() {
     $forum.page[1] = parse();
     page = $forum.page[1] - $forum.page[0];
 
-    $idb.add("forums", repack($forum, "forum"));
+    $idb.add("forums", Pack.forum($forum));
 
     displayProgress('start', 'Обработка форума синдиката #' + $forum.id + ' «' + $forum.name + '»', 0, page + 1);
     displayProgressTime(page * 1250 + 1500);
@@ -2212,13 +2240,13 @@ function parseForum(index, mode, stopDate) {
     //date = getDate();
 
     return $idb.getOne('themes_' + $forum.id, "id", tid).then(function (res) {
-      theme = repack(res, "theme");
+      theme = Pack.theme(res);
 
       if (theme == null) {
         $forum.themes[1]++;
-        $idb.add('forums', repack($forum, "forum"));
+        $idb.add('forums', Pack.forum($forum));
 
-        theme = generateThemes(tid);
+        theme = Create.theme(tid);
         theme.name = getName();
         theme.author = getAuthor();
         theme.posts = getPosts();
@@ -2228,18 +2256,18 @@ function parseForum(index, mode, stopDate) {
         theme.posts = getPosts();
         theme.pages = getPages();
       }
-      $idb.add('themes_' + $forum.id, repack(theme, "theme"));
+      $idb.add('themes_' + $forum.id, Pack.theme(theme));
 
       return $idb.getOne('players', "id", theme.author[0]);
     }).then(function (res) {
-      player = repack(res, "player");
+      player = Pack.player(res);
 
       if (player == null) {
-        player = generatePlayers(theme.author[0]);
+        player = Create.player(theme.author[0]);
         player.name = theme.author[1];
         player.forums.push($forum.id);
 
-        member = generateMembers(theme.author[0]);
+        member = Create.member(theme.author[0]);
         member.start.push(theme.id);
 
         return null;
@@ -2250,13 +2278,13 @@ function parseForum(index, mode, stopDate) {
       }
     }).then(function (res) {
       if (res) {
-        member = repack(res, "member");
+        member = Pack.member(res);
 
         if (!$c.exist(theme.id, member.start)) member.start.push(theme.id);
       }
 
-      $idb.add('players', repack(player, "player"));
-      $idb.add('members_' + $forum.id, repack(member, "member"));
+      $idb.add('players', Pack.player(player));
+      $idb.add('members_' + $forum.id, Pack.member(member));
     });
 
     //if(mode){
@@ -3370,15 +3398,4 @@ function REQ(url, method, param, async, onsuccess, onfailure) {
   }
 }
 
-function repack(o, key) {
-  var r = {};
-
-  if (!o) return o;
-  Object.keys(o).forEach(function (value) {
-    r[$ts[key][value]] = o[value];
-  });
-
-  return r;
-}
-
-},{"./../../../lib/common":1,"./../../../lib/dom":2,"./../../../lib/events":3,"./../../../lib/idb":4,"./../../../lib/prototypes":5,"./../../../lib/request":6,"./../../../lib/table":7,"./../src/icons":8,"./../src/structure":9}]},{},[10]);
+},{"./../../../lib/common":1,"./../../../lib/dom":2,"./../../../lib/events":3,"./../../../lib/idb":4,"./../../../lib/prototypes":5,"./../../../lib/request":6,"./../../../lib/table":7,"./../src/generator":8,"./../src/icons":9,"./../src/packer":10}]},{},[11]);

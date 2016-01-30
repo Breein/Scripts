@@ -7,7 +7,8 @@ var createTable = require('./../../../lib/table');
 
 
 const $c = require('./../../../lib/common')();
-const $ts = require('./../src/structure')();
+const Create = require('./../src/generator')();
+const Pack = require('./../src/packer')();
 const $ico = require('./../src/icons');
 
 
@@ -357,78 +358,16 @@ function makeConnect(name, first){
     });
   }
 }
-
-
-function generatePlayers(id){
-  return {
-    id: id,
-    name: "",
-    status: "",
-    date: 0,
-    forums: []
-  }
-}
-
-function generateMembers(id){
-  return {
-    id: id,
-    posts: 0,
-    last: 0,
-    start: [],
-    write: [],
-    words: 0,
-    wordsAverage: 0,
-    carma: 0,
-    carmaAverage: 0,
-    sn: 0,
-    enter: 0,
-    exit: 0,
-    kick: 0,
-    invite: 0
-  }
-}
-
-function generateForums(id){
-  return {
-    id: id,
-    name: "",
-    sid: 0,
-    posts: 0,
-    words: 0,
-    page: [0, 0],
-    themes: [0, 0],
-    log: [0, 0]
-  }
-}
-
-function generateThemes(id){
-  return {
-    id: id,
-    name: "",
-    author: [0, ""],
-    posts: [0, 0],
-    pages: [0, 0],
-    start: 0
-  }
-}
-
-function generateTimestamps(id){
-  return {
-    id: id,
-    time: [],
-    data: []
-  }
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addToDB(){
   var forum;
 
   if(!$idb.exist(`themes_${$cd.fid}`)){
-    forum = generateForums($cd.fid);
+    forum = Create.forum($cd.fid);
     forum.name = $cd.fName;
     forum.sid = $cd.sid;
-    forum = repack(forum, "forum");
+    forum = Pack.forum(forum);
 
     $idb.add("forums", forum);
     $idb.setModifyingTableList([
@@ -449,7 +388,7 @@ function addToDB(){
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
       $forum = res;
-      $forum = repack($forum, "forum");
+      $forum = Pack.forum($forum);
       createGUI();
     });
   }
@@ -1385,7 +1324,7 @@ function getMaxPageForum(){
     $forum.page[1] = parse();
     page = $forum.page[1] - $forum.page[0];
 
-    $idb.add("forums", repack($forum, "forum"));
+    $idb.add("forums", Pack.forum($forum));
 
     displayProgress('start', `Обработка форума синдиката #${$forum.id} «${$forum.name}»`, 0, page + 1);
     displayProgressTime(page * 1250 + 1500);
@@ -1510,13 +1449,13 @@ function parseForum(index, mode, stopDate){
 
 
     return $idb.getOne(`themes_${$forum.id}`, "id", tid).then((res)=>{
-      theme = repack(res, "theme");
+      theme = Pack.theme(res);
 
       if(theme == null){
         $forum.themes[1]++;
-        $idb.add(`forums`, repack($forum, "forum"));
+        $idb.add(`forums`, Pack.forum($forum));
 
-        theme = generateThemes(tid);
+        theme = Create.theme(tid);
         theme.name = getName();
         theme.author = getAuthor();
         theme.posts = getPosts();
@@ -1526,18 +1465,18 @@ function parseForum(index, mode, stopDate){
         theme.posts = getPosts();
         theme.pages = getPages();
       }
-      $idb.add(`themes_${$forum.id}`, repack(theme, "theme"));
+      $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
 
       return $idb.getOne(`players`, "id", theme.author[0]);
     }).then((res)=>{
-      player = repack(res, "player");
+      player = Pack.player(res);
 
       if(player == null){
-        player = generatePlayers(theme.author[0]);
+        player = Create.player(theme.author[0]);
         player.name = theme.author[1];
         player.forums.push($forum.id);
 
-        member = generateMembers(theme.author[0]);
+        member = Create.member(theme.author[0]);
         member.start.push(theme.id);
 
         return null;
@@ -1548,13 +1487,13 @@ function parseForum(index, mode, stopDate){
       }
     }).then((res)=>{
       if(res){
-        member = repack(res, "member");
+        member = Pack.member(res);
 
         if(!$c.exist(theme.id, member.start)) member.start.push(theme.id);
       }
 
-      $idb.add(`players`, repack(player, "player"));
-      $idb.add(`members_${$forum.id}`, repack(member, "member"));
+      $idb.add(`players`, Pack.player(player));
+      $idb.add(`members_${$forum.id}`, Pack.member(member));
     });
 
 
@@ -2877,15 +2816,4 @@ function REQ(url, method, param, async, onsuccess, onfailure) {
     if (request.status == 200 && typeof onsuccess != 'undefined') onsuccess(request);
     else if (request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
   }
-}
-
-function repack(o, key){
-  var r = {};
-
-  if(!o) return o;
-  Object.keys(o).forEach(function(value){
-    r[$ts[key][value]] = o[value];
-  });
-
-  return r;
 }

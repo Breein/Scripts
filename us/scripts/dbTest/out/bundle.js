@@ -1,6 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-"use strict";
-
 function Api(param) {
   this.selector = param;
   this.nodeList = [];
@@ -13,7 +11,7 @@ Api.prototype = {
    * @param {null|number} param
    * @returns {Array}
    */
-  node: function node(param) {
+  node: function (param) {
     if (param != null) {
       if (param == -1) {
         param = this.length - 1;
@@ -27,14 +25,14 @@ Api.prototype = {
   /**
    * @returns {[]}
    */
-  nodes: function nodes() {
+  nodes: function () {
     return this.nodeList;
   },
 
   /**
    * @returns {[]}
    */
-  nodeArr: function nodeArr() {
+  nodeArr: function(){
     var nodes, length;
 
     length = this.nodeList.length;
@@ -50,7 +48,7 @@ Api.prototype = {
   /**
    * @returns {string}
    */
-  getSelector: function getSelector() {
+  getSelector: function () {
     return this.selector;
   },
 
@@ -58,7 +56,7 @@ Api.prototype = {
    * @param {null|*} param
    * @returns {Api|string}
    */
-  html: function html(param) {
+  html: function (param) {
     if (param != null) {
       this.nodeList[0].innerHTML = param;
       return this;
@@ -70,7 +68,7 @@ Api.prototype = {
   /**
    * @returns {string}
    */
-  text: function text() {
+  text: function () {
     return this.nodeList[0] ? this.nodeList[0].textContent : "This node is null. Selector: " + this.selector;
   },
 
@@ -79,7 +77,7 @@ Api.prototype = {
    * @param {string} value
    * @returns {Api}
    */
-  attr: function attr(attribute, value) {
+  attr: function(attribute, value){
     this.nodeList[0].setAttribute(attribute, value);
     return this;
   },
@@ -88,14 +86,9 @@ Api.prototype = {
    * @param {string} param
    * @returns {Api}
    */
-  find: function find(param) {
-    var text,
-        selector,
-        node,
-        key = false;
-    var i,
-        length,
-        nodesArray = [];
+  find: function (param) {
+    var text, selector, node, key = false;
+    var i, length, nodesArray = [];
 
     this.selector = param;
     node = this.nodeList[0] ? this.nodeList[0] : document;
@@ -141,7 +134,7 @@ Api.prototype = {
    * @param {string} param
    * @returns {Api}
    */
-  up: function up(param) {
+  up: function (param){
     var node;
 
     this.selector += " > up[" + param + "]";
@@ -168,7 +161,7 @@ Api.prototype = {
    * @param {string} param
    * @returns {Api}
    */
-  next: function next(param) {
+  next: function (param){
     var node, lastNode;
 
     this.selector += " > next[" + param + "]";
@@ -219,8 +212,6 @@ module.exports = function $(param) {
 };
 
 },{}],2:[function(require,module,exports){
-'use strict';
-
 module.exports = function bindEvent(element, event, callback) {
   if (!element) {
     return;
@@ -232,16 +223,13 @@ module.exports = function bindEvent(element, event, callback) {
     element.addEventListener(event, callback, false);
   } else if (element.attachEvent) {
     if (event.substr(0, 2) != 'on') {
-      event = 'on' + event;
+      event = 'on'+event;
     }
     element.attachEvent(event, callback, false);
   }
 };
-
 },{}],3:[function(require,module,exports){
-"use strict";
-
-function DB(name) {
+function DB(name){
   this.o = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   this.t = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
   this.kr = window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
@@ -262,30 +250,28 @@ DB.prototype = {
   /**
    *
    */
-  connectDB: function connectDB() {
-    var _this = this;
-
-    return new Promise(function (onsuccess) {
-      var idb = _this;
+  connectDB: function(){
+    return new Promise((onsuccess) =>{
+      var idb = this;
 
       console.log("Run connect, version " + idb.version);
 
-      idb.r = idb.o.open(_this.name, idb.version);
+      idb.r = idb.o.open(this.name, idb.version);
 
-      idb.r.onerror = function () {
+      idb.r.onerror = function(){
         console.log("Error!");
       };
 
-      idb.r.onsuccess = function () {
+      idb.r.onsuccess = function(){
         idb.db = idb.r.result;
         console.log("Success connect!");
         onsuccess(idb);
       };
 
-      _this.r.onupgradeneeded = function (e) {
+      this.r.onupgradeneeded = function(e){
         idb.db = e.currentTarget.result;
 
-        if (idb.version == 2) {
+        if(idb.version == 2){
           idb.upgrade(true);
           console.log("Create: defaults");
         }
@@ -298,53 +284,51 @@ DB.prototype = {
   /**
    * @param {*[]} list
    */
-  setModifyingTableList: function setModifyingTableList(list) {
+  setModifyingTableList: function(list){
     this.modifyingTable = list;
   },
 
   /**
    * @param {*[]} list
    */
-  setIniTableList: function setIniTableList(list) {
+  setIniTableList: function(list){
     this.iniBase = list;
   },
   /**
    * @param {string[]} list
    */
-  setRemoveTableList: function setRemoveTableList(list) {
+  setRemoveTableList: function(list){
     this.removeTable = list;
   },
 
   /**
    * @param {boolean} ini
    */
-  upgrade: function upgrade(ini) {
-    var table,
-        todo,
-        idb = this;
+  upgrade: function(ini){
+    var table, todo, idb = this;
 
     todo = ini ? idb.iniBase : idb.modifyingTable;
 
-    if (todo) {
-      todo.forEach(function (t) {
-        if (idb.exist(t.name)) {
+    if(todo){
+      todo.forEach(function(t){
+        if(idb.exist(t.name)){
           table = idb.r.transaction.objectStore(t.name);
-        } else {
-          table = idb.db.createObjectStore(t.name, { keyPath: t.key });
+        }else{
+          table = idb.db.createObjectStore(t.name, {keyPath: t.key});
           console.log("Success created: " + t.name);
         }
 
-        if (t.index) {
-          t.index.forEach(function (index) {
-            table.createIndex(index[0], index[1], { unique: index[2] });
+        if(t.index){
+          t.index.forEach(function(index){
+            table.createIndex(index[0], index[1], {unique: index[2]});
             console.log("Success created index: " + index.toString());
           });
         }
       });
       todo = null;
     }
-    if (idb.removeTable) {
-      idb.removeTable.forEach(function (t) {
+    if(idb.removeTable){
+      idb.removeTable.forEach(function(t){
         idb.db.deleteObjectStore(t);
         console.log("Success removed: " + t);
       });
@@ -357,14 +341,14 @@ DB.prototype = {
    * @param {string} name
    * @returns {boolean}
    */
-  exist: function exist(name) {
+  exist: function (name){
     var length, array;
 
     array = this.db.objectStoreNames;
     length = array.length;
 
-    while (length--) {
-      if (array[length] == name) {
+    while(length--){
+      if(array[length] == name){
         return true;
       }
     }
@@ -374,14 +358,14 @@ DB.prototype = {
   /**
    *
    */
-  nextVersion: function nextVersion() {
+  nextVersion: function(){
     this.version++;
   },
 
   /**
    *
    */
-  deleteDB: function deleteDB() {
+  deleteDB: function(){
     this.o.deleteDatabase(this.name);
     console.log("Success deleted: " + this.name);
   },
@@ -392,24 +376,23 @@ DB.prototype = {
    * @param {string|number} value
    * @returns {object}
    */
-  getOne: function getOne(table, index, value) {
-    var _this2 = this;
+  getOne: function(table, index, value){
+    return new Promise((onsuccess) => {
+      this.tx = this.db.transaction([table], "readonly");
+      this.store = this.tx.objectStore(table);
 
-    return new Promise(function (onsuccess) {
-      _this2.tx = _this2.db.transaction([table], "readonly");
-      _this2.store = _this2.tx.objectStore(table);
+      if(index == "id"){
+        this.store.get(value).onsuccess = function(event){
+            onsuccess(event.target.result);
+        }
+      }else{
+        this.index = this.store.index(index);
+        this.index = this.index.get(value);
 
-      if (index == "id") {
-        _this2.store.get(value).onsuccess = function (event) {
-          onsuccess(event.target.result);
-        };
-      } else {
-        _this2.index = _this2.store.index(index);
-        _this2.index = _this2.index.get(value);
-
-        _this2.index.onsuccess = function (event) {
+        this.index.onsuccess = function(event){
           onsuccess(event.target.result); // здесь возвращается результат
         };
+
       }
     });
   },
@@ -419,27 +402,25 @@ DB.prototype = {
    * @param {number[]|null} range
    * @param {string|null} index
    */
-  getFew: function getFew(table, range, index) {
-    var _this3 = this;
-
-    return new Promise(function (onsuccess) {
+  getFew: function(table, range, index){
+    return new Promise((onsuccess) =>{
       var results = [];
-      var krv = range ? _this3.kr.bound(range[0], range[1]) : null;
+      var krv = range ? this.kr.bound(range[0], range[1]) : null;
 
-      _this3.tx = _this3.db.transaction([table], "readonly");
-      _this3.store = _this3.tx.objectStore(table);
+      this.tx = this.db.transaction([table], "readonly");
+      this.store = this.tx.objectStore(table);
 
-      if (index) {
-        _this3.store = _this3.store.index(index);
+      if(index){
+        this.store = this.store.index(index);
       }
 
-      _this3.store.openCursor(krv).onsuccess = function (event) {
+      this.store.openCursor(krv).onsuccess = function(event){
         var cursor = event.target.result;
 
-        if (cursor) {
+        if(cursor){
           results.push(cursor.value);
-          cursor["continue"]();
-        } else {
+          cursor.continue();
+        }else{
           console.log("Got all results: ");
           onsuccess(results);
         }
@@ -451,15 +432,14 @@ DB.prototype = {
    * @param {string} table
    * @param {object} data
    */
-  add: function add(table, data) {
-    try {
+  add: function(table, data){
+    try{
       this.tx = this.db.transaction([table], "readwrite");
       this.store = this.tx.objectStore(table);
 
       this.store.put(data);
-      console.log("Success added");
-      console.log(data);
-    } catch (e) {
+      console.log("Success added to " + table);
+    }catch(e){
       console.log("Failed added");
       console.log(e);
     }
@@ -470,27 +450,26 @@ DB.prototype = {
  * @param {string} name
  *
  */
-module.exports = function (name) {
-  return new Promise(function (onsuccess) {
-    var db, idb;
+module.exports = function(name){
+  return new Promise((onsuccess) => {
+      var db, idb;
 
-    idb = new DB(name);
-    db = idb.o.open(name);
+      idb = new DB(name);
+      db = idb.o.open(name);
 
-    db.onsuccess = function () {
-      idb.version = db.result.version == 1 ? 2 : db.result.version;
-      db.result.close();
+      db.onsuccess = function(){
+        idb.version = db.result.version == 1 ? 2 : db.result.version;
+        db.result.close();
 
-      onsuccess(idb);
-    };
-  });
+        onsuccess(idb);
+      };
+    }
+  )
 };
 
 },{}],4:[function(require,module,exports){
-'use strict';
-
 module.exports = function (url, method, param) {
-  return new Promise(function (onsuccess, onfailure) {
+  return new Promise((onsuccess, onfailure) => {
     var request = new XMLHttpRequest();
 
     request.open(method, url, true);
@@ -503,13 +482,10 @@ module.exports = function (url, method, param) {
       } else if (request.readyState == 4 && request.status != 200) {
         onfailure(request);
       }
-    };
+    }
   });
 };
-
 },{}],5:[function(require,module,exports){
-'use strict';
-
 var db = require('./../../../lib/idb');
 var $ = require('./../../../lib/dom');
 var ajax = require('./../../../lib/request');
@@ -517,102 +493,50 @@ var bindEvent = require('./../../../lib/events');
 
 var $idb, $ts, $dbAnswer;
 
-//makeConnect("Test", true);
 
-var button = $('<input>').attr("type", "button").attr("value", "Click!").node();
+Function.prototype.gkWait = function(args, g){
+  var f = this;
+  f.apply(null, args || []).then((result)=>{
+    g.next("All Ok");
+    //g.next(result);
+  });
+};
 
-document.body.appendChild(button);
+var arr = ["/me/", "/syndicates.php", "/shop.php"];
 
-bindEvent(button, "onclick", click);
-
-//console.log(db);
-
-function click() {
-  console.log("Click!");
-  //idb.setRemoveTableList(["addedTable_noIndex", "addedTable", "addedTable_2"]);
-  //idb.setModifyingTableList([
-  //  {
-  //    name: "addedTable_noIndex",
-  //    index: [["id", "id", true]]
-  //  }
-  //]);
-  $idb.db.close();
-  $idb.version++;
-  //makeConnect("Test");
-}
-
-setTimeout(function () {
-  //getData();
-  //idb.deleteDB();
-}, 500);
-
-console.log("Start");
-ajax("http://www.ganjawars.ru/me/", "GET", null).then(function (result) {
-  console.log(result);
-  result = "Changed!";
-
-  return result;
-}).then(function (result) {
-  console.log(result);
+forEach(arr).then(()=>{
+  console.log("ForEach - Ok");
 });
-console.log("End");
 
-function getData() {
+function forEach(array){
+  var gen;
 
-  //console.log("One:");
-  //db.add("members", {
-  //  id: 1,
-  //  a: "Some Member 1",
-  //  b: {text: "OK", "date": 2873487}
-  //});
-  //console.log("Two:");
-  //db.add("members", {
-  //  id: 2,
-  //  a: "Some Member 2",
-  //  b: {text: "Not OK", "date": 100000}
-  //});
-  //console.log("Three:");
-  //db.add("members", {
-  //  id: 3,
-  //  a: "Some Member 3",
-  //  b: {text: "OK", "date": 4544545}
-  //});
-  //console.log("Done:");
+  return new Promise((resolve)=>{
+    gen = parse(arr);
+    gen.next();
 
-  //try{
+    function* parse(){
+      console.log("Start");
+      var a;
 
-  //console.log(exist("hdsby", idb.db.objectStoreNames));
+      a = yield ajax.gkWait(["http://www.ganjawars.ru" + array[0], "GET", null], gen);
 
-  //result = await idb.getFew("members", [[1, "Заблокирован"], [1000000, "Заблокирован"]], 'id, status');
+      // some code;
 
-  console.log("Result:");
-  if ($dbAnswer) {
-    console.log($dbAnswer);
-  } else {
-    console.log("Not found!");
-  }
-
-  //console.log(result);
-}
-
-function makeConnect(name, first) {
-  if (first) $idb = db(name);
-  $idb = $idb.connectDB();
-
-  console.log($idb);
-}
-
-function exist(value, array) {
-  var length;
-
-  length = array.length;
-
-  while (length--) {
-    if (array[length] == value) {
-      return true;
+      console.log(a);
+      console.log("End\n\n");
+      next();
     }
-  }
-  return false;
-}
 
+    function next(){
+      array.shift();
+      if(array.length){
+        gen = parse();
+        gen.next();
+      }else{
+        resolve();
+      }
+    }
+  });
+}
 },{"./../../../lib/dom":1,"./../../../lib/events":2,"./../../../lib/idb":3,"./../../../lib/request":4}]},{},[5]);
