@@ -13,7 +13,8 @@ GeneratorData.prototype = {
       name: "",
       status: "",
       date: 0,
-      forums: []
+      forums: [],
+      _ch: true
     }
   },
 
@@ -30,7 +31,8 @@ GeneratorData.prototype = {
       words: 0,
       page: [0, 0],
       themes: [0, 0],
-      log: [0, 0]
+      log: [0, 0],
+      _ch: true
     }
   },
 
@@ -45,7 +47,8 @@ GeneratorData.prototype = {
       author: [0, ""],
       posts: [0, 0],
       pages: [0, 0],
-      start: 0
+      start: 0,
+      _ch: true
     }
   },
 
@@ -68,7 +71,8 @@ GeneratorData.prototype = {
       enter: 0,
       exit: 0,
       kick: 0,
-      invite: 0
+      invite: 0,
+      _ch: true
     }
   },
 
@@ -80,7 +84,8 @@ GeneratorData.prototype = {
     return {
       id: id,
       time: [],
-      data: []
+      data: [],
+      _ch: true
     }
   }
 };

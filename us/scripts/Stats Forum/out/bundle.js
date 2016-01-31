@@ -1,7 +1,7 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
+function Common(){
 
-function Common() {}
+}
 
 Common.prototype = {
 
@@ -11,17 +11,17 @@ Common.prototype = {
    * @param {boolean} int
    * @returns {number}
    */
-  getPercent: function getPercent(now, max, int) {
+  getPercent: function (now, max, int){
     var percent;
 
-    if (now == 0 || max == 0) {
+    if(now == 0 || max == 0){
       return 0;
     }
 
-    percent = now / max * 100;
-    if (int) {
+    percent = (now / max) * 100;
+    if(int){
       percent = parseInt(percent, 10);
-    } else {
+    }else{
       percent = parseFloat(percent.toFixed(1));
     }
 
@@ -34,9 +34,9 @@ Common.prototype = {
    * @param {null|boolean} full
    * @returns {object}
    */
-  getNormalDate: function getNormalDate(date, full) {
-    if (isNaN(date)) return { d: date, t: '-' };
-    if (date == 0) return { d: '-', t: '-' };
+  getNormalDate: function (date, full){
+    if(isNaN(date)) return {d: date, t: '-'};
+    if(date == 0) return {d: '-', t: '-'};
 
     date = date * 1000;
     date = new Date(date);
@@ -44,15 +44,15 @@ Common.prototype = {
 
     date = date.match(/(\d+).(\d+).(\d+), (\d+):(\d+):(.+)/);
 
-    if (full != null) {
+    if(full != null) {
       date = {
-        d: date[1] + '.' + date[2] + '.' + date[3],
-        t: date[4] + ':' + date[5]
+        d: `${date[1]}.${date[2]}.${date[3]}`,
+        t: `${date[4]}:${date[5]}`
       };
-    } else {
+    }else{
       date = {
-        d: date[1] + '.' + date[2] + '.' + date[3].charAt(2) + date[3].charAt(3),
-        t: date[4] + ':' + date[5]
+        d: `${date[1]}.${date[2]}.${date[3].charAt(2)}${date[3].charAt(3)}`,
+        t: `${date[4]}:${date[5]}`
       };
     }
 
@@ -64,27 +64,27 @@ Common.prototype = {
    * @param {number} t
    * @returns {string}
    */
-  getNormalTime: function getNormalTime(t) {
+  getNormalTime: function (t){
     var result, hh, mm, ss;
 
     hh = 0;
     t = parseInt(t / 1000, 10);
 
-    if (t > 3600) {
+    if(t > 3600){
       hh = parseInt(t / 3600, 10);
       t = t % 3600;
     }
     mm = parseInt(t / 60, 10);
     ss = parseInt(t % 60, 10);
 
-    if (mm < 10) mm = "0" + mm;
-    if (ss < 10) ss = "0" + ss;
+    if(mm < 10) mm = "0" + mm;
+    if(ss < 10) ss = "0" + ss;
 
-    result = mm + ':' + ss;
+    result = `${mm}:${ss}`;
 
-    if (hh > 0) {
-      if (hh < 10) hh = "0" + hh;
-      result = hh + ':' + result;
+    if(hh > 0){
+      if(hh < 10) hh = "0" + hh;
+      result = `${hh}:${result}`;
     }
     return result;
   },
@@ -93,21 +93,21 @@ Common.prototype = {
    * @param {number} value
    * @returns {string}
    */
-  convertID: function convertID(value) {
+  convertID: function (value){
     var result, i, j;
 
-    if (value < 1000) return value;
+    if(value < 1000) return value;
 
     value = value.toString();
-    j = 1;i = value.length;
+    j = 1; i = value.length;
     result = "";
 
-    while (i--) {
+    while(i--){
       result = value.charAt(i) + result;
-      if (j % 3 == 0 && j != 0 && i != 0) {
+      if(j%3 == 0 && j != 0 && i != 0){
         result = ',' + result;
       }
-      j++;
+      j++
     }
     return result;
   },
@@ -116,10 +116,10 @@ Common.prototype = {
    * @param {string} str
    * @returns {string}
    */
-  encodeHeader: function encodeHeader(str) {
+  encodeHeader: function (str){
     var a, string;
 
-    if (!str) return str;
+    if(!str) return str;
 
     string = String(str).replace(/%/g, '%25').replace(/\+/g, '%2B').replace(/\n/g, '%0A');
     a = document.createElement('a');
@@ -135,7 +135,7 @@ Common.prototype = {
    * @param {number} max
    * @returns {number}
    */
-  randomNumber: function randomNumber(min, max) {
+  randomNumber: function (min, max){
     return Math.floor(Math.random() * (max - min + 1)) + min;
   },
 
@@ -145,13 +145,13 @@ Common.prototype = {
    * @param {*[]} array
    * @returns {boolean}
    */
-  exist: function exist(value, array) {
+  exist: function(value, array){
     var length;
 
     length = array.length;
 
-    while (length--) {
-      if (array[length] == value) {
+    while(length--){
+      if(array[length] == value){
         return true;
       }
     }
@@ -159,13 +159,11 @@ Common.prototype = {
   }
 };
 
-module.exports = function () {
+module.exports = function (){
   return new Common();
 };
 
 },{}],2:[function(require,module,exports){
-"use strict";
-
 function Api(param) {
   this.selector = param;
   this.nodeList = [];
@@ -178,7 +176,7 @@ Api.prototype = {
    * @param {null|number} param
    * @returns {Array}
    */
-  node: function node(param) {
+  node: function (param) {
     if (param != null) {
       if (param == -1) {
         param = this.length - 1;
@@ -192,14 +190,14 @@ Api.prototype = {
   /**
    * @returns {[]}
    */
-  nodes: function nodes() {
+  nodes: function () {
     return this.nodeList;
   },
 
   /**
    * @returns {[]}
    */
-  nodeArr: function nodeArr() {
+  nodeArr: function(){
     var nodes, length;
 
     length = this.nodeList.length;
@@ -215,7 +213,7 @@ Api.prototype = {
   /**
    * @returns {string}
    */
-  getSelector: function getSelector() {
+  getSelector: function () {
     return this.selector;
   },
 
@@ -223,7 +221,7 @@ Api.prototype = {
    * @param {null|*} param
    * @returns {Api|string}
    */
-  html: function html(param) {
+  html: function (param) {
     if (param != null) {
       this.nodeList[0].innerHTML = param;
       return this;
@@ -235,7 +233,7 @@ Api.prototype = {
   /**
    * @returns {string}
    */
-  text: function text() {
+  text: function () {
     return this.nodeList[0] ? this.nodeList[0].textContent : "This node is null. Selector: " + this.selector;
   },
 
@@ -244,7 +242,7 @@ Api.prototype = {
    * @param {string} value
    * @returns {Api}
    */
-  attr: function attr(attribute, value) {
+  attr: function(attribute, value){
     this.nodeList[0].setAttribute(attribute, value);
     return this;
   },
@@ -253,14 +251,9 @@ Api.prototype = {
    * @param {string} param
    * @returns {Api}
    */
-  find: function find(param) {
-    var text,
-        selector,
-        node,
-        key = false;
-    var i,
-        length,
-        nodesArray = [];
+  find: function (param) {
+    var text, selector, node, key = false;
+    var i, length, nodesArray = [];
 
     this.selector = param;
     node = this.nodeList[0] ? this.nodeList[0] : document;
@@ -306,7 +299,7 @@ Api.prototype = {
    * @param {string} param
    * @returns {Api}
    */
-  up: function up(param) {
+  up: function (param){
     var node;
 
     this.selector += " > up[" + param + "]";
@@ -333,7 +326,7 @@ Api.prototype = {
    * @param {string} param
    * @returns {Api}
    */
-  next: function next(param) {
+  next: function (param){
     var node, lastNode;
 
     this.selector += " > next[" + param + "]";
@@ -384,8 +377,6 @@ module.exports = function $(param) {
 };
 
 },{}],3:[function(require,module,exports){
-'use strict';
-
 module.exports = function bindEvent(element, event, callback) {
   if (!element) {
     return;
@@ -397,16 +388,13 @@ module.exports = function bindEvent(element, event, callback) {
     element.addEventListener(event, callback, false);
   } else if (element.attachEvent) {
     if (event.substr(0, 2) != 'on') {
-      event = 'on' + event;
+      event = 'on'+event;
     }
     element.attachEvent(event, callback, false);
   }
 };
-
 },{}],4:[function(require,module,exports){
-"use strict";
-
-function DB(name) {
+function DB(name){
   this.o = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   this.t = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
   this.kr = window.IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
@@ -427,30 +415,28 @@ DB.prototype = {
   /**
    *
    */
-  connectDB: function connectDB() {
-    var _this = this;
+  connectDB: function(){
+    var idb = this;
 
-    return new Promise(function (onsuccess) {
-      var idb = _this;
-
+    return new Promise((onsuccess) =>{
       console.log("Run connect, version " + idb.version);
 
-      idb.r = idb.o.open(_this.name, idb.version);
+      idb.r = idb.o.open(this.name, idb.version);
 
-      idb.r.onerror = function () {
+      idb.r.onerror = function(){
         console.log("Error!");
       };
 
-      idb.r.onsuccess = function () {
+      idb.r.onsuccess = function(){
         idb.db = idb.r.result;
         console.log("Success connect!");
         onsuccess(idb);
       };
 
-      _this.r.onupgradeneeded = function (e) {
+      this.r.onupgradeneeded = function(e){
         idb.db = e.currentTarget.result;
 
-        if (idb.version == 2) {
+        if(idb.version == 2){
           idb.upgrade(true);
           console.log("Create: defaults");
         }
@@ -463,53 +449,51 @@ DB.prototype = {
   /**
    * @param {*[]} list
    */
-  setModifyingTableList: function setModifyingTableList(list) {
+  setModifyingTableList: function(list){
     this.modifyingTable = list;
   },
 
   /**
    * @param {*[]} list
    */
-  setIniTableList: function setIniTableList(list) {
+  setIniTableList: function(list){
     this.iniBase = list;
   },
   /**
    * @param {string[]} list
    */
-  setRemoveTableList: function setRemoveTableList(list) {
+  setRemoveTableList: function(list){
     this.removeTable = list;
   },
 
   /**
    * @param {boolean} ini
    */
-  upgrade: function upgrade(ini) {
-    var table,
-        todo,
-        idb = this;
+  upgrade: function(ini){
+    var table, todo, idb = this;
 
     todo = ini ? idb.iniBase : idb.modifyingTable;
 
-    if (todo) {
-      todo.forEach(function (t) {
-        if (idb.exist(t.name)) {
+    if(todo){
+      todo.forEach(function(t){
+        if(idb.exist(t.name)){
           table = idb.r.transaction.objectStore(t.name);
-        } else {
-          table = idb.db.createObjectStore(t.name, { keyPath: t.key });
+        }else{
+          table = idb.db.createObjectStore(t.name, {keyPath: t.key});
           console.log("Success created: " + t.name);
         }
 
-        if (t.index) {
-          t.index.forEach(function (index) {
-            table.createIndex(index[0], index[1], { unique: index[2] });
+        if(t.index){
+          t.index.forEach(function(index){
+            table.createIndex(index[0], index[1], {unique: index[2]});
             console.log("Success created index: " + index.toString());
           });
         }
       });
       todo = null;
     }
-    if (idb.removeTable) {
-      idb.removeTable.forEach(function (t) {
+    if(idb.removeTable){
+      idb.removeTable.forEach(function(t){
         idb.db.deleteObjectStore(t);
         console.log("Success removed: " + t);
       });
@@ -522,14 +506,14 @@ DB.prototype = {
    * @param {string} name
    * @returns {boolean}
    */
-  exist: function exist(name) {
+  exist: function (name){
     var length, array;
 
     array = this.db.objectStoreNames;
     length = array.length;
 
-    while (length--) {
-      if (array[length] == name) {
+    while(length--){
+      if(array[length] == name){
         return true;
       }
     }
@@ -539,14 +523,14 @@ DB.prototype = {
   /**
    *
    */
-  nextVersion: function nextVersion() {
+  nextVersion: function(){
     this.version++;
   },
 
   /**
    *
    */
-  deleteDB: function deleteDB() {
+  deleteDB: function(){
     this.o.deleteDatabase(this.name);
     console.log("Success deleted: " + this.name);
   },
@@ -557,22 +541,20 @@ DB.prototype = {
    * @param {string|number} value
    * @returns {object}
    */
-  getOne: function getOne(table, index, value) {
-    var _this2 = this;
+  getOne: function(table, index, value){
+    return new Promise((onsuccess) => {
+      this.tx = this.db.transaction([table], "readonly");
+      this.store = this.tx.objectStore(table);
 
-    return new Promise(function (onsuccess) {
-      _this2.tx = _this2.db.transaction([table], "readonly");
-      _this2.store = _this2.tx.objectStore(table);
+      if(index == "id"){
+        this.store.get(value).onsuccess = function(event){
+            onsuccess(event.target.result);
+        }
+      }else{
+        this.index = this.store.index(index);
+        this.index = this.index.get(value);
 
-      if (index == "id") {
-        _this2.store.get(value).onsuccess = function (event) {
-          onsuccess(event.target.result);
-        };
-      } else {
-        _this2.index = _this2.store.index(index);
-        _this2.index = _this2.index.get(value);
-
-        _this2.index.onsuccess = function (event) {
+        this.index.onsuccess = function(event){
           onsuccess(event.target.result); // здесь возвращается результат
         };
       }
@@ -584,27 +566,25 @@ DB.prototype = {
    * @param {number[]|null} range
    * @param {string|null} index
    */
-  getFew: function getFew(table, range, index) {
-    var _this3 = this;
-
-    return new Promise(function (onsuccess) {
+  getFew: function(table, range, index){
+    return new Promise((onsuccess) =>{
       var results = [];
-      var krv = range ? _this3.kr.bound(range[0], range[1]) : null;
+      var krv = range ? this.kr.bound(range[0], range[1]) : null;
 
-      _this3.tx = _this3.db.transaction([table], "readonly");
-      _this3.store = _this3.tx.objectStore(table);
+      this.tx = this.db.transaction([table], "readonly");
+      this.store = this.tx.objectStore(table);
 
-      if (index) {
-        _this3.store = _this3.store.index(index);
+      if(index){
+        this.store = this.store.index(index);
       }
 
-      _this3.store.openCursor(krv).onsuccess = function (event) {
+      this.store.openCursor(krv).onsuccess = function(event){
         var cursor = event.target.result;
 
-        if (cursor) {
+        if(cursor){
           results.push(cursor.value);
-          cursor["continue"]();
-        } else {
+          cursor.continue();
+        }else{
           console.log("Got all results: ");
           onsuccess(results);
         }
@@ -616,14 +596,19 @@ DB.prototype = {
    * @param {string} table
    * @param {object} data
    */
-  add: function add(table, data) {
-    try {
+  add: function(table, data){
+    try{
       this.tx = this.db.transaction([table], "readwrite");
       this.store = this.tx.objectStore(table);
 
-      this.store.put(data);
-      console.log("Success added to " + table);
-    } catch (e) {
+      if(data._ch != null){
+        if(data._ch){
+          delete data._ch;
+          this.store.put(data);
+          console.log("Success added to " + table);
+        }
+      }
+    }catch(e){
       console.log("Failed added");
       console.log(e);
     }
@@ -634,26 +619,24 @@ DB.prototype = {
  * @param {string} name
  *
  */
-module.exports = function (name) {
-  return new Promise(function (onsuccess) {
-    var db, idb;
+module.exports = function(name){
+  return new Promise((onsuccess) => {
+      var db, idb;
 
-    idb = new DB(name);
-    db = idb.o.open(name);
+      idb = new DB(name);
+      db = idb.o.open(name);
 
-    db.onsuccess = function () {
-      idb.version = db.result.version == 1 ? 2 : db.result.version;
-      db.result.close();
-
-      onsuccess(idb);
-    };
-  });
+      db.onsuccess = function(){
+        idb.version = db.result.version == 1 ? 2 : db.result.version;
+        db.result.close();
+        onsuccess(idb);
+      };
+    }
+  )
 };
 
 },{}],5:[function(require,module,exports){
-"use strict";
-
-module.exports = function () {
+module.exports = function(){
   /**
    * Вызывает функцию через указанное количество миллисекунд в контексте ctx с аргументами args.
    * @param {int} timeout
@@ -661,9 +644,9 @@ module.exports = function () {
    * @param {Array} args
    * @return {Number} Идентификатор таймаута.
    */
-  Function.prototype.gkDelay = function (timeout, ctx, args) {
+  Function.prototype.gkDelay = function(timeout, ctx, args){
     var func = this;
-    return setTimeout(function () {
+    return setTimeout(function() {
       func.apply(ctx, args || []);
     }, timeout);
   };
@@ -672,26 +655,35 @@ module.exports = function () {
    * @param {*} value
    * @returns {boolean}
    */
-  Array.prototype.gkExist = function (value) {
+  Array.prototype.gkExist = function(value){
     var length, array;
 
     array = this;
     length = array.length;
 
-    while (length--) {
-      if (array[length] == value) {
+    while(length--){
+      if(array[length] == value){
         return true;
       }
     }
     return false;
   };
+
+  /**
+   * @param {Function} generator
+   * @param {*} ctx
+   * @param {*[]} args
+   */
+  Function.prototype.gkWait = function(generator, ctx, args){
+    var f = this;
+    f.apply(ctx, args || []).then((result)=>{
+      generator.next(result);
+    });
+  };
 };
-
 },{}],6:[function(require,module,exports){
-'use strict';
-
 module.exports = function (url, method, param) {
-  return new Promise(function (onsuccess, onfailure) {
+  return new Promise((onsuccess, onfailure) => {
     var request = new XMLHttpRequest();
 
     request.open(method, url, true);
@@ -704,17 +696,15 @@ module.exports = function (url, method, param) {
       } else if (request.readyState == 4 && request.status != 200) {
         onfailure(request);
       }
-    };
+    }
   });
 };
-
 },{}],7:[function(require,module,exports){
-'use strict';
-
 var $ = require('./dom');
 var bindEvent = require('./events');
+const $c = require('./common')();
 
-function Table(nodesID, settingsKey, settings) {
+function Table(nodesID, settingsKey, settings){
   this.header = nodesID[0];
   this.body = nodesID[1];
   this.footer = nodesID[2];
@@ -736,34 +726,34 @@ Table.prototype = {
   /**
    * @returns {string}
    */
-  getName: function getName() {
+  getName: function(){
     return this.name;
   },
 
   /**
    * @returns {object[]}
    */
-  getContent: function getContent() {
+  getContent: function(){
     return this.content;
   },
 
   /**
    * @returns {number}
    */
-  getLastRowContent: function getLastRowContent() {
+  getLastRowContent: function(){
     return this.rows - 1;
   },
 
   /**
    * @param {object} element
    */
-  pushContent: function pushContent(element) {
+  pushContent: function(element){
     this.content.push(element);
   },
 
   /**
    */
-  clearContent: function clearContent() {
+  clearContent: function(){
     this.content = [];
     this.rows = 0;
   },
@@ -771,7 +761,7 @@ Table.prototype = {
   /**
    * @param {object} icons
    */
-  setControl: function setControl(icons) {
+  setControl: function(icons){
     this.setSorts(icons);
     this.setFilters(icons);
   },
@@ -779,17 +769,17 @@ Table.prototype = {
   /**
    * @returns {object}
    */
-  getStructure: function getStructure() {
+  getStructure: function(){
     return this.structure;
   },
 
   /**
    * @param {number[]} array
    */
-  setWidth: function setWidth(array) {
+  setWidth: function(array){
     var table = this;
 
-    array.forEach(function (element, id) {
+    array.forEach(function(element, id){
       table.size[id] = element;
     });
   },
@@ -799,12 +789,12 @@ Table.prototype = {
    * @param {boolean|null} check
    * @returns {string}
    */
-  getWidth: function getWidth(index, check) {
+  getWidth: function(index, check){
     var width;
 
-    if (this.size[index]) {
+    if(this.size[index]){
       width = check ? this.size[index] - 17 : this.size[index];
-      return width != -1 ? 'width="' + width + '"' : "";
+      return width != -1 ? `width="${width}"` : "";
     }
   },
 
@@ -812,23 +802,23 @@ Table.prototype = {
    * @param {number} id
    * @returns {object[]}
    */
-  setContent: function setContent(id) {
+  setContent: function(id){
     var table, o;
 
     table = this;
     o = {};
 
-    Object.keys(table.getStructure()).forEach(function (value) {
-      if (table.structure[value].path.length == 2) {
+    Object.keys(table.getStructure()).forEach(function(value){
+      if(table.structure[value].path.length == 2){
         o[value] = eval(table.structure[value].path[0] + "['" + id + "']" + table.structure[value].path[1]);
-      } else {
-        if (table.structure[value].path[0] == "Number(id)") {
+      }else{
+        if(table.structure[value].path[0] == "Number(id)"){
           o[value] = Number(id);
         }
       }
     });
 
-    if (!table.filtering(o)) return null;
+    if(!table.filtering(o)) return null;
 
     table.pushContent(o);
     return table.content[table.getLastRowContent()];
@@ -837,18 +827,18 @@ Table.prototype = {
   /**
    * @param {object} icons
    */
-  changeSortImage: function changeSortImage(icons) {
+  changeSortImage: function(icons){
     var value, type, oldImg, newImg;
 
     value = this.settings.sort[this.name].cell;
     type = this.settings.sort[this.name].type;
 
-    if (value != this.sort.cell) {
-      oldImg = $(this.header).find('td[sort="' + this.sort.cell + '"]').node().lastChild;
+    if(value != this.sort.cell){
+      oldImg = $(this.header).find(`td[sort="${this.sort.cell}"]`).node().lastChild;
       oldImg.src = icons.sortNull;
     }
 
-    newImg = $(this.header).find('td[sort="' + value + '"]').node().lastChild;
+    newImg = $(this.header).find(`td[sort="${value}"]`).node().lastChild;
     newImg.src = type ? icons.sortDown : icons.sortUp;
   },
 
@@ -857,12 +847,12 @@ Table.prototype = {
    * @param {string} cell
    * @param {object} icons
    */
-  setSortImage: function setSortImage(td, cell, icons) {
+  setSortImage: function(td, cell, icons){
     var img = $(td).find('img').node();
 
-    if (this.settings.sort[this.name].cell != cell) {
+    if(this.settings.sort[this.name].cell != cell){
       img.src = icons.sortNull;
-    } else {
+    }else{
       img.src = this.settings.sort[this.name].type ? icons.sortDown : icons.sortUp;
     }
   },
@@ -870,7 +860,7 @@ Table.prototype = {
   /**
    *
    */
-  setSort: function setSort() {
+  setSort: function(){
     this.sort.cell = this.settings.sort[this.name].cell;
     this.sort.type = this.settings.sort[this.name].type;
   },
@@ -878,67 +868,69 @@ Table.prototype = {
   /**
    *
    */
-  sorting: function sorting() {
+  sorting: function(){
     var value, type, array;
 
     array = this.getContent();
     value = this.settings.sort[this.name].cell;
     type = this.settings.sort[this.name].type;
 
-    array.sort(function (e1, e2) {
-      var p1, p2, res;
+    array.sort(
+      function(e1, e2){
+        var p1, p2, res;
 
-      p1 = e1[value];p2 = e2[value];
+        p1 = e1[value]; p2 = e2[value];
 
-      if (typeof p1 == "object") {
-        if (p1.name) {
-          p1 = p1.name;
-          p2 = p2.name;
+        if(typeof p1 == "object"){
+          if(p1.name){
+            p1 = p1.name;
+            p2 = p2.name;
+          }
+          if(p1.text){
+            p1 = p1.text;
+            p2 = p2.text;
+          }
         }
-        if (p1.text) {
-          p1 = p1.text;
-          p2 = p2.text;
-        }
+
+        res = compare(p1, p2);
+        if(type) res = res == -1 ? 1 : -1;
+        return res;
       }
+    );
 
-      res = compare(p1, p2);
-      if (type) res = res == -1 ? 1 : -1;
-      return res;
-    });
-
-    function compare(e1, e2) {
-      if (e1 > e2) return 1;else if (e1 < e2) return -1;else return 0;
+    function compare(e1, e2){
+      if (e1 > e2) return 1;
+      else if (e1 < e2) return -1;
+      else return 0;
     }
   },
 
   /**
    * @param {object} icons
    */
-  setSorts: function setSorts(icons) {
+  setSorts: function(icons){
     var table = this;
 
-    $(table.header).find('td[sort]').nodeArr().forEach(function (td) {
+    $(table.header).find('td[sort]').nodeArr().forEach(function(td){
       var value;
 
       value = td.getAttribute("sort");
       table.setSortImage(td, value, icons);
-      bindEvent(td, 'onclick', function () {
-        doSort(td, table);
-      });
+      bindEvent(td, 'onclick', function(){doSort(td, table)});
     });
   },
 
   /**
    * @param {*[]} values
    */
-  setStructure: function setStructure(values) {
+  setStructure: function(values){
     var table, paths;
 
     table = this;
     paths = values[0];
 
-    values.forEach(function (elem) {
-      if (elem[0] != "paths") {
+    values.forEach(function(elem){
+      if(elem[0] != "paths") {
         table.structure[elem[0]] = {
           path: getPath(elem[1], elem[2]),
           filterType: elem[3],
@@ -947,13 +939,13 @@ Table.prototype = {
       }
     });
 
-    function getPath(e1, e2) {
+    function getPath(e1, e2){
       var result;
 
-      if (e1) {
+      if(e1){
         result = paths[e1] + e2;
         result = result.split("[id]");
-      } else {
+      }else{
         result = [e2];
       }
       return result;
@@ -963,20 +955,20 @@ Table.prototype = {
   /**
    * @param {object} icons
    */
-  setFilters: function setFilters(icons) {
+  setFilters: function(icons){
     var table = this;
 
-    $(table.footer).find('td[filter]').nodeArr().forEach(function (td) {
+    $(table.footer).find('td[filter]').nodeArr().forEach(function(td){
       var value, ico;
 
       value = td.getAttribute("filter");
 
-      if (table.structure[value].filterType) {
+      if(table.structure[value].filterType){
         ico = table.settings.show.themes[value] ? icons.boxOn : icons.boxOff;
-        ico = '<img style="margin-left: 1px;" src="' + ico + '"/>';
+        ico = `<img style="margin-left: 1px;" src="${ico}"/>`;
         td.innerHTML += ico;
 
-        bindEvent(td, 'onclick', function () {
+        bindEvent(td, 'onclick', function(){
           doFilter(td, table.settings, table.structure[value].filterType, table.structure[value].filterName);
         });
       }
@@ -987,38 +979,38 @@ Table.prototype = {
    * @param {object} row
    * @returns {boolean}
    */
-  filtering: function filtering(row) {
+  filtering: function(row){
     var filter, value, length, list;
 
     filter = this.settings.show[this.name];
     list = Object.keys(filter);
     length = list.length;
 
-    while (length--) {
+    while(length--){
       value = list[length];
 
-      switch (filter[value].type) {
+      switch (filter[value].type){
         case "boolean":
           if (filter[value].value != row[value]) return false;
           break;
 
         case "multiple":
-          if (!exist(row[value].text, filter[value].value)) return false;
+          if(!exist(row[value].text, filter[value].value)) return false;
           break;
 
         case "check":
-          if (!exist(row[value].name, filter[value].value)) return false;
+          if(!exist(row[value].name, filter[value].value)) return false;
           break;
 
         default:
-          if (compare(filter[value].value, row[value])) return false;
+          if (compare(filter[value].value , row[value])) return false;
       }
     }
     return true;
 
-    function compare(k, n) {
+    function compare(k, n){
       //if(k == null) return false;
-      if (isNaN(n)) n = parseInt(n, 10);
+      if(isNaN(n)) n = parseInt(n, 10);
       return !(k[0] <= n && n <= k[1]);
     }
   }
@@ -1030,14 +1022,11 @@ Table.prototype = {
  * @param {object} settings
  * @returns {Table}
  */
-module.exports = function (nodesID, settingsKey, settings) {
+module.exports = function (nodesID, settingsKey, settings){
   return new Table(nodesID, settingsKey, settings);
 };
-
-},{"./dom":2,"./events":3}],8:[function(require,module,exports){
-"use strict";
-
-function GeneratorData() {
+},{"./common":1,"./dom":2,"./events":3}],8:[function(require,module,exports){
+function GeneratorData(){
   this.object = null;
 }
 
@@ -1046,21 +1035,22 @@ GeneratorData.prototype = {
    * @param {number} id
    * @returns {object}
    */
-  player: function player(id) {
+  player: function(id){
     return {
       id: id,
       name: "",
       status: "",
       date: 0,
-      forums: []
-    };
+      forums: [],
+      _ch: true
+    }
   },
 
   /**
    * @param {number} id
    * @returns {object}
    */
-  forum: function forum(id) {
+  forum: function(id){
     return {
       id: id,
       name: "",
@@ -1069,30 +1059,32 @@ GeneratorData.prototype = {
       words: 0,
       page: [0, 0],
       themes: [0, 0],
-      log: [0, 0]
-    };
+      log: [0, 0],
+      _ch: true
+    }
   },
 
   /**
    * @param {number} id
    * @returns {object}
    */
-  theme: function theme(id) {
+  theme: function(id){
     return {
       id: id,
       name: "",
       author: [0, ""],
       posts: [0, 0],
       pages: [0, 0],
-      start: 0
-    };
+      start: 0,
+      _ch: true
+    }
   },
 
   /**
    * @param {number} id
    * @returns {object}
    */
-  member: function member(id) {
+  member: function(id){
     return {
       id: id,
       posts: 0,
@@ -1107,33 +1099,33 @@ GeneratorData.prototype = {
       enter: 0,
       exit: 0,
       kick: 0,
-      invite: 0
-    };
+      invite: 0,
+      _ch: true
+    }
   },
 
   /**
    * @param {number} id
    * @returns {object}
    */
-  timestamp: function timestamp(id) {
+  timestamp: function(id){
     return {
       id: id,
       time: [],
-      data: []
-    };
+      data: [],
+      _ch: true
+    }
   }
 };
 
 /**
  * @returns {GeneratorData}
  */
-module.exports = function () {
+module.exports = function(){
   return new GeneratorData();
 };
 
 },{}],9:[function(require,module,exports){
-"use strict";
-
 module.exports = {
     loading: "data:image/gif;base64,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",
     inTeam: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAABgUExURaHCpdDlz5m2nJ69orLVs5q5npawmKnLq/3//fb89aPFp5Stl5e0mpKxlqXIqejx5py7oJ7Aopa4mZu6n6vGrJy8oI+kkcLZw4utjt3t3Z+/o+P24PL48a7Qr7fVt////1D+6W0AAAAgdFJOU/////////////////////////////////////////8AXFwb7QAAAORJREFUeNrM0tGSgyAMBdCYCGpEF4mhK632//9y8aUjtLOvu/f1zGUyCfD8JfCHGC2+MsYSY9e+crQUrxjnHRIA85zT7a3GC+KsIl6JFlBl7jp7QbeIJ8pdSN2e+wVa9d5TSovh+53TPBfojQqaJKHpmwW4REERVZmO/guIKzToeLt98+OxBqiaI+LEw7Bv/eEo5XcrdNOtH4YmyDn1G45h67fgKGOq0Dmc1madvColggKz5XJA8ZL3VKPN6iyKEdK8jitGNNadbXN2DbhYnEyXlAc5t8vMPlbHxkviP/h9H/MjwAB5L0bCGQGg2gAAAABJRU5ErkJggg==",
@@ -1147,11 +1139,8 @@ module.exports = {
     filter: "data:image/png;base64,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",
     memberIco: " data:image/png;base64,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"
 };
-
 },{}],10:[function(require,module,exports){
-"use strict";
-
-function PackerData() {
+function PackerData(){
   this.object = null;
 }
 
@@ -1160,61 +1149,73 @@ PackerData.prototype = {
    * @param {object} o
    * @returns {object}
    */
-  isPacked: function isPacked(o) {
-    return o.a ? true : false;
+  isPacked: function(o){
+    return !(typeof o.a === 'undefined');
   },
 
   /**
    * @param {object} o
    * @returns {object}
    */
-  player: function player(o) {
-    return this.isPacked(o) ? { id: o.id, name: o.a, status: o.b, date: o.c, forums: o.d } : { id: o.id, a: o.name, b: o.status, c: o.date, d: o.forums };
+  player: function(o){
+    if(!o) return o;
+    return this.isPacked(o) ?
+    {id: o.id, name: o.a, status: o.b, date: o.c, forums: o.d, _ch: false} :
+    {id: o.id, a: o.name, b: o.status, c: o.date, d: o.forums, _ch: o._ch};
   },
 
   /**
    * @param {object} o
    * @returns {object}
    */
-  forum: function forum(o) {
-    return this.isPacked(o) ? { id: o.id, name: o.a, sid: o.b, posts: o.c, words: o.d, page: o.e, themes: o.f, log: o.g } : { id: o.id, a: o.name, b: o.sid, c: o.posts, d: o.words, e: o.page, f: o.themes, g: o.log };
+  forum: function(o){
+    if(!o) return o;
+    return this.isPacked(o) ?
+    {id: o.id, name: o.a, sid: o.b, posts: o.c, words: o.d, page: o.e, themes: o.f, log: o.g, _ch: false} :
+    {id: o.id, a: o.name, b: o.sid, c: o.posts, d: o.words, e: o.page, f: o.themes, g: o.log, _ch: o._ch};
   },
 
   /**
    * @param {object} o
    * @returns {object}
    */
-  theme: function theme(o) {
-    return this.isPacked(o) ? { id: o.id, name: o.a, author: o.b, posts: o.c, pages: o.d, start: o.e } : { id: o.id, a: o.name, b: o.author, c: o.posts, d: o.pages, e: o.start };
+  theme: function(o){
+    if(!o) return o;
+    return this.isPacked(o) ?
+    {id: o.id, name: o.a, author: o.b, posts: o.c, pages: o.d, start: o.e, _ch: false} :
+    {id: o.id, a: o.name, b: o.author, c: o.posts, d: o.pages, e: o.start, _ch: o._ch};
   },
 
   /**
    * @param {object} o
    * @returns {object}
    */
-  member: function member(o) {
-    return this.isPacked(o) ? { id: o.id, posts: o.a, last: o.b, start: o.c, write: o.d, words: o.e, wordsAverage: o.f, carma: o.g, carmaAverage: o.h, sn: o.i, enter: o.j, exit: o.k, kick: o.l, invite: o.m } : { id: o.id, a: o.posts, b: o.last, c: o.start, d: o.write, e: o.words, f: o.wordsAverage, g: o.carma, h: o.carmaAverage, i: o.sn, j: o.enter, k: o.exit, l: o.kick, m: o.invite };
+  member: function(o){
+    if(!o) return o;
+    return this.isPacked(o) ?
+    {id: o.id, posts: o.a, last: o.b, start: o.c, write: o.d, words: o.e, wordsAverage: o.f, carma: o.g, carmaAverage: o.h, sn: o.i, enter: o.j, exit: o.k, kick: o.l, invite: o.m, _ch: false} :
+    {id: o.id, a: o.posts, b: o.last, c: o.start, d: o.write, e: o.words, f: o.wordsAverage, g: o.carma, h: o.carmaAverage, i: o.sn, j: o.enter, k: o.exit, l: o.kick, m: o.invite, _ch: o._ch};
   },
 
   /**
    * @param {object} o
    * @returns {object}
    */
-  timestamp: function timestamp(o) {
-    return this.isPacked(o) ? { id: o.id, time: o.a, data: o.b } : { id: o.id, a: o.time, b: o.data };
+  timestamp: function(o){
+    if(!o) return o;
+    return this.isPacked(o) ?
+    {id: o.id, time: o.a, data: o.b, _ch: false} :
+    {id: o.id, a: o.time, b: o.data, _ch: o._ch};
   }
 };
 
 /**
  * @returns {PackerData}
  */
-module.exports = function () {
-  return new PackerData();
+module.exports = function(){
+ return new PackerData();
 };
-
 },{}],11:[function(require,module,exports){
-'use strict';
-
 require('./../../../lib/prototypes')();
 var $ = require('./../../../lib/dom');
 var db = require('./../../../lib/idb');
@@ -1222,10 +1223,12 @@ var bindEvent = require('./../../../lib/events');
 var ajax = require('./../../../lib/request');
 var createTable = require('./../../../lib/table');
 
-var $c = require('./../../../lib/common')();
-var Create = require('./../src/generator')();
-var Pack = require('./../src/packer')();
-var $ico = require('./../src/icons');
+
+const $c = require('./../../../lib/common')();
+const Create = require('./../src/generator')();
+const Pack = require('./../src/packer')();
+const $ico = require('./../src/icons');
+
 
 var $nameScript = "Stats forums [GW]";
 var $mode = true;
@@ -1233,7 +1236,7 @@ var $sd, $cd, $ss, $tsd, $answer, $screenWidth, $screenHeight, $date, $checked, 
 
 var $idb, $forum;
 
-var $statusStyle = {
+const $statusStyle = {
   "Ok": "",
   "Торговый": "font-weight: bold;",
   "Арестован": "color: blue;",
@@ -1271,9 +1274,9 @@ $ss = {
       cell: 'id'
     }
   },
-  show: {
-    stats: {},
-    themes: {}
+  show:{
+    stats:{},
+    themes:{}
   }
 };
 
@@ -1290,8 +1293,8 @@ $cd = {
   nameToId: {},
   members: [],
   countMembers: 0,
-  values: {
-    stats: {
+  values:{
+    stats:{
       id: ['ID', -1, -1],
       start: ['Тем начато', -1, -1],
       write: ['Участвовал', -1, -1],
@@ -1309,7 +1312,7 @@ $cd = {
       goAway: ['Изгнан', -1, -1],
       member: ['В составе', -1, -1]
     },
-    themes: {
+    themes:{
       id: '',
       date: '',
       posts: '',
@@ -1322,6 +1325,8 @@ $cd = {
   themesCount: 0
 };
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 addStyle();
@@ -1329,11 +1334,184 @@ createStatGUIButton();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function addStyle() {
+function addStyle(){
   var css, code;
 
-  code = 'table[type="padding"] td {\n    padding: 2px 5px 2px 5px;\n}\ntr[type="light"] {\n    background-color: #d8e8d8;\n}\ntr[type="lightChecked"] {\n    background-color: #c7dfc7;\n}\ntr[type^="light"]:hover {\n    background-color: #beccbe;\n}\ntr[type="header"] {\n    background-color: #d0eed0; font-weight: bold;\n}\n#sf_header_SI img, #sf_header_TL img{\n    float: right;\n}\ntd[sort], td[filter]{\n    cursor: pointer;\n}\ntd[sort]:hover, td[filter]:hover{\n    background-color: #cae1ca;\n}\n.sf_left {\n    padding-left: 5px;\n}\n#sf_STI {\n    padding: 0;\n}\n#sf_shadowLayer{\n    position: absolute;\n    width: 0;\n    height: 0;\n    z-index: 1;\n    background-color: #000000;\n    left: 0;\n    top: 0;\n    opacity: 0.7;\n    display: none;\n    cursor: pointer;\n}\ndiv[type="window"]{\n    position: absolute;\n    -moz-border-radius: 10px;\n    border-radius: 10px;\n    background-color: #FFFFFF;\n    z-index: 2;\n    display: none;\n}\n\ninput[type="button"]{\n    font-weight: 500;\n    font-family: Verdana;\n    background-color: rgb(208,238,208);\n    font-size: 10px;\n    height: 20px;\n}\ninput[type="text"][class="sf_hideInput"]{\n    font-weight: 500;\n    font-family: Verdana;\n    background-color: #f0fff0;\n    font-size: 12px;\n    text-align: center;\n    width: 50px;\n    border-style: none;\n}\ninput[type="checkbox"][name="sf_membersList"],[name="sf_themesList"]{\n    display: none;\n}\ndiv[class^="sf_count"]{\n    border: solid 1px #000000;\n    width: 100px;\n    line-height: 24px;\n    float: left;\n    height: 24px;\n}\ndiv[class="sf_count disabled"]{\n    border: solid 1px #C0c0c0;\n    color: #c0c0c0;\n}\ndiv[class="sf_space"]{\n    border: none;\n    width: 15px;\n    height: 24px;\n    float: left;\n}\ninput[type="text"][class="sf_count disabled"]{\n    color: #c0c0c0;\n    width: 65px;\n    border-style: none;\n    background: none;\n    padding: 0;\n    margin: 0;\n}\ninput[type="text"][class="sf_count enabled"]{\n    width: 65px;\n    border-style: none;\n    background: none;\n    padding: 0;\n    margin: 0;\n}\n#sf_calendar{\n    left: 0;\n    top: 0;\n}\n#sf_calendar td{\n    text-align: center;\n    height: 20px;\n    border: solid 1px #339933;\n    padding: 5px;\n}\n#sf_calendar td[type="day"]:hover, #sf_calendar td[type="control"]:hover{\n    background: #D8E8D8;\n    cursor: pointer;\n}\nspan[type="calendarCall"]{\n    cursor: pointer;\n}\ndiv[type^="multipleSelect"]{\n    background: #f0fff0;\n    position: absolute;\n    height: 24px;\n    overflow-y: hidden;\n}\ndiv[type="multipleSelect enabled"]:hover{\n    position: absolute;\n    overflow-y: visible;\n    height: 174px;\n    border: solid 1px #000000;\n    margin-left: -1px;\n    margin-top: -1px;\n}\ndiv[type^="option"]{\n    padding-left: 10px;\n    padding-right: 10px;\n    text-align: left;\n    border-top: dotted 1px #c0c0c0;\n}\ndiv[type="option selected"]{\n    background: #c3e5c3;\n}\ndiv[type^="option"]:hover{\n    background: #d9ecd9;\n    cursor: pointer;\n}\nspan[id^="sf_bCheckAll"]{\n    float: right;\n    margin-right: 5px;\n    font-size: 9px;\n    cursor: pointer;\n}';
-  code += '\n    td[sort="member"]{\n      background-image: url(' + $ico.memberIco + ');\n      background-position: 10px center;\n      background-repeat:no-repeat;\n    }\n    #sf_statusWindow{\n      left: ' + ($screenWidth / 2 - 325) + ';\n      top: ' + ($screenHeight / 2 - 120) + ';\n    }\n    #sf_controlPanelWindow{\n        left: ' + ($screenWidth / 2 - 175) + ';\n        top: ' + ($screenHeight / 2 - 260) + ';\n    }\n    #sf_filtersWindow{\n        left: ' + ($screenWidth / 2 - 250) + ';\n        top: ' + ($screenHeight / 2 - 363) + ';\n    }\n    #sf_messageWindow{\n        left: ' + ($screenWidth / 2 - 370) + ';\n        top: ' + ($screenHeight / 2 - 222) + ';\n    }';
+  code = `table[type="padding"] td {
+    padding: 2px 5px 2px 5px;
+}
+tr[type="light"] {
+    background-color: #d8e8d8;
+}
+tr[type="lightChecked"] {
+    background-color: #c7dfc7;
+}
+tr[type^="light"]:hover {
+    background-color: #beccbe;
+}
+tr[type="header"] {
+    background-color: #d0eed0; font-weight: bold;
+}
+#sf_header_SI img, #sf_header_TL img{
+    float: right;
+}
+td[sort], td[filter]{
+    cursor: pointer;
+}
+td[sort]:hover, td[filter]:hover{
+    background-color: #cae1ca;
+}
+.sf_left {
+    padding-left: 5px;
+}
+#sf_STI {
+    padding: 0;
+}
+#sf_shadowLayer{
+    position: absolute;
+    width: 0;
+    height: 0;
+    z-index: 1;
+    background-color: #000000;
+    left: 0;
+    top: 0;
+    opacity: 0.7;
+    display: none;
+    cursor: pointer;
+}
+div[type="window"]{
+    position: absolute;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    z-index: 2;
+    display: none;
+}
+
+input[type="button"]{
+    font-weight: 500;
+    font-family: Verdana;
+    background-color: rgb(208,238,208);
+    font-size: 10px;
+    height: 20px;
+}
+input[type="text"][class="sf_hideInput"]{
+    font-weight: 500;
+    font-family: Verdana;
+    background-color: #f0fff0;
+    font-size: 12px;
+    text-align: center;
+    width: 50px;
+    border-style: none;
+}
+input[type="checkbox"][name="sf_membersList"],[name="sf_themesList"]{
+    display: none;
+}
+div[class^="sf_count"]{
+    border: solid 1px #000000;
+    width: 100px;
+    line-height: 24px;
+    float: left;
+    height: 24px;
+}
+div[class="sf_count disabled"]{
+    border: solid 1px #C0c0c0;
+    color: #c0c0c0;
+}
+div[class="sf_space"]{
+    border: none;
+    width: 15px;
+    height: 24px;
+    float: left;
+}
+input[type="text"][class="sf_count disabled"]{
+    color: #c0c0c0;
+    width: 65px;
+    border-style: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+input[type="text"][class="sf_count enabled"]{
+    width: 65px;
+    border-style: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+}
+#sf_calendar{
+    left: 0;
+    top: 0;
+}
+#sf_calendar td{
+    text-align: center;
+    height: 20px;
+    border: solid 1px #339933;
+    padding: 5px;
+}
+#sf_calendar td[type="day"]:hover, #sf_calendar td[type="control"]:hover{
+    background: #D8E8D8;
+    cursor: pointer;
+}
+span[type="calendarCall"]{
+    cursor: pointer;
+}
+div[type^="multipleSelect"]{
+    background: #f0fff0;
+    position: absolute;
+    height: 24px;
+    overflow-y: hidden;
+}
+div[type="multipleSelect enabled"]:hover{
+    position: absolute;
+    overflow-y: visible;
+    height: 174px;
+    border: solid 1px #000000;
+    margin-left: -1px;
+    margin-top: -1px;
+}
+div[type^="option"]{
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: left;
+    border-top: dotted 1px #c0c0c0;
+}
+div[type="option selected"]{
+    background: #c3e5c3;
+}
+div[type^="option"]:hover{
+    background: #d9ecd9;
+    cursor: pointer;
+}
+span[id^="sf_bCheckAll"]{
+    float: right;
+    margin-right: 5px;
+    font-size: 9px;
+    cursor: pointer;
+}`;
+  code +=
+    `
+    td[sort="member"]{
+      background-image: url(${$ico.memberIco});
+      background-position: 10px center;
+      background-repeat:no-repeat;
+    }
+    #sf_statusWindow{
+      left: ${$screenWidth / 2 - 325};
+      top: ${$screenHeight / 2 - 120};
+    }
+    #sf_controlPanelWindow{
+        left: ${$screenWidth / 2 - 175};
+        top: ${$screenHeight / 2 - 260};
+    }
+    #sf_filtersWindow{
+        left: ${$screenWidth / 2 - 250};
+        top: ${$screenHeight / 2 - 363};
+    }
+    #sf_messageWindow{
+        left: ${$screenWidth / 2 - 370};
+        top: ${$screenHeight / 2 - 222};
+    }`;
   css = $("style").html(code).node();
   css.setAttribute("type", "text/css");
   css.setAttribute("script", "true");
@@ -1341,7 +1519,7 @@ function addStyle() {
   document.head.appendChild(css);
 }
 
-function createStatGUIButton() {
+function createStatGUIButton(){
   var fid, name, navigate, button;
 
   fid = location.search.match(/(\d+)/);
@@ -1350,66 +1528,70 @@ function createStatGUIButton() {
   navigate = $('a[style="color: #990000"]:contains("~Форумы")').up('b');
   name = navigate.text().match(/(.+) » (.+)/)[2];
 
-  button = $('<span>').html(' :: <span id="sf_buttonStats" style="cursor: pointer;">\n    Статистика\n</span>').node();
+  button = $('<span>').html(` :: <span id="sf_buttonStats" style="cursor: pointer;">
+    Статистика
+</span>`).node();
   navigate.node().appendChild(button);
 
   $cd.fid = fid;
   $cd.fName = name;
 
-  if (fid > 100) {
+  if(fid > 100){
     $cd.sid = fid.toString();
     $cd.sid = Number($cd.sid.slice(1, $cd.sid.length));
-  } else {
+  }else{
     $mode = false;
   }
 
-  bindEvent(button, 'onclick', function () {
-    makeConnect("gk_StatsForum", true);
+  bindEvent(button, 'onclick', function(){
+    makeConnect("gk_StatsForum", true)
   });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function makeConnect(name, first) {
-  var ini;
+function makeConnect(name, first){
+  var ini, g;
 
-  ini = [{ name: "players", key: "id", index: [["name", "a", true]] }, { name: "forums", key: "id" }];
+  ini = [
+    {name: "players", key: "id", index: [["name", "a", true]]},
+    {name: "forums", key: "id"}
+  ];
 
-  if (first) {
-    db(name).then(function (db) {
-      $idb = db;
+  g = connect();
+  g.next();
+
+  function* connect(){
+    if(first){
+      $idb = yield db.gkWait(g, this, [name]);
       $idb.setIniTableList(ini);
+    }
+    $idb = yield $idb.connectDB.gkWait(g, $idb);
 
-      return db;
-    }).then(function () {
-      if (first) return $idb.connectDB();
-    }).then(function () {
-      console.log("All done 1");
-      addToDB();
-    });
-  } else {
-    $idb.connectDB().then(function () {
-      console.log("All done 2");
-      addToDB();
-    });
+    //$idb.deleteDB();
+    addToDB();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function addToDB() {
+function addToDB(){
   var forum;
 
-  if (!$idb.exist('themes_' + $cd.fid)) {
+  if(!$idb.exist(`themes_${$cd.fid}`)){
     forum = Create.forum($cd.fid);
     forum.name = $cd.fName;
     forum.sid = $cd.sid;
     forum = Pack.forum(forum);
 
     $idb.add("forums", forum);
-    $idb.setModifyingTableList([{ name: 'themes_' + $cd.fid, key: "id" }, { name: 'members_' + $cd.fid, key: "id" }, { name: 'timestamp_' + $cd.fid, key: "id" }]);
+    $idb.setModifyingTableList([
+      {name: `themes_${$cd.fid}`, key: "id"},
+      {name: `members_${$cd.fid}`, key: "id"},
+      {name: `timestamp_${$cd.fid}`, key: "id"}
+    ]);
     $idb.db.close();
     $idb.nextVersion();
     makeConnect("gk_StatsForum", false);
-  } else {
+  }else{
     loadFromLocalStorage('settings');
 
     $t = {
@@ -1417,7 +1599,7 @@ function addToDB() {
       themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL"], "themes", $ss)
     };
 
-    $idb.getOne("forums", "id", $cd.fid).then(function (res) {
+    $idb.getOne("forums", "id", $cd.fid).then((res)=>{
       $forum = res;
       $forum = Pack.forum($forum);
       createGUI();
@@ -1426,13 +1608,31 @@ function addToDB() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createGUI() {
+function createGUI(){
   var table, td, gui, calendar;
 
   table = $('td[style="color: #990000"]:contains("Тема")').up('table').up('table').node();
   td = table.rows[0].cells[0];
 
-  gui = $('<td>').html('<b><a style="color: #990000" href="http://www.ganjawars.ru/forum.php">Форумы</a> » ' + $cd.fName + '</b>\n:: <span id="sf_gui_settings" style="cursor: pointer; font-weight: bold;">Панель управления</span>\n□ <span id="sf_gui_filters" style="cursor: pointer; font-weight: bold;">Фильтры</span>\n□ <span id="sf_gui_message" style="cursor: pointer; font-weight: bold;">Рассылка почты</span>\n<br>\n<table width="97%" cellspacing="0" cellpadding="0" style="border-style: none; border-collapse: collapse;" align="center">\n    <tr><td class="sf_left" id="sf_header_SI" valign="top" colspan="2"></td></tr>\n    <tr><td class="sf_left" id="sf_content_SI" valign="top" colspan="2"></td></tr>\n    <tr><td class="sf_left" id="sf_footer_SI" valign="top" colspan="2"></td></tr>\n    <tr><td class="sf_left" align="center" id="sf_header_TL" width="1250"></td><td class="sf_left" valign="top" align="center" id="sf_header_STI"></td></tr>\n    <tr><td class="sf_left" align="center" id="sf_content_TL" width="1250"></td><td class="sf_left" valign="top" align="center" id="sf_content_STI" rowspan="2"></td></tr>\n    <tr><td class="sf_left" align="center" id="sf_footer_TL"></td></tr>\n</table>\n<div id="sf_shadowLayer" title="Клик закроет окно"></div>\n<div type="window" id="sf_statusWindow">' + createStatusWindow() + '</div>\n<div type="window" id="sf_controlPanelWindow">' + createControlPanel() + '</div>\n<div type="window" id="sf_filtersWindow"></div>\n<div type="window" id="sf_messageWindow">' + createMessageWindow() + '</div>\n<div type="window" id="sf_calendar"></div>').node();
+  gui = $('<td>').html(`<b><a style="color: #990000" href="http://www.ganjawars.ru/forum.php">Форумы</a> » ${$cd.fName}</b>
+:: <span id="sf_gui_settings" style="cursor: pointer; font-weight: bold;">Панель управления</span>
+□ <span id="sf_gui_filters" style="cursor: pointer; font-weight: bold;">Фильтры</span>
+□ <span id="sf_gui_message" style="cursor: pointer; font-weight: bold;">Рассылка почты</span>
+<br>
+<table width="97%" cellspacing="0" cellpadding="0" style="border-style: none; border-collapse: collapse;" align="center">
+    <tr><td class="sf_left" id="sf_header_SI" valign="top" colspan="2"></td></tr>
+    <tr><td class="sf_left" id="sf_content_SI" valign="top" colspan="2"></td></tr>
+    <tr><td class="sf_left" id="sf_footer_SI" valign="top" colspan="2"></td></tr>
+    <tr><td class="sf_left" align="center" id="sf_header_TL" width="1250"></td><td class="sf_left" valign="top" align="center" id="sf_header_STI"></td></tr>
+    <tr><td class="sf_left" align="center" id="sf_content_TL" width="1250"></td><td class="sf_left" valign="top" align="center" id="sf_content_STI" rowspan="2"></td></tr>
+    <tr><td class="sf_left" align="center" id="sf_footer_TL"></td></tr>
+</table>
+<div id="sf_shadowLayer" title="Клик закроет окно"></div>
+<div type="window" id="sf_statusWindow">${createStatusWindow()}</div>
+<div type="window" id="sf_controlPanelWindow">${createControlPanel()}</div>
+<div type="window" id="sf_filtersWindow"></div>
+<div type="window" id="sf_messageWindow">${createMessageWindow()}</div>
+<div type="window" id="sf_calendar"></div>`).node();
 
   td.parentNode.removeChild(td);
   table.rows[0].appendChild(gui);
@@ -1446,31 +1646,33 @@ function createGUI() {
   //bindEvent($('#sf_gui_message').node(), 'onclick', openMessageWindow);
   //bindEvent($('#sf_forgetForum').node(), 'onclick', forgetForum);
 
-  $('#sf_controlPanelWindow').find('input[type="button"]').nodeArr().forEach(function (node) {
-    bindEvent(node, 'onclick', function () {
-      prepareDoTask(node);
-    });
-  });
+
+  $('#sf_controlPanelWindow')
+    .find('input[type="button"]')
+    .nodeArr()
+    .forEach(
+      function(node){
+        bindEvent(node, 'onclick', function(){prepareDoTask(node)});
+      }
+    );
 
   //bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
 
   calendar = $('span[type="calendarCall"]').node();
-  bindEvent(calendar, 'onclick', function () {
-    renderCalendar(calendar);
-  });
+  bindEvent(calendar, 'onclick', function(){renderCalendar(calendar)});
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function renderCalendar(nodeTextDate) {
+function renderCalendar(nodeTextDate){
   var size, left, top, calendar, date;
 
   calendar = $('#sf_calendar').node();
 
-  if (calendar.style.display == "block") {
+  if(calendar.style.display == "block"){
     calendar.style.display = 'none';
     return;
   }
-  if (nodeTextDate.nextElementSibling.disabled) {
+  if(nodeTextDate.nextElementSibling.disabled){
     return;
   }
 
@@ -1488,7 +1690,7 @@ function renderCalendar(nodeTextDate) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createShadowLayer() {
+function createShadowLayer(){
   var bBody = document.body.getBoundingClientRect();
   var fullHeight = $screenHeight > bBody.height ? $screenHeight : bBody.height;
   var shadowLayer;
@@ -1501,32 +1703,207 @@ function createShadowLayer() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createStatusWindow() {
-  return '<table width="600" height="50" style="margin: 20px 25px; background-color: #f0fff0" type="padding">\n    <tr type="header" height="35">\n        <td align="center" style="color: #990000;">Прогресс задачи</td>\n    </tr>\n    <tr height="15">\n        <td></td>\n    </tr>\n    <tr>\n        <td style="padding-left: 30px;">\n            <b>Задача:</b> <span id="sf_progressText" style="font-style: italic;"></span> [<span id="sf_progressCurrent"></span>/<span id="sf_progressMax"></span>]\n            <span id="sf_progressTextExtra"></span>\n        </td>\n    </tr>\n    <tr>\n        <td style="padding-left: 30px;">\n            <b>Времени осталось:</b> <span>00:00</span><span style="display: none;" id="sf_progressTime">0</span>\n        </td>\n    </tr>\n    <tr>\n        <td style="padding-left: 30px;">\n            <div style="width: 510px; height: 10px; border: solid 1px #000000; float: left; margin-top: 8px;">\n                <div style="width: 0; height: 100%; background-color: brown;" id="sf_progressBar"></div>\n            </div>\n            <div style="float: left; width: 5px; height: 25px;"></div>\n            <div style="float: left; width: 25px; height: 25px;" id="sf_progressIco"></div>\n        </td>\n    </tr>\n    <tr height="25">\n        <td align="right" style="padding: 15px 30px 10px 0;">\n            <input type="button" value="Пауза" /> <input type="button" value="Отмена" />\n        </td>\n    </tr>\n    <tr height="5" bgcolor="#d0eed0">\n        <td></td>\n    </tr>\n</table>';
+function createStatusWindow(){
+  return `<table width="600" height="50" style="margin: 20px 25px; background-color: #f0fff0" type="padding">
+    <tr type="header" height="35">
+        <td align="center" style="color: #990000;">Прогресс задачи</td>
+    </tr>
+    <tr height="15">
+        <td></td>
+    </tr>
+    <tr>
+        <td style="padding-left: 30px;">
+            <b>Задача:</b> <span id="sf_progressText" style="font-style: italic;"></span> [<span id="sf_progressCurrent"></span>/<span id="sf_progressMax"></span>]
+            <span id="sf_progressTextExtra"></span>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding-left: 30px;">
+            <b>Времени осталось:</b> <span>00:00</span><span style="display: none;" id="sf_progressTime">0</span>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding-left: 30px;">
+            <div style="width: 510px; height: 10px; border: solid 1px #000000; float: left; margin-top: 8px;">
+                <div style="width: 0; height: 100%; background-color: brown;" id="sf_progressBar"></div>
+            </div>
+            <div style="float: left; width: 5px; height: 25px;"></div>
+            <div style="float: left; width: 25px; height: 25px;" id="sf_progressIco"></div>
+        </td>
+    </tr>
+    <tr height="25">
+        <td align="right" style="padding: 15px 30px 10px 0;">
+            <input type="button" value="Пауза" /> <input type="button" value="Отмена" />
+        </td>
+    </tr>
+    <tr height="5" bgcolor="#d0eed0">
+        <td></td>
+    </tr>
+</table>`;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createControlPanel() {
+function createControlPanel(){
   var code, disabled;
 
   disabled = $mode ? '' : 'disabled';
-  code = '<table cellspacing="0" width="300" style="border: solid 0 #000000; background-color: #f0fff0; margin: 20px 25px;" type="smallPadding">\n    <tr height="30" type="header">\n        <td align="center" bgcolor="#d0eed0" colspan="2">Сбор данных о темах</td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            По какое число:\n            <span type="calendarCall" style="background-color: #ffffff;">' + $c.getNormalDate($date, true).d + '</span>\n            <input type="text"  name="sf_parseForum" class="sf_hideInput" style="display: none;" value="' + $date + '" />\n            <input type="radio" name="sf_parseForum" value="count" checked />\n        </td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            Все страницы форума:\n            <input type="radio" name="sf_parseForum" value="all" />\n        </td>\n    </tr>\n    <tr height="30">\n        <td align="center" colspan="2"><input type="button" value="Начать" name="sf_parseForum" /></td>\n    </tr>\n\n    <tr height="30" type="header">\n        <td align="center" bgcolor="#d0eed0" colspan="2">Анализ известных тем</td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            Количество тем:\n            <input type="text" name="sf_parseThemes" class="sf_hideInput" value="0" />/ [<span id="sf_countThreads" title="Необработанных тем / Всего тем">[0/0]</span>]\n            <input type="radio" name="sf_parseThemes" value="count" checked />\n        </td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            Только отмеченные в списке:\n            <input type="radio" name="sf_parseThemes" value="select" />\n        </td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            Все известные темы:\n            <input type="radio" name="sf_parseThemes" value="all" />\n        </td>\n    </tr>\n    <tr height="30">\n        <td align="center" colspan="2"><input type="button" value="Начать" name="sf_parseThemes" /></td>\n    </tr>\n\n    <tr height="30" type="header">\n        <td align="center" bgcolor="#d0eed0" colspan="2">Статус персонажей</td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            Количество персонажей:\n            <input type="text" name="sf_parsePlayers" class="sf_hideInput" value="0" />/<span id="sf_countMembers">0</span>\n            <input type="radio" name="sf_parsePlayers" ' + disabled + ' value="count" checked />\n        </td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            Только отмеченные в списке:\n            <input type="radio" name="sf_parsePlayers"  ' + disabled + ' value="select" />\n        </td>\n    </tr>\n    <tr>\n        <td align="right" colspan="2">\n            Все персонажи:\n            <input type="radio" name="sf_parsePlayers" ' + disabled + ' value="all" />\n        </td>\n    </tr>\n    <tr height="30">\n        <td align="center" colspan="2"><input type="button" value="Начать" ' + disabled + ' name="sf_parsePlayers" /></td>\n    </tr>\n\n    <tr height="30" type="header">\n        <td align="center" bgcolor="#d0eed0" colspan="2">Дополнительно</td>\n    </tr>\n    <tr height="25">\n        <td align="right">Состав синдиката:</td>\n        <td align="left"><input type="button" value="Обработать" name="sf_memberList" ' + disabled + ' /></td>\n    </tr>\n    <tr height="25">\n        <td align="right">Протокол синдиката:</td>\n        <td align="left"><input type="button" value="Обработать" name="sf_sindicateLog" ' + disabled + ' /></td>\n    </tr>\n\n    <tr height="40">\n        <td colspan="2" style="font-size: 9px;" align="center">\n            <span id="sf_forgetForum" style="cursor: pointer;">[забыть этот форум]</span>\n        </td>\n    </tr>\n    <tr height="5" bgcolor="#d0eed0">\n        <td colspan="2"></td>\n    </tr>\n</table>';
+  code = `<table cellspacing="0" width="300" style="border: solid 0 #000000; background-color: #f0fff0; margin: 20px 25px;" type="smallPadding">
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="2">Сбор данных о темах</td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            По какое число:
+            <span type="calendarCall" style="background-color: #ffffff;">${$c.getNormalDate($date, true).d}</span>
+            <input type="text"  name="sf_parseForum" class="sf_hideInput" style="display: none;" value="${$date}" />
+            <input type="radio" name="sf_parseForum" value="count" checked />
+        </td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            Все страницы форума:
+            <input type="radio" name="sf_parseForum" value="all" />
+        </td>
+    </tr>
+    <tr height="30">
+        <td align="center" colspan="2"><input type="button" value="Начать" name="sf_parseForum" /></td>
+    </tr>
+
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="2">Анализ известных тем</td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            Количество тем:
+            <input type="text" name="sf_parseThemes" class="sf_hideInput" value="0" />/ [<span id="sf_countThreads" title="Необработанных тем / Всего тем">[0/0]</span>]
+            <input type="radio" name="sf_parseThemes" value="count" checked />
+        </td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            Только отмеченные в списке:
+            <input type="radio" name="sf_parseThemes" value="select" />
+        </td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            Все известные темы:
+            <input type="radio" name="sf_parseThemes" value="all" />
+        </td>
+    </tr>
+    <tr height="30">
+        <td align="center" colspan="2"><input type="button" value="Начать" name="sf_parseThemes" /></td>
+    </tr>
+
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="2">Статус персонажей</td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            Количество персонажей:
+            <input type="text" name="sf_parsePlayers" class="sf_hideInput" value="0" />/<span id="sf_countMembers">0</span>
+            <input type="radio" name="sf_parsePlayers" ${disabled} value="count" checked />
+        </td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            Только отмеченные в списке:
+            <input type="radio" name="sf_parsePlayers"  ${disabled} value="select" />
+        </td>
+    </tr>
+    <tr>
+        <td align="right" colspan="2">
+            Все персонажи:
+            <input type="radio" name="sf_parsePlayers" ${disabled} value="all" />
+        </td>
+    </tr>
+    <tr height="30">
+        <td align="center" colspan="2"><input type="button" value="Начать" ${disabled} name="sf_parsePlayers" /></td>
+    </tr>
+
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="2">Дополнительно</td>
+    </tr>
+    <tr height="25">
+        <td align="right">Состав синдиката:</td>
+        <td align="left"><input type="button" value="Обработать" name="sf_memberList" ${disabled} /></td>
+    </tr>
+    <tr height="25">
+        <td align="right">Протокол синдиката:</td>
+        <td align="left"><input type="button" value="Обработать" name="sf_sindicateLog" ${disabled} /></td>
+    </tr>
+
+    <tr height="40">
+        <td colspan="2" style="font-size: 9px;" align="center">
+            <span id="sf_forgetForum" style="cursor: pointer;">[забыть этот форум]</span>
+        </td>
+    </tr>
+    <tr height="5" bgcolor="#d0eed0">
+        <td colspan="2"></td>
+    </tr>
+</table>`;
 
   return code;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createMessageWindow() {
-  return '<table width="700" height="395" align="center" style="margin: 20px 25px; background-color: #f0fff0;" type="padding">\n    <tr type="header" height="35">\n        <td align="center" style="color: #990000;" colspan="3">Рассылка почты</td>\n    </tr>\n    <tr>\n        <td style="padding: 8px 5px 2px 5px;" align="right">Кому:</td>\n        <td style="padding: 8px 5px 2px 5px; width: 200px;"><select style="width: 200px;" name="mid"></select></td>\n        <td style="padding: 8px 5px 2px 5px; width: 350px;" align="left"> Всего: <span type="count"></td>\n    </tr>\n    <tr>\n        <td align="right">Тема:</td>\n        <td style="padding: 2px 5px 8px 5px;" colspan="2"><input type="text" maxlength="50" style="width:100%" value="" name="subject"></td>\n    </tr>\n    <tr height="30" type="header">\n        <td align="center" bgcolor="#d0eed0" colspan="3">Утилиты</td>\n    </tr>\n    <tr>\n        <td align="right" style="padding: 8px 5px 2px 5px;">Режим:</td>\n        <td style="padding: 8px 5px 2px 5px; width: 200px;" colspan="2">\n            <select style="width: 300px;" name="workMode">\n                <option value="mail">Почта</option>\n                <option value="invite">Почта и приглашение</option>\n                <option value="goAway">Почта и изгнание</option>\n            </select>\n        </td>\n    </tr>\n    <tr>\n        <td align="right">Синдикат:</td>\n        <td style="padding: 2px 5px 8px 5px; width: 200px;" colspan="2"><select style="width: 300px;" name="sid"></select></td>\n    </tr>\n    <tr height="30" type="header">\n        <td align="center" bgcolor="#d0eed0" colspan="3">Сообщение</td>\n    </tr>\n    <tr>\n        <td colspan="3" style="padding: 8px 8px 2px 8px;">\n            <textarea style="width:100%" rows="10" name="message"></textarea>\n        </td>\n    </tr>\n    <tr>\n        <td align="center" colspan="3" height="35">\n            <input type="button" id="sf_sendMessages" value="Запустить">\n        </td>\n    </tr>\n    <tr height="5" bgcolor="#d0eed0">\n        <td colspan="3"></td>\n    </tr>\n</table>';
+function createMessageWindow(){
+  return `<table width="700" height="395" align="center" style="margin: 20px 25px; background-color: #f0fff0;" type="padding">
+    <tr type="header" height="35">
+        <td align="center" style="color: #990000;" colspan="3">Рассылка почты</td>
+    </tr>
+    <tr>
+        <td style="padding: 8px 5px 2px 5px;" align="right">Кому:</td>
+        <td style="padding: 8px 5px 2px 5px; width: 200px;"><select style="width: 200px;" name="mid"></select></td>
+        <td style="padding: 8px 5px 2px 5px; width: 350px;" align="left"> Всего: <span type="count"></td>
+    </tr>
+    <tr>
+        <td align="right">Тема:</td>
+        <td style="padding: 2px 5px 8px 5px;" colspan="2"><input type="text" maxlength="50" style="width:100%" value="" name="subject"></td>
+    </tr>
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="3">Утилиты</td>
+    </tr>
+    <tr>
+        <td align="right" style="padding: 8px 5px 2px 5px;">Режим:</td>
+        <td style="padding: 8px 5px 2px 5px; width: 200px;" colspan="2">
+            <select style="width: 300px;" name="workMode">
+                <option value="mail">Почта</option>
+                <option value="invite">Почта и приглашение</option>
+                <option value="goAway">Почта и изгнание</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td align="right">Синдикат:</td>
+        <td style="padding: 2px 5px 8px 5px; width: 200px;" colspan="2"><select style="width: 300px;" name="sid"></select></td>
+    </tr>
+    <tr height="30" type="header">
+        <td align="center" bgcolor="#d0eed0" colspan="3">Сообщение</td>
+    </tr>
+    <tr>
+        <td colspan="3" style="padding: 8px 8px 2px 8px;">
+            <textarea style="width:100%" rows="10" name="message"></textarea>
+        </td>
+    </tr>
+    <tr>
+        <td align="center" colspan="3" height="35">
+            <input type="button" id="sf_sendMessages" value="Запустить">
+        </td>
+    </tr>
+    <tr height="5" bgcolor="#d0eed0">
+        <td colspan="3"></td>
+    </tr>
+</table>`;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createCalendar(cDate, nodeTextDate) {
+function createCalendar(cDate, nodeTextDate){
   var months, days, date, year, month, day, code, row, coll, dayNumber, firstDayWeek, exit, tMonth, tDay, color;
 
-  months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентрябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
-  days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  exit = false;
+  months  = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентрябрь','Октябрь','Ноябрь','Декабрь'];
+  days    = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  exit    = false;
 
   date = cDate == null ? $date : cDate;
   date = $c.getNormalDate(date, true);
@@ -1537,100 +1914,119 @@ function createCalendar(cDate, nodeTextDate) {
   month = Number(date[1]);
   year = Number(date[2]);
 
-  if (year % 4 == 0) days[1] = 29;
+  if(year % 4 == 0) days[1] = 29;
 
-  code = '<table class="wb" style="margin: 20px 25px;">\n                <tr type="header">\n                    <td type="control">«</td>\n                    <td type="control" title="Выбрать год" colspan="5">' + months[month - 1] + ' ' + year + '</td>\n                    <td type="control">»</td>\n                </tr>\n                <tr type="header">\n                    <td>П</td>\n                    <td>В</td>\n                    <td>С</td>\n                    <td>Ч</td>\n                    <td>П</td>\n                    <td>С</td>\n                    <td>В</td>\n                </tr>';
+  code =
+    `<table class="wb" style="margin: 20px 25px;">
+                <tr type="header">
+                    <td type="control">«</td>
+                    <td type="control" title="Выбрать год" colspan="5">${months[month-1]} ${year}</td>
+                    <td type="control">»</td>
+                </tr>
+                <tr type="header">
+                    <td>П</td>
+                    <td>В</td>
+                    <td>С</td>
+                    <td>Ч</td>
+                    <td>П</td>
+                    <td>С</td>
+                    <td>В</td>
+                </tr>`;
 
   dayNumber = 1;
-  firstDayWeek = Date.parse(month + '/1/' + year);
-  firstDayWeek = new Date(firstDayWeek).getDay();firstDayWeek--;
-  if (firstDayWeek == -1) firstDayWeek = 6;
+  firstDayWeek = Date.parse(`${month}/1/${year}`);
+  firstDayWeek = new Date(firstDayWeek).getDay(); firstDayWeek--;
+  if(firstDayWeek == -1) firstDayWeek = 6;
 
-  for (row = 0; row < 6; row++) {
-    if (exit) break;
-    code += '<tr>';
-    for (coll = 0; coll < 7; coll++) {
-      if (row == 0 && coll < firstDayWeek) {
-        code += '<td colspan="' + firstDayWeek + '"></td>';
+  for(row = 0; row < 6; row++){
+    if(exit) break;
+    code += `<tr>`;
+    for(coll = 0; coll < 7; coll++){
+      if(row == 0 && coll < firstDayWeek){
+        code += `<td colspan="${firstDayWeek}"></td>`;
         coll = firstDayWeek;
       }
-      if (dayNumber <= days[month - 1]) {
-        if (dayNumber == days[month - 1] && coll == 6) exit = true;
+      if(dayNumber <= days[month-1]){
+        if(dayNumber == days[month-1] && coll == 6) exit = true;
         tDay = dayNumber < 10 ? '0' + dayNumber : dayNumber;
         color = dayNumber == day ? 'style="background-color: #d0eed0;"' : '';
-        code += '<td type="day" ' + color + ' name="' + tDay + '.' + tMonth + '.' + year + '" title="' + tMonth + '/' + tDay + '/' + year + ' 00:00">' + dayNumber + '</td>';
+        code += `<td type="day" ${color} name="${tDay}.${tMonth}.${year}" title="${tMonth}/${tDay}/${year} 00:00">${dayNumber}</td>`;
         dayNumber++;
-      } else {
-        code += '<td colspan="' + (7 - coll) + '"></td>';
+      }else{
+        code += `<td colspan="${7-coll}"></td>`;
         exit = true;
         break;
       }
     }
-    code += '</tr>';
+    code += `</tr>`;
   }
 
-  code += '<tr type="header">\n                <td colspan="7">' + $c.getNormalDate($date, true).d + '</td>\n             </tr>\n        </table>';
+  code +=
+    `<tr type="header">
+                <td colspan="7">${$c.getNormalDate($date, true).d}</td>
+             </tr>
+        </table>`;
 
   /////////////////////////////
 
-  $('#sf_calendar').html(code).find('td[type="control"],[type="day"]').nodeArr().forEach(function (button) {
-    if (button.getAttribute("type") == "control") {
-      if (button.title == "Выбрать год") {
-        bindEvent(button, 'onclick', function () {
-          setYear(month, year);
-        });
-      } else {
-        bindEvent(button, 'onclick', function () {
-          moveMonth(button, month, year);
-        });
+  $('#sf_calendar')
+    .html(code)
+    .find('td[type="control"],[type="day"]')
+    .nodeArr()
+    .forEach(
+      function(button){
+        if(button.getAttribute("type") == "control"){
+          if(button.title == "Выбрать год"){
+            bindEvent(button, 'onclick', function(){setYear(month, year)});
+          }else {
+            bindEvent(button, 'onclick', function(){moveMonth(button, month, year)});
+          }
+        }else{
+          bindEvent(button, 'onclick', function(){calendarSetDate(button, nodeTextDate)});
+        }
       }
-    } else {
-      bindEvent(button, 'onclick', function () {
-        calendarSetDate(button, nodeTextDate);
-      });
-    }
-  });
+    );
   /////////////////////////////
 
-  function moveMonth(button, month, year) {
-    if (button.textContent == "«") {
+  function moveMonth(button, month, year){
+    if(button.textContent == "«"){
       month--;
-      if (month == 0) {
+      if(month == 0){
         year--;
         month = 12;
       }
-    } else {
+    }else{
       month++;
-      if (month == 13) {
+      if(month == 13){
         year++;
         month = 1;
       }
     }
     month = month < 10 ? '0' + month : month;
 
-    createCalendar(Date.parse(month + '/01/' + year) / 1000, nodeTextDate);
+    createCalendar(Date.parse(`${month}/01/${year}`) / 1000, nodeTextDate);
   }
   /////////////////////////////
 
-  function setYear(month, year) {
+  function setYear(month, year){
     var nYear;
 
     nYear = prompt("Введите поный год");
 
-    if (nYear == "") {
+    if(nYear == ""){
       nYear = 1970;
       month = "01";
-    } else {
+    }else{
       nYear = parseInt(nYear, 10);
-      if (isNaN(nYear)) nYear = year;
+      if(isNaN(nYear)) nYear = year;
     }
     console.log(nYear);
 
-    createCalendar(Date.parse(month + '/01/' + nYear) / 1000, nodeTextDate);
+    createCalendar(Date.parse(`${month}/01/${nYear}`) / 1000, nodeTextDate);
   }
   /////////////////////////////
 
-  function calendarSetDate(button, nodeTextDate) {
+  function calendarSetDate(button, nodeTextDate){
     nodeTextDate.nextElementSibling.value = Date.parse(button.title) / 1000;
     $(nodeTextDate).html(button.getAttribute('name'));
     $("#sf_calendar").node().style.display = "none";
@@ -1638,30 +2034,25 @@ function createCalendar(cDate, nodeTextDate) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function prepareDoTask(node) {
+function prepareDoTask(node){
 
   openStatusWindow();
 
-  switch (node.name) {
-    case 'sf_parseForum':
-      forum();break;
-    case 'sf_parseThemes':
-      themes();break;
-    case 'sf_parsePlayers':
-      players();break;
-    case 'sf_memberList':
-      getMembersList();break;
-    case 'sf_sindicateLog':
-      getMaxPageSindicateLog();break;
+  switch (node.name){
+    case 'sf_parseForum': forum(); break;
+    case 'sf_parseThemes': themes(); break;
+    case 'sf_parsePlayers': players(); break;
+    case 'sf_memberList': getMembersList(); break;
+    case 'sf_sindicateLog': getMaxPageSindicateLog(); break;
   }
   /////////////////////////////
 
-  function forum() {
+  function forum(){
     var p = getParam('sf_parseForum');
 
-    switch (p.type) {
+    switch(p.type){
       case 'count':
-        displayProgress('start', 'Обработка форума синдиката #' + $forum.id + ' «' + $forum.name + '»', 0, 100);
+        displayProgress('start', `Обработка форума синдиката #${$forum.id} «${$forum.name}»`, 0, 100);
         parseForum(0, false, p.count);
         break;
 
@@ -1672,107 +2063,106 @@ function prepareDoTask(node) {
   }
   /////////////////////////////
 
-  function themes() {
-    var p = getParam('sf_parseThemes'),
-        l;
+  function themes(){
+    var p = getParam('sf_parseThemes'), l;
 
-    switch (p.type) {
+    switch(p.type){
       case 'count':
-        displayProgress('start', 'Обработка тем', 0, p.count);
+        displayProgress('start', `Обработка тем`, 0, p.count);
         prepareParseThemes(p.count);
         break;
 
       case 'select':
         l = getList('sf_themesList');
-        displayProgress('start', 'Обработка тем', 0, l.count);
+        displayProgress('start', `Обработка тем`, 0, l.count);
         displayProgressTime(l.c);
         parseThemes(0, l.count, l.array);
         break;
 
       case 'all':
-        displayProgress('start', 'Обработка тем', 0, $cd.f.threads['new']);
+        displayProgress('start', `Обработка тем`, 0, $cd.f.threads.new);
         prepareParseThemes(0);
         break;
     }
   }
   /////////////////////////////
 
-  function players() {
+  function players(){
     var p, l;
 
     p = getParam('sf_parsePlayers');
 
-    switch (p.type) {
+    switch(p.type){
       case 'count':
-        displayProgress('start', 'Обработка персонажей', 0, p.count);
+        displayProgress('start', `Обработка персонажей`, 0, p.count);
         prepareParseMembers(p.count);
         break;
 
       case 'select':
         l = getList('sf_membersList');
-        displayProgress('start', 'Обработка персонажей', 0, l.count);
+        displayProgress('start', `Обработка персонажей`, 0, l.count);
         displayProgressTime(l.c);
         parseMembers(0, l.count, l.array);
         break;
 
       case 'all':
-        displayProgress('start', 'Обработка персонажей', 0, $cd.countMembers);
+        displayProgress('start', `Обработка персонажей`, 0, $cd.countMembers);
         prepareParseMembers();
         break;
     }
   }
   /////////////////////////////
 
-  function getParam(name) {
+  function getParam(name){
     var type, count, table;
 
     table = $(node).up('table').node();
-    type = $(table).find('input[type="radio"][name="' + name + '"]:checked').node().value;
-    count = $(table).find('input[type="text"][name="' + name + '"]').node().value;
+    type = $(table).find(`input[type="radio"][name="${name}"]:checked`).node().value;
+    count = $(table).find(`input[type="text"][name="${name}"]`).node().value;
     count = Number(count);
 
-    return { count: count, type: type };
+    return {count: count, type: type};
   }
   /////////////////////////////
 
-  function getList(name) {
-    var list = [],
-        count = 0,
-        id;
+  function getList(name){
+    var list = [], count = 0, id;
 
-    $('input[type="checkbox"][name="' + name + '"]:checked').nodeArr().forEach(function (node) {
-      id = Number(node.value);
-      if (name == "sf_themesList" && $cd.f.themes[id].posts[0] != $cd.f.themes[id].posts[1]) {
-        list.push(node.value);
-        count += calculateThemePages(id).count;
-      } else {
-        list.push(id);
-        count++;
+    $(`input[type="checkbox"][name="${name}"]:checked`).nodeArr().forEach(
+      function(node){
+        id = Number(node.value);
+        if(name == "sf_themesList" && $cd.f.themes[id].posts[0] != $cd.f.themes[id].posts[1]){
+          list.push(node.value);
+          count += calculateThemePages(id).count;
+        }else{
+          list.push(id);
+          count++;
+        }
       }
-    });
+    );
 
-    if (name == "sf_themesList") {
+    if(name == "sf_themesList"){
       count = list.length * 750 + count * 1250 + 500;
-    } else {
-      count = count * 1250;
+    }else{
+      count =  count * 1250;
     }
 
-    return { array: list, count: list.length, c: count };
+    return {array: list, count: list.length, c: count};
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function forgetForum() {
+function forgetForum(){
   var id;
 
-  if (confirm('Вы уврены что хотите удалить все данные об этом форуме?')) {
+  if(confirm('Вы уврены что хотите удалить все данные об этом форуме?')){
     delete $sd.forums[$cd.fid];
     for (id in $sd.players) {
       if ($sd.players[id].forums[$cd.fid]) {
         delete $sd.players[id].forums[$cd.fid];
       }
     }
-    for (id in $sd.kicked) {
+    for (id in $sd.kicked){
       delete $sd.kicked[$cd.fid];
     }
     saveToLocalStorage('data');
@@ -1781,10 +2171,10 @@ function forgetForum() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function displayProgress(ini, text, current, max) {
+function displayProgress(ini, text, current, max){
   var percent, c, m, b, i, t, te, img;
 
-  img = '<div style="width: 25px; height: 25px; background: url(' + $ico.loading + ');"></div>';
+  img = `<div style="width: 25px; height: 25px; background: url(${$ico.loading});"></div>`;
 
   c = $("#sf_progressCurrent");
   m = $("#sf_progressMax");
@@ -1793,7 +2183,7 @@ function displayProgress(ini, text, current, max) {
   t = $("#sf_progressText");
   te = $("#sf_progressTextExtra");
 
-  if (ini == 'start') {
+  if(ini == 'start'){
     i.html(img);
     t.html(text);
     m.html(max);
@@ -1802,7 +2192,7 @@ function displayProgress(ini, text, current, max) {
 
     $cd.showProgressTime = true;
   }
-  if (ini == 'work') {
+  if(ini == 'work'){
     current = parseInt(c.text(), 10) + 1;
     max = parseInt(m.text(), 10);
 
@@ -1810,10 +2200,10 @@ function displayProgress(ini, text, current, max) {
     b.node().style.width = percent + '%';
     c.html(current);
   }
-  if (ini == 'extra') {
+  if(ini == 'extra'){
     te.html(text);
   }
-  if (ini == 'done') {
+  if(ini == 'done'){
     te.html('');
     b.node().style.width = '100%';
     c.html(m.text());
@@ -1824,20 +2214,20 @@ function displayProgress(ini, text, current, max) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function displayProgressTime(t) {
+function displayProgressTime(t){
   var node, time;
 
-  if (!$cd.showProgressTime) return;
+  if(!$cd.showProgressTime) return;
 
   node = $('#sf_progressTime');
   time = t ? t : Number(node.text()) - 1000;
-  if (time < 0) time = 0;
+  if(time < 0) time = 0;
   node.node().previousElementSibling.textContent = $c.getNormalTime(time);
   node.html(time);
   displayProgressTime.gkDelay(1000, this, []);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function openStatusWindow() {
+function openStatusWindow(){
   $("#sf_controlPanelWindow").node().style.display = "none";
   $("#sf_filtersWindow").node().style.display = "none";
   $("#sf_messageWindow").node().style.display = "none";
@@ -1846,7 +2236,7 @@ function openStatusWindow() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function openControlPanelWindow() {
+function openControlPanelWindow(){
   $("#sf_shadowLayer").node().style.display = "block";
 
   $("#sf_countThreads").html($forum.themes[0] + '/' + $forum.themes[1]);
@@ -1855,13 +2245,13 @@ function openControlPanelWindow() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function openFiltersWindow() {
+function openFiltersWindow(){
   $("#sf_shadowLayer").node().style.display = "block";
   $("#sf_filtersWindow").node().style.display = "block";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function openMessageWindow() {
+function openMessageWindow(){
   var window, n;
 
   $("#sf_shadowLayer").node().style.display = "block";
@@ -1875,41 +2265,47 @@ function openMessageWindow() {
   window.style.display = "block";
   /////////////////////////////
 
-  function createSelectSID() {
+  function createSelectSID(){
     var code, list, sid;
 
     code = '<option value="0">Выберите...</option>';
     list = $mode ? $sd.forums : $tsd.forums;
 
-    Object.keys(list).forEach(function (id) {
-      sid = id.substring(1, id.length);
-      code += '<option value="' + sid + '">[#' + sid + '] ' + list[id].name + '</option>';
-    });
+    Object.keys(list).forEach(
+      function(id){
+        sid = id.substring(1, id.length);
+        code += `<option value="${sid}">[#${sid}] ${list[id].name}</option>`;
+      }
+    );
 
     return code;
   }
   /////////////////////////////
 
-  function createSelectList() {
+  function createSelectList(){
     var code;
 
     code = '<option>Посмотреть список...</option>';
 
-    $('#sf_content_SI').find('input[type="checkbox"][name="sf_membersList"]:checked').nodeArr().forEach(function (box) {
-      n++;
-      code += '<option value="' + $sd.players[box.value].name + '|' + box.value + '">' + n + '. ' + $sd.players[box.value].name + '</option>';
-    });
+    $('#sf_content_SI').find('input[type="checkbox"][name="sf_membersList"]:checked')
+      .nodeArr()
+      .forEach(
+        function(box){
+          n++;
+          code += `<option value="${$sd.players[box.value].name}|${box.value}">${n}. ${$sd.players[box.value].name}</option>`;
+        }
+      );
 
     return code;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function closeWindows() {
+function closeWindows(){
   var status = $("#sf_progressIco").text();
   var window = $("#sf_statusWindow").node();
 
-  if (window.style.display == "block" && status != "Завершено!") return;
+  if(window.style.display == "block" && status != "Завершено!") return;
 
   $("#sf_shadowLayer").node().style.display = "none";
 
@@ -1921,53 +2317,56 @@ function closeWindows() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getMembersList() {
+function getMembersList(){
   var url;
 
-  if ($cd.sid) {
-    url = 'http://www.ganjawars.ru/syndicate.php?id=' + $cd.sid + '&page=members';
+  if($cd.sid){
+    url = `http://www.ganjawars.ru/syndicate.php?id=${$cd.sid}&page=members`;
     displayProgress('start', 'Сбор и обработка информации о составе синдиката', 0, 1);
 
-    try {
-      REQ(url, 'GET', null, true, function (req) {
-        $answer.innerHTML = req.responseText;
-        parse();
-        saveToLocalStorage('data');
-        renderStatsTable();
-        displayProgress('done');
-      }, function () {
-        errorLog("Сбор информации о составе синдиката", 0, 0);
-      });
-    } catch (e) {
+    try{
+      REQ(url, 'GET', null, true,
+        function (req){
+          $answer.innerHTML = req.responseText;
+          parse();
+          saveToLocalStorage('data');
+          renderStatsTable();
+          displayProgress('done');
+        },
+        function (){
+          errorLog("Сбор информации о составе синдиката", 0, 0);
+        }
+      );
+    }catch (e){
       errorLog("сборе информации о составе синдиката", 1, e);
     }
   }
   /////////////////////////////
 
-  function parse() {
+  function parse(){
     var list, id, name, sn, pf;
 
     list = $($answer).find('b:contains("Состав синдиката")').up('table').find('a[href*="info.php"]').nodeArr();
 
-    Object.keys($sd.players).forEach(function (id) {
+    Object.keys($sd.players).forEach(function(id){
       pf = $sd.players[id].forums[$cd.fid];
-      if (pf != null) {
+      if(pf != null){
         pf.member = false;
         pf.sn = 0;
       }
     });
 
-    list.forEach(function (node) {
+    list.forEach(function(node){
       id = Number(node.href.match(/(\d+)/)[1]);
       name = node.textContent;
       sn = $(node).up('tr').node().cells[0].textContent;
       sn = parseInt(sn, 10);
 
-      if ($sd.players[id] == null) {
+      if($sd.players[id] == null){
         $sd.players[id] = generatePlayer(name);
       }
 
-      if ($sd.players[id].forums[$cd.fid] == null) {
+      if($sd.players[id].forums[$cd.fid] == null){
         $sd.players[id].forums[$cd.fid] = generateForumPlayer();
       }
 
@@ -1978,32 +2377,35 @@ function getMembersList() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getMaxPageSindicateLog() {
+function getMaxPageSindicateLog(){
   var url, page;
 
-  url = 'http://www.ganjawars.ru/syndicate.log.php?id=' + $cd.sid + '&page_id=10000000';
+  url = `http://www.ganjawars.ru/syndicate.log.php?id=${$cd.sid}&page_id=10000000`;
 
-  try {
-    REQ(url, 'GET', null, true, function (req) {
-      $answer.innerHTML = req.responseText;
-      $cd.lPage = parse();
-      page = $cd.lPage - $cd.f.log;
+  try{
+    REQ(url, 'GET', null, true,
+      function (req){
+        $answer.innerHTML = req.responseText;
+        $cd.lPage = parse();
+        page = $cd.lPage - $cd.f.log;
 
-      displayProgress('start', 'Обработка протокола синдиката #' + $cd.fid + ' «' + $sd.forums[$cd.fid].name + '»', 0, page + 1);
-      displayProgressTime((page + 1) * 1250);
-      parseSindicateLog.gkDelay(750, this, [page]);
-    }, function () {
-      errorLog("Сбор информации о максимальной странцие протокола синдиката", 0, 0);
-    });
-  } catch (e) {
+        displayProgress('start', `Обработка протокола синдиката #${$cd.fid} «${$sd.forums[$cd.fid].name}»`, 0, page + 1);
+        displayProgressTime((page + 1) * 1250);
+        parseSindicateLog.gkDelay(750, this, [page]);
+      },
+      function (){
+        errorLog("Сбор информации о максимальной странцие протокола синдиката", 0, 0);
+      }
+    );
+  }catch (e){
     errorLog("сборе информации о максимальной странцие протокола синдиката", 1, e);
   }
   /////////////////////////////
 
-  function parse() {
+  function parse(){
     var page;
 
-    page = $($answer).find('b:contains("~Протокол синдиката #' + $cd.sid + '")').up('div').next('center').find('a');
+    page = $($answer).find(`b:contains("~Протокол синдиката #${$cd.sid}")`).up('div').next('center').find('a');
     page = page.node(-1).href.split('page_id=')[1];
 
     return Number(page);
@@ -2011,105 +2413,112 @@ function getMaxPageSindicateLog() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseSindicateLog(index) {
+function parseSindicateLog(index){
   var url;
 
-  if (index != -1) {
-    url = 'http://www.ganjawars.ru/syndicate.log.php?id=' + $cd.sid + '&page_id=' + index;
+  if(index != -1){
+    url = `http://www.ganjawars.ru/syndicate.log.php?id=${$cd.sid}&page_id=${index}`;
 
-    try {
-      REQ(url, 'GET', null, true, function (req) {
-        displayProgress('work');
-        $answer.innerHTML = req.responseText;
-        $($answer).find('font[color="green"]').nodeArr().reverse().forEach(parse);
-        index--;
+    try{
+      REQ(url, 'GET', null, true,
+        function (req){
+          displayProgress('work');
+          $answer.innerHTML = req.responseText;
+          $($answer)
+            .find('font[color="green"]')
+            .nodeArr()
+            .reverse()
+            .forEach(parse);
+          index--;
 
-        if ($cd.lPage != $cd.f.log) $cd.f.log++;
+          if($cd.lPage != $cd.f.log) $cd.f.log++;
 
-        correctionTime();
-        saveToLocalStorage('data');
-        parseSindicateLog.gkDelay(750, this, [index]);
-      }, function () {
-        errorLog("Сбор информации с протокола синдиката", 0, 0);
-      });
-    } catch (e) {
+          correctionTime();
+          saveToLocalStorage('data');
+          parseSindicateLog.gkDelay(750, this, [index]);
+        },
+        function (){
+          errorLog("Сбор информации с протокола синдиката", 0, 0);
+        }
+      );
+    }catch (e){
       errorLog("сборе информации с протокола синдиката", 1, e);
     }
-  } else {
+  }else{
     renderStatsTable();
     displayProgress('done');
   }
   /////////////////////////////
 
-  function parse(node) {
+  function parse(node){
     var next, id, date, name;
 
     node = node.parentNode;
     date = node.textContent.match(/(\d)(\d).(\d)(\d).(\d)(\d) (\d)(\d):(\d)(\d)/);
 
-    if (date) {
+    if(date){
       next = $(node).next('nobr').node();
 
-      if (next.textContent.match(/принят в синдикат/)) {
+      if(next.textContent.match(/принят в синдикат/)){
         setDate('enter');
         return;
       }
-      if (next.textContent.match(/вышел из синдиката/)) {
+      if(next.textContent.match(/вышел из синдиката/)){
         setDate('exit');
         return;
       }
-      if (next.textContent.match(/покинул синдикат/)) {
+      if(next.textContent.match(/покинул синдикат/)){
         setDate('exit');
       }
-      if (next.textContent.match(/пригласил в синдикат/)) {
+      if(next.textContent.match(/пригласил в синдикат/)){
         setInvite();
       }
     }
     /////////////////////////////
 
-    function setDate(key) {
+    function setDate(key){
       var extra;
 
       id = $(next).find('a[href*="info.php"]');
       name = id.text();
-      date = '' + date[3] + date[4] + '/' + date[1] + date[2] + '/20' + date[5] + date[6] + ' ' + date[7] + date[8] + ':' + date[9] + date[10];
+      date = `${date[3]}${date[4]}/${date[1]}${date[2]}/20${date[5]}${date[6]} ${date[7]}${date[8]}:${date[9]}${date[10]}`;
       date = Date.parse(date) / 1000;
 
-      if (id.length != 0) {
+      if(id.length != 0){
         id = id.node().href;
         id = Number(id.match(/(\d+)/)[1]);
-      } else {
+      }else{
         name = next.textContent.match(/(.+) покинул синдикат \((.+)\)/)[1];
         id = $cd.nameToId[name];
         extra = true;
       }
 
-      if (id != null) {
-        if ($sd.players[id] == null) $sd.players[id] = generatePlayer(name);
-        if ($sd.players[id].forums[$cd.fid] == null) $sd.players[id].forums[$cd.fid] = generateForumPlayer();
+      if(id != null){
+        if($sd.players[id] == null) $sd.players[id] = generatePlayer(name);
+        if($sd.players[id].forums[$cd.fid] == null) $sd.players[id].forums[$cd.fid] = generateForumPlayer();
 
         $sd.players[id].forums[$cd.fid].goAway = extra ? 1 : 0;
         $sd.players[id].forums[$cd.fid][key] = date;
-      } else if (name != null) {
-        if ($sd.kicked[$cd.fid] == null) $sd.kicked[$cd.fid] = {};
+      }else if(name != null){
+        if($sd.kicked[$cd.fid] == null) $sd.kicked[$cd.fid] = {};
         $sd.kicked[$cd.fid][name] = date;
       }
     }
     /////////////////////////////
 
-    function setInvite() {
+    function setInvite(){
       var name, id;
       name = next.textContent.match(/(.+) пригласил в синдикат (.+)/)[2];
       id = $cd.nameToId[name];
 
-      if (id != null) {
+      if(id != null){
         if ($sd.players[id] == null) $sd.players[id] = generatePlayer(name);
         if ($sd.players[id].forums[$cd.fid] == null) $sd.players[id].forums[$cd.fid] = generateForumPlayer();
 
         $sd.players[id].forums[$cd.fid].invite = 1;
-      } else if (name != null) {
-        if ($sd.invite == null) $sd.invite = {};
-        if ($sd.invite[$cd.fid] == null) $sd.invite[$cd.fid] = {};
+      }else if(name != null){
+        if($sd.invite == null) $sd.invite = {};
+        if($sd.invite[$cd.fid] == null) $sd.invite[$cd.fid] = {};
         $sd.invite[$cd.fid][name] = 1;
       }
     }
@@ -2117,14 +2526,12 @@ function parseSindicateLog(index) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getMaxPageForum() {
-  var _this = this;
-
+function getMaxPageForum(){
   var url, page;
 
   url = "http://www.ganjawars.ru/threads.php?fid=" + $forum.id + "&page_id=10000000";
 
-  ajax(url, "GET", null).then(function (res) {
+  ajax(url, "GET", null).then((res)=>{
     $answer.innerHTML = res;
 
     $forum.page[1] = parse();
@@ -2132,14 +2539,14 @@ function getMaxPageForum() {
 
     $idb.add("forums", Pack.forum($forum));
 
-    displayProgress('start', 'Обработка форума синдиката #' + $forum.id + ' «' + $forum.name + '»', 0, page + 1);
+    displayProgress('start', `Обработка форума синдиката #${$forum.id} «${$forum.name}»`, 0, page + 1);
     displayProgressTime(page * 1250 + 1500);
 
-    parseForum.gkDelay(750, _this, [page, true]);
+    parseForum.gkDelay(750, this, [page, true]);
   });
   /////////////////////////////
 
-  function parse() {
+  function parse(){
     var page;
 
     page = $($answer).find('a[style="color: #990000"]:contains("~Форумы")').up('b').next('center').find('a');
@@ -2151,48 +2558,45 @@ function getMaxPageForum() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseForum(index, mode, stopDate) {
+function parseForum(index, mode, stopDate){
   var url, count;
 
-  url = 'http://www.ganjawars.ru/threads.php?fid=' + $cd.fid + '&page_id=' + index;
+  url = `http://www.ganjawars.ru/threads.php?fid=${$cd.fid}&page_id=${index}`;
   count = 0;
 
-  if (index != -1) {
+  if(index != -1){
 
-    ajax(url, "GET", null).then(function (res) {
+    ajax(url, "GET", null).then((res)=>{
       $answer.innerHTML = res;
 
       displayProgress('work');
 
-      $($answer).find('td[style="color: #990000"]:contains("Тема")').up('table').find('tr[bgcolor="#e0eee0"],[bgcolor="#d0f5d0"]').nodeArr().reduce(function (sequence, tr) {
-        return sequence.then(function () {
-          return parse(tr);
+      $($answer)
+        .find('td[style="color: #990000"]:contains("Тема")')
+        .up('table')
+        .find('tr[bgcolor="#e0eee0"],[bgcolor="#d0f5d0"]')
+        .nodeArr()
+        .reduce((sequence, tr) => {
+          return sequence.then(()=>{
+            return parseRow(tr);
+          });
+        }, Promise.resolve())
+        .then(()=>{
+
+          index = mode ? index - 1 : index + 1;
+          if(mode && $forum.page[0] != $forum.page[1]){
+            $forum._ch = true;
+            $forum.page[0]++;
+          }
+
+          $idb.add(`forums`, Pack.forum($forum));
+
+          parseForum.gkDelay(750, this, [index, mode, stopDate]);
+          console.log("Done");
         });
-      }, Promise.resolve()).then(function () {
-
-        index = mode ? index - 1 : index + 1;
-        if (mode && $forum.page[0] != $forum.page[1]) $forum.page[0]++;
-
-        console.log("Done");
-      });
-
-      //.forEach((tr) => {
-      //  sequence = sequence.then((r) => {
-      //    console.log("Res: " + r);
-      //    return parse(tr);
-      //  }).then(() =>{
-      //
-      //    index = $forum.sid ? index - 1 : index + 1;
-      //    if($forum.sid && $forum.page[0] != $forum.page[1]) $forum.page[0]++;
-      //
-      //    console.log("All done");
-      //  });
-      //});
+    }, (res)=>{
+      errorLog("Сбор информации о темах", 0, res);
     });
-
-    //correctionTime();
-    //calcNewThemes();
-    //saveToLocalStorage('data');
 
     //parseForum.gkDelay(750, this, [index, mode, stopDate]);
 
@@ -2224,68 +2628,84 @@ function parseForum(index, mode, stopDate) {
     //}catch(e){
     //  errorLog("сборе информации о темах", 1, e);
     //}
-  } else {
-      //saveToLocalStorage('data');
-      //renderTables();
-      displayProgress('done');
-    }
+  }else{
+    //saveToLocalStorage('data');
+    //renderTables();
+    displayProgress('done');
+
+  }
   /////////////////////////////
 
-  function parse(tr) {
-    var td, tid, theme, player, member;
+  function parseRow(tr){
+    var td, tid, theme, player, member, pages, posts;
+    var g, f;
 
-    td = tr.cells;
-    tid = getId();
+    f = (resolve) => {
+      g = parse();
+      g.next();
 
-    //date = getDate();
+      function* parse(){
+        td = tr.cells;
+        tid = getId();
 
-    return $idb.getOne('themes_' + $forum.id, "id", tid).then(function (res) {
-      theme = Pack.theme(res);
+        theme = yield $idb.getOne.gkWait(g, $idb, [`themes_${$forum.id}`, "id", tid]);
+        theme = Pack.theme(theme);
 
-      if (theme == null) {
-        $forum.themes[1]++;
-        $idb.add('forums', Pack.forum($forum));
+        if(theme == null){
+          $forum.themes[1]++;
+          $forum._ch = true;
 
-        theme = Create.theme(tid);
-        theme.name = getName();
-        theme.author = getAuthor();
-        theme.posts = getPosts();
-        theme.pages = getPages();
-        theme.start = getDate();
-      } else {
-        theme.posts = getPosts();
-        theme.pages = getPages();
+          theme = Create.theme(tid);
+          theme.name = getName();
+          theme.author = getAuthor();
+          theme.posts = getPosts();
+          theme.pages = getPages();
+          theme.start = getDate();
+        }else{
+          posts = getPosts();
+          pages = getPages();
+
+          if(posts[1] != theme.posts[1]){
+            theme.posts = posts;
+            theme.pages = pages;
+            theme._ch = true;
+          }
+        }
+
+        $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
+
+        player = yield $idb.getOne.gkWait(g, $idb, [`players`, "id", theme.author[0]]);
+        player = Pack.player(player);
+
+        if(player == null){
+          player = Create.player(theme.author[0]);
+          player.name = theme.author[1];
+        }
+
+        member = yield $idb.getOne.gkWait(g, $idb, [`members_${$forum.id}`, "id", player.id]);
+        member = Pack.member(member);
+
+        if(member == null){
+          member = Create.member(theme.author[0]);
+          member.start.push(theme.id);
+        }
+
+        if(!$c.exist($forum.id, player.forums)){
+          player.forums.push($forum.id);
+          player._ch = true;
+        }
+        if(!$c.exist(theme.id, member.start)){
+          member.start.push(theme.id);
+          member._ch = true;
+        }
+
+        $idb.add(`players`, Pack.player(player));
+        $idb.add(`members_${$forum.id}`, Pack.member(member));
+        resolve();
       }
-      $idb.add('themes_' + $forum.id, Pack.theme(theme));
+    };
 
-      return $idb.getOne('players', "id", theme.author[0]);
-    }).then(function (res) {
-      player = Pack.player(res);
-
-      if (player == null) {
-        player = Create.player(theme.author[0]);
-        player.name = theme.author[1];
-        player.forums.push($forum.id);
-
-        member = Create.member(theme.author[0]);
-        member.start.push(theme.id);
-
-        return null;
-      } else {
-        if (!$c.exist($forum.id, player.forums)) player.forums.push($forum.id);
-
-        return $idb.getOne('members_' + $forum.id, "id", player.id);
-      }
-    }).then(function (res) {
-      if (res) {
-        member = Pack.member(res);
-
-        if (!$c.exist(theme.id, member.start)) member.start.push(theme.id);
-      }
-
-      $idb.add('players', Pack.player(player));
-      $idb.add('members_' + $forum.id, Pack.member(member));
-    });
+    return new Promise(f);
 
     //if(mode){
     //  addTheme();
@@ -2300,9 +2720,10 @@ function parseForum(index, mode, stopDate) {
     //  }
     //}
 
+
     /////////////////////////////
 
-    function getId() {
+    function getId(){
       var id;
 
       id = $(td[0]).find('a').node();
@@ -2312,47 +2733,50 @@ function parseForum(index, mode, stopDate) {
     }
     /////////////////////////////
 
-    function getName() {
+    function getName(){
       return $(td[0]).find('a').text();
     }
     /////////////////////////////
 
-    function getPosts() {
+    function getPosts(){
       var posts;
 
       posts = $(td[2]).text().replace(/,/g, '');
       posts = Number(posts);
 
-      if (theme == null) {
+      if(theme == null){
         return [0, posts];
-      } else {
+      }else{
         return [theme.posts[0], posts];
       }
     }
     /////////////////////////////
 
-    function getPages() {
+    function getPages(){
       var page;
 
-      page = [parseInt(theme.posts[0] / 20, 10), parseInt(theme.posts[1] / 20, 10)];
+      page = [
+        parseInt(theme.posts[0] / 20, 10),
+        parseInt(theme.posts[1] / 20, 10)
+      ];
 
       return page;
     }
     /////////////////////////////
 
-    function getDate() {
+    function getDate(){
       var date;
 
       date = tr.previousSibling.data;
       date = date.match(/(\d+)/g);
-      date = date[1] + '/' + date[2] + '/' + date[0] + ' ' + date[3] + ':' + date[4] + ':' + date[5];
+      date = `${date[1]}/${date[2]}/${date[0]} ${date[3]}:${date[4]}:${date[5]}`;
       date = Date.parse(date) / 1000;
 
       return date;
     }
     /////////////////////////////
 
-    function getAuthor() {
+    function getAuthor(){
       var a, name, id;
 
       a = $(td[3]).find('a[href*="info.php"]');
@@ -2364,33 +2788,33 @@ function parseForum(index, mode, stopDate) {
   }
   /////////////////////////////
 
-  function calcNewThemes() {
+  function calcNewThemes(){
     var themes;
 
     themes = $cd.f.themes;
-    $cd.f.threads['new'] = $cd.f.threads.all;
+    $cd.f.threads.new = $cd.f.threads.all;
 
-    Object.keys(themes).forEach(function (tid) {
-      if (themes[tid].posts[0] == themes[tid].posts[1]) {
-        $cd.f.threads['new']--;
+    Object.keys(themes).forEach(function(tid){
+      if(themes[tid].posts[0] == themes[tid].posts[1]){
+        $cd.f.threads.new--;
       }
     });
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function prepareParseThemes(max) {
+function prepareParseThemes(max){
   var themes, tid, list, count;
 
   themes = $cd.f.themes;
   list = [];
   count = 0;
 
-  for (tid in themes) {
-    if (themes[tid].posts[0] != themes[tid].posts[1]) {
+  for(tid in themes){
+    if(themes[tid].posts[0] != themes[tid].posts[1]){
       list.push(tid);
       count += calculateThemePages(Number(tid)).count;
-      if (list.length == max) break;
+      if(list.length == max) break;
     }
   }
   count = list.length * 750 + count * 1250 + 500;
@@ -2399,7 +2823,7 @@ function prepareParseThemes(max) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function calculateThemePages(id) {
+function calculateThemePages(id){
   var theme, pages, sPage, start;
 
   theme = $cd.f.themes[id];
@@ -2410,75 +2834,80 @@ function calculateThemePages(id) {
   sPage = theme.posts[0] / 20;
   sPage = sPage < 1 ? 0 : parseInt(sPage, 10);
 
-  start = theme.posts[0] % 20 + 1;
+  start = (theme.posts[0] % 20) + 1;
 
-  return { id: sPage, count: pages + 1, start: start };
+  return {id: sPage , count: pages + 1, start: start};
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseThemes(index, max, list) {
+function parseThemes(index, max, list){
   var info, theme;
 
   $cd.tid = Number(list[index]);
   theme = $cd.f.themes[$cd.tid];
 
-  if (index < max) {
+  if(index < max){
     info = calculateThemePages($cd.tid);
     parseTheme(info.id, info.count, info.start);
-  } else {
+  }else{
     saveToLocalStorage('data');
     renderTables();
     displayProgress('done');
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function parseTheme(id, count, start) {
+  function parseTheme(id, count, start){
     var url;
 
     $cd.tPage = id;
-    url = 'http://www.ganjawars.ru/messages.php?fid=' + $cd.fid + '&tid=' + $cd.tid + '&page_id=' + $cd.tPage;
+    url = 'http://www.ganjawars.ru/messages.php?fid=' + $cd.fid + '&tid='+ $cd.tid +'&page_id=' + $cd.tPage;
 
-    if (id < count) {
-      try {
-        REQ(url, 'GET', null, true, function (req) {
-          $answer.innerHTML = req.responseText;
-          parse();
-          correctionTime();
-        }, function () {
-          errorLog('Сбор информации о сообщениях', 0, 0);
-          nextPageTheme();
-        });
-      } catch (e) {
+    if(id < count){
+      try{
+        REQ(url, 'GET', null, true,
+          function (req){
+            $answer.innerHTML = req.responseText;
+            parse();
+            correctionTime();
+          },
+          function (){
+            errorLog('Сбор информации о сообщениях', 0, 0);
+            nextPageTheme();
+          }
+        );
+      }catch (e){
         errorLog('сборе информации о сообщениях', 1, e);
         nextPageTheme();
       }
-    } else {
+    }else{
       nextTheme();
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function parse() {
+    function parse(){
       var table, tr, pid, player, pf, w;
       var i, length;
 
       table = $($answer).find('td[style="color: #990000"]:contains("Автор")').up('table').node();
 
-      $(table).find('font:contains("~Тема закрыта")').nodeArr().forEach(function (node) {
-        node = $(node).up('tr').node();
-        node.parentNode.removeChild(node);
-      });
+      $(table).find('font:contains("~Тема закрыта")').nodeArr().forEach(
+        function(node){
+          node = $(node).up('tr').node();
+          node.parentNode.removeChild(node);
+        }
+      );
       tr = table.rows;
       length = tr.length;
 
-      for (i = start; i < length; i++) {
+      for(i = start; i < length; i++){
         pid = getId();
 
-        if ($sd.players[pid] == null) {
+        if($sd.players[pid] == null){
           $sd.players[pid] = generatePlayer(getName());
         }
         player = $sd.players[pid];
 
-        if (player.forums[$cd.fid] == null) {
+        if(player.forums[$cd.fid] == null){
           player.forums[$cd.fid] = generateForumPlayer();
         }
         pf = player.forums[$cd.fid];
@@ -2494,7 +2923,7 @@ function parseThemes(index, max, list) {
         pf.words[0] += w;
         pf.words[1] = parseInt(pf.words[0] / pf.posts, 10);
 
-        if (!pf.themes.gkExist($cd.tid)) {
+        if(!pf.themes.gkExist($cd.tid)){
           pf.themes.push($cd.tid);
         }
       }
@@ -2502,7 +2931,7 @@ function parseThemes(index, max, list) {
       nextPageTheme();
       /////////////////////////////
 
-      function getId() {
+      function getId(){
         var id;
 
         id = $(tr[i].cells[0]).find('a[href*="info.php"]').node();
@@ -2513,24 +2942,24 @@ function parseThemes(index, max, list) {
       }
       /////////////////////////////
 
-      function getName() {
+      function getName(){
         return $(tr[i].cells[0]).find('a[href*="info.php"]').text();
       }
       /////////////////////////////
 
-      function getLastDate() {
+      function getLastDate(){
         var date;
 
         date = $(tr[i].cells[1]).find('td[align="left"]:contains("~написано")').text();
 
         date = date.match(/(.+): (\d+)-(\d+)-(\d+) (.+) /);
-        date = date[3] + '/' + date[4] + '/' + date[2] + ' ' + date[5];
+        date = `${date[3]}/${date[4]}/${date[2]} ${date[5]}`;
         date = Date.parse(date) / 1000;
 
         return date > pf.last ? date : pf.last;
       }
 
-      function getWords() {
+      function getWords(){
         var words;
 
         words = $(tr[i].cells[1]).find('table[cellpadding="5"]').text();
@@ -2541,18 +2970,18 @@ function parseThemes(index, max, list) {
     }
     /////////////////////////////
 
-    function nextTheme() {
+    function nextTheme(){
       index++;
-      $cd.f.threads['new']--;
+      $cd.f.threads.new--;
       displayProgress('work');
       saveToLocalStorage('data');
       parseThemes.gkDelay(750, this, [index, max, list]);
     }
     /////////////////////////////
 
-    function nextPageTheme() {
+    function nextPageTheme(){
       id++;
-      displayProgress.gkDelay(750, this, ['extra', '<br><b>Тема:</b> <i>' + $cd.f.themes[$cd.tid].name + '</i> [' + id + '/' + count + ']']);
+      displayProgress.gkDelay(750, this, ['extra', `<br><b>Тема:</b> <i>${$cd.f.themes[$cd.tid].name}</i> [${id}/${count}]`]);
       parseTheme.gkDelay(750, this, [id, count, 1]);
     }
     /////////////////////////////
@@ -2560,18 +2989,18 @@ function parseThemes(index, max, list) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function prepareParseMembers(count) {
+function prepareParseMembers(count){
   var length, player, list;
 
   length = count != null ? count : $cd.countMembers;
   list = [];
 
-  while (length--) {
+  while(length--){
     player = $sd.players[$cd.members[length]];
-    if (count == null) {
+    if(count == null){
       list.push($cd.members[length]);
-    } else {
-      if (player.status.text == '') {
+    }else{
+      if(player.status.text == ''){
         list.push($cd.members[length]);
       }
     }
@@ -2583,40 +3012,43 @@ function prepareParseMembers(count) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseMembers(id, count, list) {
+function parseMembers(id, count, list){
   var url, player;
 
-  if (id < count) {
+  if(id < count){
     player = $sd.players[list[id]];
-    url = 'http://www.ganjawars.ru/info.php?id=' + list[id];
-    try {
-      REQ(url, 'GET', null, true, function (req) {
-        $answer.innerHTML = req.responseText;
-        parse();
-        saveToLocalStorage('data');
-        correctionTime();
-        nextMember();
-      }, function () {
-        errorLog('Сбор статуса персонажа', 0, 0);
-        nextMember();
-      });
-    } catch (e) {
+    url = `http://www.ganjawars.ru/info.php?id=${list[id]}`;
+    try{
+      REQ(url, 'GET', null, true,
+        function (req){
+          $answer.innerHTML = req.responseText;
+          parse();
+          saveToLocalStorage('data');
+          correctionTime();
+          nextMember();
+        },
+        function (){
+          errorLog('Сбор статуса персонажа', 0, 0);
+          nextMember();
+        }
+      );
+    }catch (e){
       errorLog('сборе статуса персонажа', 1, e);
     }
-  } else {
+  }else{
     renderStatsTable();
     displayProgress('done');
   }
   /////////////////////////////
 
-  function nextMember() {
+  function nextMember(){
     id++;
     displayProgress.gkDelay(750, this, ['work']);
     parseMembers.gkDelay(750, this, [id, count, list]);
   }
   /////////////////////////////
 
-  function parse() {
+  function parse(){
     var block, arrest, banDefault, banCommon, banTrade, status, date;
 
     status = 'Ok';
@@ -2628,23 +3060,23 @@ function parseMembers(id, count, list) {
     banCommon = $($answer).find('center:contains("~Персонаж под общим баном")').find('font[color="#009900"]');
     banTrade = $($answer).find('font[color="red"]:contains("~забанен в торговых форумах")');
 
-    if (banTrade.length) {
+    if(banTrade.length){
       date = getDate(banTrade.text());
       status = 'Торговый';
     }
-    if (arrest.length) {
+    if(arrest.length){
       date = 0;
       status = 'Арестован';
     }
-    if (banDefault.length) {
+    if(banDefault.length){
       date = getDate(banDefault.text());
       status = 'Форумный';
     }
-    if (banCommon.length) {
+    if(banCommon.length){
       date = getDate(banCommon.text());
       status = 'Общий бан';
     }
-    if (block.length) {
+    if(block.length){
       date = 0;
       status = 'Заблокирован';
     }
@@ -2654,11 +3086,11 @@ function parseMembers(id, count, list) {
   }
   /////////////////////////////
 
-  function getDate(string) {
+  function getDate(string){
     var date;
 
     date = string.match(/(\d+)/g);
-    date = date[3] + '/' + date[2] + '/20' + date[4] + ' ' + date[0] + ':' + date[1];
+    date = `${date[3]}/${date[2]}/20${date[4]} ${date[0]}:${date[1]}`;
     date = Date.parse(date) / 1000;
 
     return date;
@@ -2666,11 +3098,9 @@ function parseMembers(id, count, list) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function prepareSendMails() {
+function prepareSendMails(){
   var param, window, count, mode, tm, sid;
-  var queue,
-      f,
-      invites = {};
+  var queue, f, invites = {};
 
   param = {
     list: [],
@@ -2691,66 +3121,62 @@ function prepareSendMails() {
 
   queue = ["getLopata", "stop"];
   f = {
-    getInvitesId: function getInvitesId() {
-      _getInvitesId();
-    },
-    getGoAwayId: function getGoAwayId() {
-      _getGoAwayId();
-    },
-    getLopata: function getLopata() {
-      _getLopata();
-    },
-    stop: function stop() {
-      _stop();
-    }
+    getInvitesId: function(){getInvitesId()},
+    getGoAwayId: function(){getGoAwayId()},
+    getLopata: function(){getLopata()},
+    stop: function(){stop()}
   };
+
 
   window = $("#sf_messageWindow").node();
   param.subject = encodeURIComponent($(window).find('input[type="text"][name="subject"]').node().value);
   param.message = encodeURIComponent($(window).find('textarea[name="message"]').node().value);
   param.mode = $(window).find('select[name="workMode"]').find('option:checked').node().value;
   sid = $(window).find('select[name="sid"]').find('option:checked').node();
-  param.sid = Number(sid.value);sid = sid.textContent;
+  param.sid = Number(sid.value); sid = sid.textContent;
 
-  if (param.mode != "mail") {
-    if (param.sid == 0) {
+  if(param.mode != "mail"){
+    if(param.sid == 0){
       alert("Не выбран синдикат!");
       return;
     }
-    if (param.mode == "invite") queue.unshift("getInvitesId");
-    if (param.mode == "goAway") queue.unshift("getGoAwayId");
+    if(param.mode == "invite") queue.unshift("getInvitesId");
+    if(param.mode == "goAway") queue.unshift("getGoAwayId");
   }
 
-  if (param.mode == "mail") {
-    if (!confirm('Режим: ' + tm[param.mode] + '\n\n Все правильно?')) return;
-  } else {
-    if (!confirm('Режим:       ' + tm[param.mode] + '\nСиндикат:  ' + sid + '\n\n Все правильно?')) return;
+  if(param.mode == "mail"){
+    if(!confirm(`Режим: ${tm[param.mode]}\n\n Все правильно?`)) return;
+  }else{
+    if(!confirm(`Режим:       ${tm[param.mode]}\nСиндикат:  ${sid}\n\n Все правильно?`)) return;
   }
 
   next(0);
   /////////////////////////////
 
-  function _stop() {
-    $(window).find('select').find('option[value]').nodeArr().forEach(getList);
+  function stop(){
+    $(window).find('select')
+      .find('option[value]')
+      .nodeArr()
+      .forEach(getList);
 
     count = param.list.length;
 
     openStatusWindow();
     displayProgress('start', 'Рассылка сообщений выбранным игрокам', 0, count);
-    displayProgressTime(count * 39500 + 500);
+    displayProgressTime((count * 39500) + 500);
     doActions(0, count, param);
   }
 
   /////////////////////////////
 
-  function getList(option) {
+  function getList(option){
     var name, id;
 
     id = option.value.split("|");
     name = id[0];
     id = id[1];
 
-    if (invites[name] == null) {
+    if(invites[name] == null){
       param.list.push({
         id: id,
         name: name,
@@ -2760,41 +3186,51 @@ function prepareSendMails() {
   }
   /////////////////////////////
 
-  function _getLopata() {
-    try {
-      REQ('http://www.ganjawars.ru/sms-create.php', 'GET', null, true, function (req) {
-        $answer.innerHTML = req.responseText;
-        param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
-        param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
+  function getLopata(){
+    try{
+      REQ('http://www.ganjawars.ru/sms-create.php', 'GET', null, true,
+        function (req){
+          $answer.innerHTML = req.responseText;
+          param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
+          param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
 
-        next();
-      }, function () {
-        errorLog('Получении лопаты', 0, 0);
-      });
-    } catch (e) {
+          next();
+        },
+        function (){
+          errorLog('Получении лопаты', 0, 0);
+        }
+      );
+    }catch(e){
       errorLog('получении лопаты', 1, e);
     }
   }
   /////////////////////////////
 
-  function _getGoAwayId() {
-    try {
-      REQ('http://www.ganjawars.ru/syndicate.edit.php?key=users&id=' + param.sid, 'GET', null, true, function (req) {
-        $answer.innerHTML = req.responseText;
-        param.awayList = {};
+  function getGoAwayId (){
+    try{
+      REQ('http://www.ganjawars.ru/syndicate.edit.php?key=users&id=' + param.sid, 'GET', null, true,
+        function (req){
+          $answer.innerHTML = req.responseText;
+          param.awayList = {};
 
-        $($answer).find('select[name="cid"]').find("option").nodeArr().forEach(parse);
+          $($answer)
+            .find('select[name="cid"]')
+            .find("option")
+            .nodeArr()
+            .forEach(parse);
 
-        next();
-      }, function () {
-        errorLog('Получении списка id на изгнание персонажей', 0, 0);
-      });
-    } catch (e) {
-      errorLog('получении списка id на изгнание персонажей', 1, e);
+          next();
+        },
+        function (){
+          errorLog(`Получении списка id на изгнание персонажей`, 0, 0);
+        }
+      );
+    }catch (e){
+      errorLog(`получении списка id на изгнание персонажей`, 1, e);
     }
     /////////////////////////////
 
-    function parse(option) {
+    function parse(option){
       var id, name;
 
       id = Number(option.value);
@@ -2807,30 +3243,38 @@ function prepareSendMails() {
   }
   /////////////////////////////
 
-  function _getInvitesId() {
-    try {
-      REQ('http://www.ganjawars.ru/syndicate.edit.php?key=invites&id=' + param.sid, 'GET', null, true, function (req) {
-        $answer.innerHTML = req.responseText;
-        param.awayList = {};
+  function getInvitesId(){
+    try{
+      REQ('http://www.ganjawars.ru/syndicate.edit.php?key=invites&id=' + param.sid, 'GET', null, true,
+        function (req){
+          $answer.innerHTML = req.responseText;
+          param.awayList = {};
 
-        $($answer).find('b:contains("Приглашенные персоны:")').up('td').find('a[href*="info.php"]').nodeArr().forEach(parse);
+          $($answer)
+            .find('b:contains("Приглашенные персоны:")')
+            .up('td')
+            .find('a[href*="info.php"]')
+            .nodeArr()
+            .forEach(parse);
 
-        next();
-      }, function () {
-        errorLog('Получении списка id на изгнание персонажей', 0, 0);
-      });
-    } catch (e) {
-      errorLog('получении списка id на изгнание персонажей', 1, e);
+          next();
+        },
+        function (){
+          errorLog(`Получении списка id на изгнание персонажей`, 0, 0);
+        }
+      );
+    }catch (e){
+      errorLog(`получении списка id на изгнание персонажей`, 1, e);
     }
 
-    function parse(node) {
+    function parse(node){
       invites[node.textContent] = node.href.split('=')[1];
     }
   }
   /////////////////////////////
 
-  function next(type) {
-    if (type != null) {
+  function next(type){
+    if(type != null){
       f[queue.shift()]();
       return;
     }
@@ -2840,13 +3284,13 @@ function prepareSendMails() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function doActions(index, count, param) {
-  if (index < count) {
-    if (param.mode == "invite") {
+function doActions(index, count, param){
+  if(index < count){
+    if(param.mode == "invite"){
       sendInvite(index, param);
     }
-    if (param.mode == "goAway") {
-      if (param.awayList[param.list[index].name] != null) doGoAway(param.sid, param.awayList[param.list[index].name]);
+    if(param.mode == "goAway"){
+      if(param.awayList[param.list[index].name] != null) doGoAway(param.sid, param.awayList[param.list[index].name]);
     }
 
     sendMail.gkDelay(1250, this, [index, param]);
@@ -2856,62 +3300,71 @@ function doActions(index, count, param) {
 
     displayProgress('work');
     doActions.gkDelay(random(360, 380) * 100, this, [index, count, param]);
-  } else {
+  }else{
     displayProgress('done');
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function sendMail(index, param) {
+function sendMail(index, param){
   var data;
 
-  data = 'postform=1&outmail=' + param.out + '&lopata=' + param.lopata + '&mailto=' + param.list[index].encode + '&subject=' + param.subject + '&msg=' + param.message;
+  data = `postform=1&outmail=${param.out}&lopata=${param.lopata}&mailto=${param.list[index].encode}&subject=${param.subject}&msg=${param.message}`;
 
-  try {
-    REQ('http://www.ganjawars.ru/sms-create.php', 'POST', data, true, function () {
-      correctionTime();
-    }, function () {
-      errorLog('Отправке письма ' + param.list[index].name, 0, 0);
-    });
-  } catch (e) {
-    errorLog('отправке письма ' + param.list[index].name, 1, e);
+  try{
+    REQ('http://www.ganjawars.ru/sms-create.php', 'POST', data, true,
+      function (){
+        correctionTime();
+      },
+      function (){
+        errorLog(`Отправке письма ${param.list[index].name}`, 0, 0);
+      }
+    );
+  }catch (e){
+    errorLog(`отправке письма ${param.list[index].name}`, 1, e);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function sendInvite(index, param) {
+function sendInvite(index, param){
   var data, invite;
 
-  data = 'key=invites&id=' + param.sid + '&invite=' + param.list[index].encode;
+  data = `key=invites&id=${param.sid}&invite=${param.list[index].encode}`;
   invite = $mode ? $sd : $tsd;
-  invite = invite.players[param.list[index].id].forums["1" + param.sid].invite;
+  invite = invite.players[param.list[index].id].forums[("1" + param.sid)].invite;
 
-  try {
-    REQ('http://www.ganjawars.ru/syndicate.edit.php', 'POST', data, true, function () {
-      correctionTime();
-      invite = 1; //// Пееределать
-      saveToLocalStorage('data');
-    }, function () {
-      errorLog('Отправке приглашения ' + param.list[index].name, 0, 0);
-    });
-  } catch (e) {
-    errorLog('отправке приглашения ' + param.list[index].name, 1, e);
+  try{
+    REQ('http://www.ganjawars.ru/syndicate.edit.php', 'POST', data, true,
+      function (){
+        correctionTime();
+        invite = 1;        //// Пееределать
+        saveToLocalStorage('data');
+      },
+      function (){
+        errorLog(`Отправке приглашения ${param.list[index].name}`, 0, 0);
+      }
+    );
+  }catch (e){
+    errorLog(`отправке приглашения ${param.list[index].name}`, 1, e);
   }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function doGoAway(sid, id) {
-  var data = 'id=' + sid + '&key=users&remove=' + id;
+function doGoAway(sid, id){
+  var data = `id=${sid}&key=users&remove=${id}`;
 
-  try {
-    REQ('http://www.ganjawars.ru/syndicate.edit.php', 'POST', data, true, function () {
-      correctionTime();
-    }, function () {
-      errorLog('Изгнанние ' + id, 0, 0);
-    });
-  } catch (e) {
-    errorLog('изгнании ' + id, 1, e);
+  try{
+    REQ('http://www.ganjawars.ru/syndicate.edit.php', 'POST', data, true,
+      function (){
+        correctionTime();
+      },
+      function (){
+        errorLog(`Изгнанние ${id}`, 0, 0);
+      }
+    );
+  }catch (e){
+    errorLog(`изгнании ${id}`, 1, e);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2944,18 +3397,104 @@ function doGoAway(sid, id) {
 //}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function renderBaseHTML() {
+function renderBaseHTML(){
   var header, footer, b1, b2, width;
 
   $t.stats.setWidth([65, 45, -1, 40, 75, 75, 95, 80, 75, 75, 75, 75, 172, 80, 80, 50, 75, 95, 45]);
 
-  $t.stats.setStructure([["paths", "$sd.players[id]", "$sd.players[id].forums[$cd.fid]", "$checked.players[id]", "getPercent($sd.players[id].forums[$cd.fid]"], ["id", 0, "Number(id)", "number", "ID"], ["sNumber", 2, ".sn", "number", "Номер в списке синдиката"], ["name", 1, ".name", "check", "Имя"], ["member", 2, ".member", "boolean", "В составе"], ["status", 1, ".status", "multiple", "Статус"], ["enter", 2, ".enter", "date", "Принят"], ["exit", 2, ".exit", "date", "Покинул"], ["invite", 2, ".invite", "date", "Приглашен"], ["checked", 3, "", null, null], ["startThemes", 2, ".start.length", "number", "Начато тем"], ["writeThemes", 2, ".themes.length", "number", "Учавствовал в темах"], ["lastMessage", 2, ".last", "date", "Последнее сообщение"], ["posts", 2, ".posts", "number", "Всего сообщений"], ["percentStartThemes", 4, ".start.length, $cd.f.threads.all, false);", "number", "Процент начатых тем"], ["percentWriteThemes", 4, ".themes.length, $cd.f.threads.all, false);", "number", "Процент участия в темах"], ["percentPosts", 4, ".posts, $cd.f.posts, false);", "number", "Процент сообщений"], ["percentWords", 4, ".words[0], $cd.f.words, false);", "number", "Процент написанных слов"], ["words", 2, ".words[0]", "number", "Всего написанных слов"], ["wordsAverage", 2, ".words[1]", "number", "Среднее количество написанных слов"]]);
+  $t.stats.setStructure([
+    ["paths", "$sd.players[id]", "$sd.players[id].forums[$cd.fid]", "$checked.players[id]", "getPercent($sd.players[id].forums[$cd.fid]"],
+    ["id", 0, "Number(id)", "number", "ID"],
+    ["sNumber", 2, ".sn", "number", "Номер в списке синдиката"],
+    ["name", 1, ".name", "check", "Имя"],
+    ["member", 2, ".member", "boolean", "В составе"],
+    ["status", 1, ".status", "multiple", "Статус"],
+    ["enter", 2, ".enter", "date", "Принят"],
+    ["exit", 2, ".exit", "date", "Покинул"],
+    ["invite", 2, ".invite", "date", "Приглашен"],
+    ["checked", 3, "", null, null],
+    ["startThemes", 2, ".start.length", "number", "Начато тем"],
+    ["writeThemes", 2, ".themes.length", "number", "Учавствовал в темах"],
+    ["lastMessage", 2, ".last", "date", "Последнее сообщение"],
+    ["posts", 2, ".posts", "number", "Всего сообщений"],
+    ["percentStartThemes", 4, ".start.length, $cd.f.threads.all, false);", "number", "Процент начатых тем"],
+    ["percentWriteThemes", 4, ".themes.length, $cd.f.threads.all, false);", "number", "Процент участия в темах"],
+    ["percentPosts", 4, ".posts, $cd.f.posts, false);", "number", "Процент сообщений"],
+    ["percentWords", 4, ".words[0], $cd.f.words, false);", "number", "Процент написанных слов"],
+    ["words", 2, ".words[0]", "number", "Всего написанных слов"],
+    ["wordsAverage", 2, ".words[1]", "number", "Среднее количество написанных слов"]
+  ]);
 
   //<div style="width: 24px; height: 24px; margin-left: 5px; float: left; background-image: url(${$ico.memberIco})"></div>
 
-  header = '<table align="center" style="width: 100%;" type="padding">\n                <tr style="height: 35px; font-style: italic;">\n                    <td align="center" colspan="17">Данные по форуму #' + $cd.fid + '<b> «' + $forum.name + '»</b></td>\n                </tr>\n                <tr type="header">\n                    <td ' + $t.stats.getWidth(0) + ' align="center" rowspan="2" sort="id" height="60">#<img /></td>\n                    <td ' + $t.stats.getWidth(1) + ' align="center" rowspan="2" sort="sNumber">№<img /></td>\n                    <td ' + $t.stats.getWidth(2) + ' align="center" rowspan="2" sort="name">Имя<img /></td>\n                    <td ' + $t.stats.getWidth(3) + ' align="center" rowspan="2" sort="member"><img /></td>\n                    <td align="center" colspan="2">Темы</td>\n                    <td align="center" colspan="2">Посты</td>\n                    <td align="center" colspan="4">Процент</td>\n                    <td ' + $t.stats.getWidth(12) + ' align="center" rowspan="2" sort="status">Статус<img /></td>\n                    <td ' + $t.stats.getWidth(13) + ' align="center" rowspan="2" sort="enter">Принят<img /></td>\n                    <td ' + $t.stats.getWidth(14) + ' align="center" rowspan="2" sort="exit">Покинул<img /></td>\n                    <td ' + $t.stats.getWidth(15) + ' align="center" rowspan="2" sort="invite">Звал<img /></td>\n                    <td align="center" colspan="2">Слов в постах</td>\n                    <td ' + $t.stats.getWidth(18) + ' align="center" rowspan="2" sort="checked" width="45">@<img /></td>\n                </tr>\n                <tr type="header">\n                    <td ' + $t.stats.getWidth(4) + ' align="center" sort="startThemes">Начато<img /></td>\n                    <td ' + $t.stats.getWidth(5) + ' align="center" sort="writeThemes">Участия<img /></td>\n                    <td ' + $t.stats.getWidth(6) + ' align="center" sort="lastMessage">Последний<img /></td>\n                    <td ' + $t.stats.getWidth(7) + ' align="center" sort="posts">Кол-во<img /></td>\n                    <td ' + $t.stats.getWidth(8) + ' align="center" sort="percentStartThemes">Нач.тем<img /></td>\n                    <td ' + $t.stats.getWidth(9) + ' align="center" sort="percentWriteThemes">Участия<img /></td>\n                    <td ' + $t.stats.getWidth(10) + ' align="center" sort="percentPosts">Постов<img /></td>\n                    <td ' + $t.stats.getWidth(11) + ' align="center" sort="percentWords">Слов<img /></td>\n                    <td ' + $t.stats.getWidth(16) + ' align="center" sort="words">Всего<img /></td>\n                    <td ' + $t.stats.getWidth(17) + ' align="center" sort="wordsAverage" title="Среднее количесвто слов в одном сообщении">В среднем<img /></td>\n                </tr>\n            </table>';
+  header =
+    `<table align="center" style="width: 100%;" type="padding">
+                <tr style="height: 35px; font-style: italic;">
+                    <td align="center" colspan="17">Данные по форуму #${$cd.fid}<b> «${$forum.name}»</b></td>
+                </tr>
+                <tr type="header">
+                    <td ${$t.stats.getWidth(0)} align="center" rowspan="2" sort="id" height="60">#<img /></td>
+                    <td ${$t.stats.getWidth(1)} align="center" rowspan="2" sort="sNumber">№<img /></td>
+                    <td ${$t.stats.getWidth(2)} align="center" rowspan="2" sort="name">Имя<img /></td>
+                    <td ${$t.stats.getWidth(3)} align="center" rowspan="2" sort="member"><img /></td>
+                    <td align="center" colspan="2">Темы</td>
+                    <td align="center" colspan="2">Посты</td>
+                    <td align="center" colspan="4">Процент</td>
+                    <td ${$t.stats.getWidth(12)} align="center" rowspan="2" sort="status">Статус<img /></td>
+                    <td ${$t.stats.getWidth(13)} align="center" rowspan="2" sort="enter">Принят<img /></td>
+                    <td ${$t.stats.getWidth(14)} align="center" rowspan="2" sort="exit">Покинул<img /></td>
+                    <td ${$t.stats.getWidth(15)} align="center" rowspan="2" sort="invite">Звал<img /></td>
+                    <td align="center" colspan="2">Слов в постах</td>
+                    <td ${$t.stats.getWidth(18)} align="center" rowspan="2" sort="checked" width="45">@<img /></td>
+                </tr>
+                <tr type="header">
+                    <td ${$t.stats.getWidth(4)} align="center" sort="startThemes">Начато<img /></td>
+                    <td ${$t.stats.getWidth(5)} align="center" sort="writeThemes">Участия<img /></td>
+                    <td ${$t.stats.getWidth(6)} align="center" sort="lastMessage">Последний<img /></td>
+                    <td ${$t.stats.getWidth(7)} align="center" sort="posts">Кол-во<img /></td>
+                    <td ${$t.stats.getWidth(8)} align="center" sort="percentStartThemes">Нач.тем<img /></td>
+                    <td ${$t.stats.getWidth(9)} align="center" sort="percentWriteThemes">Участия<img /></td>
+                    <td ${$t.stats.getWidth(10)} align="center" sort="percentPosts">Постов<img /></td>
+                    <td ${$t.stats.getWidth(11)} align="center" sort="percentWords">Слов<img /></td>
+                    <td ${$t.stats.getWidth(16)} align="center" sort="words">Всего<img /></td>
+                    <td ${$t.stats.getWidth(17)} align="center" sort="wordsAverage" title="Среднее количесвто слов в одном сообщении">В среднем<img /></td>
+                </tr>
+            </table>`;
 
-  footer = '<table align="center" style="width: 100%;" type="padding">\n                <tr style="background-color: #d0eed0;" type="filters">\n                    <td align="center" ' + $t.stats.getWidth(0) + ' filter="id"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(1) + ' filter="sNumber"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(2) + ' filter="name"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(3) + ' filter="member"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(4) + ' filter="startThemes"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(5) + ' filter="writeThemes"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(6) + ' filter="lastMessage"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(7) + ' filter="posts"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(8) + ' filter="percentStartThemes"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(9) + ' filter="percentWriteThemes"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(10) + ' filter="percentPosts"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(11) + ' filter="percentWords"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(12) + ' filter="status"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(13) + ' filter="enter"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(14) + ' filter="exit"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(15) + ' filter="invite"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(16) + ' filter="words"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(17) + ' filter="wordsAverage"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.stats.getWidth(18) + ' ></td>\n                </tr>\n                <tr style="height: 35px; background-color: #d0eed0;">\n                    <td colspan="12" id="sf_currentFilters"></td>\n                    <td colspan="2">\n                        Всего тем: <b> ' + $forum.themes[1] + '</b>, всего постов: <b>' + $forum.posts + '</b>\n                    </td>\n                    <td colspan="5">\n                        Позиций в таблице: <b id="sf_SI_ListCount">0</b>, отмечено: <b id="sf_SI_ListChecked">0</b>\n                    </td>\n                </tr>\n            </table>\n            <span id="sf_bCheckAllMembers">[отметить всё]</span>';
+  footer =
+    `<table align="center" style="width: 100%;" type="padding">
+                <tr style="background-color: #d0eed0;" type="filters">
+                    <td align="center" ${$t.stats.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(1)} filter="sNumber"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(2)} filter="name"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(3)} filter="member"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(4)} filter="startThemes"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(5)} filter="writeThemes"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(6)} filter="lastMessage"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(7)} filter="posts"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(8)} filter="percentStartThemes"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(9)} filter="percentWriteThemes"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(10)} filter="percentPosts"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(11)} filter="percentWords"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(12)} filter="status"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(13)} filter="enter"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(14)} filter="exit"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(15)} filter="invite"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(16)} filter="words"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(17)} filter="wordsAverage"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.stats.getWidth(18)} ></td>
+                </tr>
+                <tr style="height: 35px; background-color: #d0eed0;">
+                    <td colspan="12" id="sf_currentFilters"></td>
+                    <td colspan="2">
+                        Всего тем: <b> ${$forum.themes[1]}</b>, всего постов: <b>${$forum.posts}</b>
+                    </td>
+                    <td colspan="5">
+                        Позиций в таблице: <b id="sf_SI_ListCount">0</b>, отмечено: <b id="sf_SI_ListChecked">0</b>
+                    </td>
+                </tr>
+            </table>
+            <span id="sf_bCheckAllMembers">[отметить всё]</span>`;
 
   $('#sf_header_SI').html(header);
   $('#sf_footer_SI').html(footer);
@@ -2963,9 +3502,7 @@ function renderBaseHTML() {
   $t.stats.setControl($ico);
 
   b1 = $('#sf_bCheckAllMembers').node();
-  bindEvent(b1, 'onclick', function () {
-    checkAllMembers(b1, '#sf_content_SI');
-  });
+  bindEvent(b1, 'onclick', function(){checkAllMembers(b1, '#sf_content_SI')});
 
   //header =
   //    `<table align="center" style="width: 100%" type="padding">
@@ -2984,11 +3521,55 @@ function renderBaseHTML() {
   //$('#sf_header_STI').html(header);
 
   $t.themes.setWidth([70, -1, 250, 80, 100, 100, 43]);
-  $t.themes.setStructure([["paths", "$cd.f.themes[id]", "$checked.themes[id]"], ["id", 0, "Number(id)", "number", "ID"], ["name", 1, ".name", "check", "Названии темы"], ["author", 1, ".author", "check", "Имени автора"], ["date", 1, ".date", "date", "Дате создания"], ["check", 2, "", null, null], ["postsDone", 1, ".posts[0]", "number", "Обработано сообщений"], ["postsAll", 1, ".posts[1]", "number", "Всего сообщений"]]);
+  $t.themes.setStructure([
+    ["paths", "$cd.f.themes[id]", "$checked.themes[id]"],
+    ["id", 0, "Number(id)", "number", "ID"],
+    ["name", 1, ".name", "check", "Названии темы"],
+    ["author", 1, ".author", "check", "Имени автора"],
+    ["date", 1, ".date", "date", "Дате создания"],
+    ["check", 2, "", null, null],
+    ["postsDone", 1, ".posts[0]", "number", "Обработано сообщений"],
+    ["postsAll", 1, ".posts[1]", "number", "Всего сообщений"]
+  ]);
 
-  header = '<table align="center" style="width: 100%;" type="padding">\n                <tr style="height: 35px; font-style: italic;">\n                    <td align="center" colspan="7">Данные по обработанным темам</td>\n                </tr>\n                <tr type="header">\n                    <td align="center" ' + $t.themes.getWidth(0) + ' sort="id" rowspan="2" style="height: 50px;">#<img /></td>\n                    <td align="center" ' + $t.themes.getWidth(1) + ' sort="name" rowspan="2">Тема<img /></td>\n                    <td align="center" ' + $t.themes.getWidth(2) + ' sort="author" rowspan="2">Автор<img /></td>\n                    <td align="center" ' + $t.themes.getWidth(3) + ' sort="date" rowspan="2">Создана<img /></td>\n                    <td align="center" colspan="2">Сообщений</td>\n                    <td align="center" ' + $t.themes.getWidth(6) + ' sort="check" rowspan="2">@<img /></td>\n                </tr>\n                <tr type="header">\n                    <td align="center" ' + $t.themes.getWidth(4) + ' sort="postsDone">Обработано<img /></td>\n                    <td align="center" ' + $t.themes.getWidth(5) + ' sort="postsAll">Всего<img /></td>\n                </tr>\n            </table>';
+  header =
+    `<table align="center" style="width: 100%;" type="padding">
+                <tr style="height: 35px; font-style: italic;">
+                    <td align="center" colspan="7">Данные по обработанным темам</td>
+                </tr>
+                <tr type="header">
+                    <td align="center" ${$t.themes.getWidth(0)} sort="id" rowspan="2" style="height: 50px;">#<img /></td>
+                    <td align="center" ${$t.themes.getWidth(1)} sort="name" rowspan="2">Тема<img /></td>
+                    <td align="center" ${$t.themes.getWidth(2)} sort="author" rowspan="2">Автор<img /></td>
+                    <td align="center" ${$t.themes.getWidth(3)} sort="date" rowspan="2">Создана<img /></td>
+                    <td align="center" colspan="2">Сообщений</td>
+                    <td align="center" ${$t.themes.getWidth(6)} sort="check" rowspan="2">@<img /></td>
+                </tr>
+                <tr type="header">
+                    <td align="center" ${$t.themes.getWidth(4)} sort="postsDone">Обработано<img /></td>
+                    <td align="center" ${$t.themes.getWidth(5)} sort="postsAll">Всего<img /></td>
+                </tr>
+            </table>`;
 
-  footer = '<table align="center" style="width: 100%;" type="padding">\n                <tr style="background-color: #d0eed0;" type="filters">\n                    <td align="center" ' + $t.themes.getWidth(0) + ' filter="id"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.themes.getWidth(1) + ' filter="name"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.themes.getWidth(2) + ' filter="author"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.themes.getWidth(3) + ' filter="date"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.themes.getWidth(4) + ' filter="postsDone"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.themes.getWidth(5) + ' filter="postsAll"><img src="' + $ico.filter + '"></td>\n                    <td align="center" ' + $t.themes.getWidth(6) + ' ></td>\n                </tr>\n                <tr style="height: 35px; background-color: #d0eed0;">\n                    <td colspan="4">\n                    </td>\n                    <td colspan="3">\n                    </td>\n                </tr>\n            </table>\n            <span style="float: right; margin-right: 5px; font-size: 10px; cursor: pointer;" id="sf_bCheckAllThemes">[отметить всё]</span>';
+  footer =
+    `<table align="center" style="width: 100%;" type="padding">
+                <tr style="background-color: #d0eed0;" type="filters">
+                    <td align="center" ${$t.themes.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.themes.getWidth(1)} filter="name"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.themes.getWidth(2)} filter="author"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.themes.getWidth(3)} filter="date"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.themes.getWidth(4)} filter="postsDone"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.themes.getWidth(5)} filter="postsAll"><img src="${$ico.filter}"></td>
+                    <td align="center" ${$t.themes.getWidth(6)} ></td>
+                </tr>
+                <tr style="height: 35px; background-color: #d0eed0;">
+                    <td colspan="4">
+                    </td>
+                    <td colspan="3">
+                    </td>
+                </tr>
+            </table>
+            <span style="float: right; margin-right: 5px; font-size: 10px; cursor: pointer;" id="sf_bCheckAllThemes">[отметить всё]</span>`;
 
   $('#sf_header_TL').html(header);
   $('#sf_footer_TL').html(footer);
@@ -2996,47 +3577,50 @@ function renderBaseHTML() {
   $t.themes.setControl($ico);
 
   b2 = $('#sf_bCheckAllThemes').node();
-  bindEvent(b2, 'onclick', function () {
-    checkAllMembers(b2, '#sf_content_TL');
-  });
+  bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});
 
   /////////////////////////////
 
-  function checkAllMembers(button, id) {
+  function checkAllMembers(button, id){
     var cn = $('#sf_SI_ListChecked');
 
-    if (button.textContent == "[отметить всё]") {
+    if(button.textContent == "[отметить всё]"){
       button.textContent = "[снять всё]";
-      if (id == "#sf_content_SI") cn.html($cd.statsCount);
-    } else {
+      if(id == "#sf_content_SI") cn.html($cd.statsCount);
+    }else{
       button.textContent = "[отметить всё]";
-      if (id == "#sf_content_SI") cn.html(0);
+      if(id == "#sf_content_SI") cn.html(0);
     }
 
-    $(id).find('input[type="checkbox"]').nodeArr().forEach(function (box) {
-      if (button.textContent != "[отметить всё]") {
-        doThis(box, "lightChecked", true, $ico.boxOn, true);
-      } else {
-        doThis(box, "light", false, $ico.boxOff, false);
-      }
-    });
+    $(id)
+      .find('input[type="checkbox"]')
+      .nodeArr()
+      .forEach(
+        function(box){
+          if(button.textContent != "[отметить всё]"){
+            doThis(box, "lightChecked", true, $ico.boxOn, true);
+          }else{
+            doThis(box, "light", false, $ico.boxOff, false);
+          }
+        }
+      );
     /////////////////////////////
 
-    function doThis(box, type, c, img, check) {
+    function doThis(box, type, c, img, check){
       $(box).up('tr').node().setAttribute("type", type);
       box.checked = c;
-      box.nextElementSibling.style.background = 'url("' + img + '")';
-      if (id == "#sf_content_SI") $checked.players[box.value] = check;
-      if (id == "#sf_content_TL") $checked.themes[box.value] = check;
+      box.nextElementSibling.style.background = `url("${img}")`;
+      if(id == "#sf_content_SI") $checked.players[box.value] = check;
+      if(id == "#sf_content_TL") $checked.themes[box.value] = check;
     }
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function renderStatsTable(sorted) {
+function renderStatsTable(sorted){
   var table = $t.stats;
 
-  if (!sorted) {
+  if(!sorted) {
     table.clearContent();
     prepareRenders("players", table);
     table.sorting();
@@ -3047,10 +3631,10 @@ function renderStatsTable(sorted) {
   bindCheckingOnRows('#sf_content_SI');
 }
 
-function renderThemesTable(sorted) {
+function renderThemesTable(sorted){
   var table = $t.themes;
 
-  if (!sorted) {
+  if(!sorted){
     table.clearContent();
     prepareRenders("themes", table);
     table.sorting();
@@ -3061,45 +3645,43 @@ function renderThemesTable(sorted) {
   bindCheckingOnRows('#sf_content_TL');
 }
 
-function renderTables() {
+function renderTables(){
   renderStatsTable();
   renderThemesTable();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function doFilter(td, tName, type, name) {
+function doFilter(td, tName, type, name){
   console.log(td);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function prepareRenders(value, table) {
-  var m = [],
-      f = [],
-      added;
+function prepareRenders(value, table){
+  var m = [], f = [], added;
 
-  if (value == "players") {
+  if(value == "players"){
     Object.keys($sd[value]).forEach(processing);
     //Object.keys($ss.show.stats).forEach(prepareFilters);
-  } else {
-      Object.keys($sd.forums[$cd.fid].themes).forEach(processing);
-    }
+  }else{
+    Object.keys($sd.forums[$cd.fid].themes).forEach(processing);
+  }
 
-  if (added && $mode) saveToLocalStorage('data');
+  if(added && $mode) saveToLocalStorage('data');
 
-  return { m: m, f: f };
+  return {m: m, f: f};
 
-  function processing(id) {
+  function processing(id){
     var p, pf, kicked, invite, f;
 
-    if ($checked[value][id] == null) {
+    if($checked[value][id] == null){
       $checked[value][id] = false;
     }
 
-    if (value == "players") {
+    if(value == "players"){
       p = $sd.players[id];
       pf = p.forums[$cd.fid];
 
-      if (pf != null) {
+      if(pf != null){
         //kicked = $mode ? $sd.kicked[$cd.fid] : $tsd.kicked[$cd.fid];
         //if(kicked != null && pf != null && kicked[p.name] != null){
         //    if(pf.exit <= kicked[p.name]){
@@ -3132,28 +3714,27 @@ function prepareRenders(value, table) {
 
         table.setContent(id);
       }
-    } else {
+    }else{
       table.setContent(id);
     }
   }
   /////////////////////////////////////
 
-  function prepareFilters(value) {
-    if ($ss.show.stats[value] != null) f.push(value);
+  function prepareFilters(value){
+    if($ss.show.stats[value] != null) f.push(value);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function doSort(td, table) {
-  var cell,
-      name = table.getName();
+function doSort(td, table){
+  var cell, name = table.getName();
 
   table.setSort($ico);
 
   cell = td.getAttribute("sort");
-  if (cell == $ss.sort[name].cell) {
+  if(cell == $ss.sort[name].cell){
     $ss.sort[name].type = $ss.sort[name].type == 0 ? 1 : 0;
-  } else {
+  }else{
     $ss.sort[name].cell = cell;
     $ss.sort[name].type = 1;
   }
@@ -3163,38 +3744,42 @@ function doSort(td, table) {
 
   saveToLocalStorage('settings');
 
-  if (name == "stats") renderStatsTable(true);
-  if (name == "themes") renderThemesTable(true);
+  if(name == "stats") renderStatsTable(true);
+  if(name == "themes") renderThemesTable(true);
+
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function bindCheckingOnRows(id) {
-  $(id).find('tr').nodeArr().forEach(function (node) {
-    bindEvent(node, 'onclick', function () {
-      checkedId(node);
-    });
-  });
+function bindCheckingOnRows(id){
+  $(id)
+    .find('tr')
+    .nodeArr()
+    .forEach(
+      function(node) {
+        bindEvent(node, 'onclick',function(){checkedId(node)});
+      }
+    );
 
-  function checkedId(node) {
-    if (node.getAttribute("type") == "light") {
+  function checkedId(node){
+    if(node.getAttribute("type") == "light"){
       node.setAttribute("type", "lightChecked");
-    } else {
+    }else{
       node.setAttribute("type", "light");
     }
     node = $(node).find('input[type="checkbox"]').node();
-    node.nextSibling.style.background = node.checked ? 'url("' + $ico.boxOff + '")' : 'url("' + $ico.boxOn + '")';
+    node.nextSibling.style.background = node.checked ? `url("${$ico.boxOff}")` : `url("${$ico.boxOn}")`;
     node.checked = !node.checked;
 
-    if (id == "#sf_content_SI") {
+    if(id == "#sf_content_SI"){
       $checked.players[node.value] = !$checked.players[node.value];
       changeCount('#sf_SI_ListChecked', node.checked);
     }
-    if (id == "#sf_content_TL") {
+    if(id == "#sf_content_TL"){
       $checked.themes[node.value] = !$checked.themes[node.value];
     }
   }
 
-  function changeCount(id, state) {
+  function changeCount(id, state){
     var count, cn;
 
     cn = $(id);
@@ -3204,19 +3789,23 @@ function bindCheckingOnRows(id) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function showStats(table) {
+function showStats(table){
   var code;
 
-  code = '<div style="max-height: 477px; overflow-y: scroll;">\n                <table align="center" style="width: 100%;" type="padding">';
+  code =
+    `<div style="max-height: 477px; overflow-y: scroll;">
+                <table align="center" style="width: 100%;" type="padding">`;
 
-  table.getContent().forEach(function (tr) {
+
+  table.getContent().forEach(function(tr){
     var memberIco, inviteIco, light, check, box, kickedColor;
 
-    if (tr.check) {
+    if (tr.check){
       light = "lightChecked";
       check = "checked";
       box = $ico.boxOn;
-    } else {
+    }
+    else {
       light = "light";
       check = "";
       box = $ico.boxOff;
@@ -3226,66 +3815,105 @@ function showStats(table) {
     inviteIco = tr.invite ? $ico.inTeam : $ico.outTeam;
     kickedColor = tr.goAway ? 'style="color: brown; font-weight: bold;"' : "";
 
-    code += '<tr height="28" type="' + light + '">\n                            <td ' + table.getWidth(0) + ' align="right">' + convertID(tr.id) + '</td>\n                            <td ' + table.getWidth(1) + ' align="center">' + hz(tr.sNumber) + '</td>\n                            <td ' + table.getWidth(2) + ' style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=' + tr.id + '">' + tr.name + '</a></td>\n                            <td ' + table.getWidth(3) + ' align="center"><img src="' + memberIco + '" /></td>\n                            <td ' + table.getWidth(4) + ' align="center">' + hz(tr.startThemes) + '</td>\n                            <td ' + table.getWidth(5) + ' align="center">' + hz(tr.writeThemes) + '</td>\n                            <td ' + table.getWidth(6) + ' align="center">' + getNormalDate(tr.lastMessage).d + '</td>\n                            <td ' + table.getWidth(7) + ' align="center">' + hz(tr.posts) + '</td>\n                            <td ' + table.getWidth(8) + ' align="center">' + hz(tr.percentStartThemes, 1) + '</td>\n                            <td ' + table.getWidth(9) + ' align="center">' + hz(tr.percentWriteThemes, 1) + '</td>\n                            <td ' + table.getWidth(10) + ' align="center">' + hz(tr.percentPosts, 1) + '</td>\n                            <td ' + table.getWidth(11) + ' align="center">' + hz(tr.percentWords, 1) + '</td>\n                            <td ' + table.getWidth(12) + ' align="center">' + statusMember(tr.status) + '</td>\n                            <td ' + table.getWidth(13) + ' align="center">' + getNormalDate(tr.enter).d + '</td>\n                            <td ' + table.getWidth(14) + ' align="center" ' + kickedColor + '>' + getNormalDate(tr.exit).d + '</td>\n                            <td ' + table.getWidth(15) + ' align="center"><img src="' + inviteIco + '" /></td>\n                            <td ' + table.getWidth(16) + ' align="center">' + hz(tr.words) + '</td>\n                            <td ' + table.getWidth(17) + ' align="center">' + hz(tr.wordsAverage) + '</td>\n                            <td ' + table.getWidth(18, true) + '><input type="checkbox" ' + check + ' name="sf_membersList" value="' + tr.id + '"/><div style="margin: auto; width: 13px; height: 13px; background: url(\'' + box + '\')"></div></td>\n                        </tr>\n                    ';
+    code +=
+      `<tr height="28" type="${light}">
+                            <td ${table.getWidth(0)} align="right">${convertID(tr.id)}</td>
+                            <td ${table.getWidth(1)} align="center">${hz(tr.sNumber)}</td>
+                            <td ${table.getWidth(2)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
+                            <td ${table.getWidth(3)} align="center"><img src="${memberIco}" /></td>
+                            <td ${table.getWidth(4)} align="center">${hz(tr.startThemes)}</td>
+                            <td ${table.getWidth(5)} align="center">${hz(tr.writeThemes)}</td>
+                            <td ${table.getWidth(6)} align="center">${getNormalDate(tr.lastMessage).d}</td>
+                            <td ${table.getWidth(7)} align="center">${hz(tr.posts)}</td>
+                            <td ${table.getWidth(8)} align="center">${hz(tr.percentStartThemes, 1)}</td>
+                            <td ${table.getWidth(9)} align="center">${hz(tr.percentWriteThemes, 1)}</td>
+                            <td ${table.getWidth(10)} align="center">${hz(tr.percentPosts, 1)}</td>
+                            <td ${table.getWidth(11)} align="center">${hz(tr.percentWords, 1)}</td>
+                            <td ${table.getWidth(12)} align="center">${statusMember(tr.status)}</td>
+                            <td ${table.getWidth(13)} align="center">${getNormalDate(tr.enter).d}</td>
+                            <td ${table.getWidth(14)} align="center" ${kickedColor}>${getNormalDate(tr.exit).d}</td>
+                            <td ${table.getWidth(15)} align="center"><img src="${inviteIco}" /></td>
+                            <td ${table.getWidth(16)} align="center">${hz(tr.words)}</td>
+                            <td ${table.getWidth(17)} align="center">${hz(tr.wordsAverage)}</td>
+                            <td ${table.getWidth(18, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
+                        </tr>
+                    `;
 
     $cd.statsCount++;
   });
 
-  code += '</table>\n            </div>';
+  code += `</table>
+            </div>`;
 
   $('#sf_content_SI').html(code);
   $('#sf_SI_ListCount').html($cd.statsCount);
 
   /////////////////////////////
 
-  function hz(value, p) {
+  function hz(value, p){
     return value == 0 ? "-" : p != null ? value + '<span style="font-size: 9px;"> %</span>' : value;
   }
   /////////////////////////////
 
-  function statusMember(s) {
-    if (s.text == '') return "-";
-    if (s.text == "Ok") return '<div style="width: 100%; height: 100%; background: url(\'' + $ico.ok + '\') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[' + getNormalDate(s.date).d + ']</div>';
-    if (s.date != 0) return $date > s.date ? "?" : '<span style="' + $statusStyle[s.text] + '">' + s.text + '</span> [' + getNormalDate(s.date).d + ']';
+  function statusMember(s){
+    if(s.text == '')
+      return "-";
+    if(s.text == "Ok")
+      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${getNormalDate(s.date).d}]</div>`;
+    if(s.date != 0)
+      return $date > s.date ? "?" : `<span style="${$statusStyle[s.text]}">${s.text}</span> [${getNormalDate(s.date).d}]`;
 
-    return '<span style="' + $statusStyle[s.text] + '">' + s.text + '</span>';
+    return`<span style="${$statusStyle[s.text]}">${s.text}</span>`;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function showThemeList(table) {
+function showThemeList(table){
   var code, light, check, box;
 
-  code = '<div style="max-height: 495px; overflow-y: scroll;">\n                <table align="center" style="width: 100%;" type="padding">';
+  code =
+    `<div style="max-height: 495px; overflow-y: scroll;">
+                <table align="center" style="width: 100%;" type="padding">`;
 
-  table.getContent().forEach(function (tr) {
-    if (tr.check) {
+  table.getContent().forEach(function(tr){
+    if(tr.check){
       light = "lightChecked";
       check = "checked";
       box = $ico.boxOn;
-    } else {
+    }
+    else{
       light = "light";
       check = "";
       box = $ico.boxOff;
     }
 
-    code += '<tr height="28" type="' + light + '">\n                        <td ' + table.getWidth(0) + ' align="right">' + convertID(tr.id) + ' </td>\n                        <td ' + table.getWidth(1) + ' style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=' + $cd.fid + '&tid=' + tr.id + '">' + tr.name + '</a></td>\n                        <td ' + table.getWidth(2) + ' style="text-indent: 5px;" width="250"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=' + tr.author.id + '">' + tr.author.name + '</a></td>\n                        <td ' + table.getWidth(3) + ' align="center">' + getNormalDate(tr.date).d + '</td>\n                        <td ' + table.getWidth(4) + ' align="center">' + tr.postsDone + '</td>\n                        <td ' + table.getWidth(5) + ' align="center">' + tr.postsAll + '</td>\n                        <td ' + table.getWidth(6, true) + ' align="center"><input type="checkbox" ' + check + ' name="sf_themesList" value="' + tr.id + '" /><div style="width: 13px; height: 13px; background: url(\'' + box + '\')"></div></td>\n                    </tr>';
+    code +=
+      `<tr height="28" type="${light}">
+                        <td ${table.getWidth(0)} align="right">${convertID(tr.id)} </td>
+                        <td ${table.getWidth(1)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$cd.fid}&tid=${tr.id}">${tr.name}</a></td>
+                        <td ${table.getWidth(2)} style="text-indent: 5px;" width="250"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author.id}">${tr.author.name}</a></td>
+                        <td ${table.getWidth(3)} align="center">${getNormalDate(tr.date).d}</td>
+                        <td ${table.getWidth(4)} align="center">${tr.postsDone}</td>
+                        <td ${table.getWidth(5)} align="center">${tr.postsAll}</td>
+                        <td ${table.getWidth(6, true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
+                    </tr>`;
   });
 
-  code += '</table>\n            </div>';
+  code += `</table>
+            </div>`;
 
   $('#sf_content_TL').html(code);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function getCurrentFilters() {
+function getCurrentFilters(){
   var list, l, result;
 
   list = Object.keys($ss.show.stats).reverse();
   l = list.length;
   result = [];
 
-  while (l--) {
-    if ($ss.show.stats[list[l]] != null) {
+  while(l--){
+    if($ss.show.stats[list[l]] != null){
       result.push('[' + $cd.values.stats[list[l]][0] + ']');
     }
   }
@@ -3295,78 +3923,81 @@ function getCurrentFilters() {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getTimeRequest(type) {
-  if (!type) {
+function getTimeRequest(type){
+  if(!type){
     $cd.timeRequest = new Date().getTime();
-  } else {
+  }else{
     $cd.timeRequest = new Date().getTime() - $cd.timeRequest;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function correctionTime() {
+function correctionTime(){
   var node, time, t;
 
   t = $cd.timeRequest;
   node = $('#sf_progressTime');
   time = Number(node.text());
 
-  if (t > 500) {
+  if(t > 500){
     node.html(time - (500 - t));
-  } else if (t < 500) {
+  }else if(t < 500){
     node.html(time + (t - 500));
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function errorLog(text, full, e) {
-  if (full) {
+function errorLog(text, full, e){
+  if(full){
     console.groupCollapsed($nameScript);
-    console.error('Случилась при: ' + text + '. Ошибка: %s, строка: %d"', e.name, e.lineNumber);
+    console.error(`Случилась при: ${text}. Ошибка: %s, строка: %d"`, e.name, e.lineNumber);
     console.groupEnd();
-  } else {
-    console.error('Запрос завершился неудачно. ' + text + '.');
+  }else{
+    console.groupCollapsed($nameScript);
+    console.error(`Запрос завершился неудачно. ${text}.`);
+    console.error(e);
+    console.groupEnd();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // АПИ для работы с LS
 
-function saveToLocalStorage(type) {
+function saveToLocalStorage(type){
   var string;
 
-  if (type == 'data' && $mode) {
+  if(type == 'data' && $mode){
     string = JSON.stringify($sd);
     localStorage.setItem("gk_SF_data", string);
   }
-  if (type == 'settings') {
+  if(type == 'settings'){
     string = JSON.stringify($ss);
     localStorage.setItem("gk_SF_settings", string);
   }
 }
 
-function loadFromLocalStorage(type) {
+function loadFromLocalStorage(type){
   var string;
 
-  if (type == 'data') {
+  if(type == 'data'){
     string = localStorage.getItem("gk_SF_data");
 
-    if (string) {
-      if ($mode) {
+    if(string){
+      if($mode) {
         $sd = JSON.parse(string);
-      } else {
+      }else{
         $tsd = JSON.parse(string);
       }
-    } else {
+    }else{
       saveToLocalStorage('data');
     }
   }
-  if (type == 'settings') {
+  if(type == 'settings'){
     string = localStorage.getItem("gk_SF_settings");
 
-    if (string) {
+    if(string){
       $ss = JSON.parse(string);
-    } else {
+    }else{
       saveToLocalStorage('settings');
     }
   }
@@ -3385,17 +4016,17 @@ function REQ(url, method, param, async, onsuccess, onfailure) {
   request.send(param);
 
   if (async == true) {
-    request.onreadystatechange = function () {
-      if (request.readyState == 4 && request.status == 200 && typeof onsuccess != 'undefined') {
+    request.onreadystatechange = function(){
+      if (request.readyState == 4 && request.status == 200 && typeof onsuccess != 'undefined'){
         getTimeRequest(1);
         onsuccess(request);
-      } else if (request.readyState == 4 && request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
-    };
+      }else if (request.readyState == 4 && request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
+    }
   }
 
   if (async == false) {
-    if (request.status == 200 && typeof onsuccess != 'undefined') onsuccess(request);else if (request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
+    if (request.status == 200 && typeof onsuccess != 'undefined') onsuccess(request);
+    else if (request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
   }
 }
-
 },{"./../../../lib/common":1,"./../../../lib/dom":2,"./../../../lib/events":3,"./../../../lib/idb":4,"./../../../lib/prototypes":5,"./../../../lib/request":6,"./../../../lib/table":7,"./../src/generator":8,"./../src/icons":9,"./../src/packer":10}]},{},[11]);

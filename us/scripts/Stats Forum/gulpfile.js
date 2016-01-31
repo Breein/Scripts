@@ -45,11 +45,12 @@ gulp.task('bundle', function(){
   }
 
   return browserify('./tmp_src/index.js')
-    .transform(babelify.configure({stage: 0, compact: false}))
     .bundle()
     .pipe(source('bundle.js'))
     .pipe(buffer())
     .pipe(gulp.dest('./out'));
+
+  //.transform(babelify.configure({stage: 0, compact: false}))
 
   //.transform(hbsfy.configure({knownHelpersOnly: true}))
 });

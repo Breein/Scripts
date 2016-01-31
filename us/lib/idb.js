@@ -20,9 +20,9 @@ DB.prototype = {
    *
    */
   connectDB: function(){
-    return new Promise((onsuccess) =>{
-      var idb = this;
+    var idb = this;
 
+    return new Promise((onsuccess) =>{
       console.log("Run connect, version " + idb.version);
 
       idb.r = idb.o.open(this.name, idb.version);
@@ -161,7 +161,6 @@ DB.prototype = {
         this.index.onsuccess = function(event){
           onsuccess(event.target.result); // здесь возвращается результат
         };
-
       }
     });
   },
@@ -206,8 +205,13 @@ DB.prototype = {
       this.tx = this.db.transaction([table], "readwrite");
       this.store = this.tx.objectStore(table);
 
-      this.store.put(data);
-      console.log("Success added to " + table);
+      if(data._ch != null){
+        if(data._ch){
+          delete data._ch;
+          this.store.put(data);
+          console.log("Success added to " + table);
+        }
+      }
     }catch(e){
       console.log("Failed added");
       console.log(e);
@@ -229,7 +233,6 @@ module.exports = function(name){
       db.onsuccess = function(){
         idb.version = db.result.version == 1 ? 2 : db.result.version;
         db.result.close();
-
         onsuccess(idb);
       };
     }

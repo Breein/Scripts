@@ -1,5 +1,6 @@
 var $ = require('./dom');
 var bindEvent = require('./events');
+const $c = require('./common')();
 
 function Table(nodesID, settingsKey, settings){
   this.header = nodesID[0];

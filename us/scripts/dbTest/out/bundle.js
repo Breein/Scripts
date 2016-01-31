@@ -468,6 +468,51 @@ module.exports = function(name){
 };
 
 },{}],4:[function(require,module,exports){
+module.exports = function(){
+  /**
+   * Вызывает функцию через указанное количество миллисекунд в контексте ctx с аргументами args.
+   * @param {int} timeout
+   * @param {Object} ctx
+   * @param {Array} args
+   * @return {Number} Идентификатор таймаута.
+   */
+  Function.prototype.gkDelay = function(timeout, ctx, args){
+    var func = this;
+    return setTimeout(function() {
+      func.apply(ctx, args || []);
+    }, timeout);
+  };
+
+  /**
+   * @param {*} value
+   * @returns {boolean}
+   */
+  Array.prototype.gkExist = function(value){
+    var length, array;
+
+    array = this;
+    length = array.length;
+
+    while(length--){
+      if(array[length] == value){
+        return true;
+      }
+    }
+    return false;
+  };
+
+  /**
+   * @param {Function} generator
+   * @param {*[]}args
+   */
+  Function.prototype.gkWait = function(generator, args){
+    var f = this;
+    f.apply(null, args || []).then((result)=>{
+      generator.next(result);
+    });
+  };
+};
+},{}],5:[function(require,module,exports){
 module.exports = function (url, method, param) {
   return new Promise((onsuccess, onfailure) => {
     var request = new XMLHttpRequest();
@@ -485,7 +530,8 @@ module.exports = function (url, method, param) {
     }
   });
 };
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
+require('./../../../lib/prototypes')();
 var db = require('./../../../lib/idb');
 var $ = require('./../../../lib/dom');
 var ajax = require('./../../../lib/request');
@@ -494,49 +540,37 @@ var bindEvent = require('./../../../lib/events');
 var $idb, $ts, $dbAnswer;
 
 
-Function.prototype.gkWait = function(args, g){
-  var f = this;
-  f.apply(null, args || []).then((result)=>{
-    g.next("All Ok");
-    //g.next(result);
-  });
-};
-
 var arr = ["/me/", "/syndicates.php", "/shop.php"];
 
-forEach(arr).then(()=>{
+arr.reduce((sequence, u) => {
+  return sequence.then(()=>{
+    return forEach(u);
+  });
+}, Promise.resolve()).then(()=>{
   console.log("ForEach - Ok");
 });
 
-function forEach(array){
-  var gen;
+function forEach(u){
+  var g, f;
 
-  return new Promise((resolve)=>{
-    gen = parse(arr);
-    gen.next();
+  f = (resolve) => {
+    g = parse();
+    g.next();
 
     function* parse(){
       console.log("Start");
       var a;
 
-      a = yield ajax.gkWait(["http://www.ganjawars.ru" + array[0], "GET", null], gen);
+      a = yield ajax.gkWait(g, ["http://www.ganjawars.ru" + u, "GET", null]);
 
       // some code;
 
       console.log(a);
       console.log("End\n\n");
-      next();
+      resolve();
     }
+  };
 
-    function next(){
-      array.shift();
-      if(array.length){
-        gen = parse();
-        gen.next();
-      }else{
-        resolve();
-      }
-    }
-  });
+  return new Promise(f);
 }
-},{"./../../../lib/dom":1,"./../../../lib/events":2,"./../../../lib/idb":3,"./../../../lib/request":4}]},{},[5]);
+},{"./../../../lib/dom":1,"./../../../lib/events":2,"./../../../lib/idb":3,"./../../../lib/prototypes":4,"./../../../lib/request":5}]},{},[6]);
