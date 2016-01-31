@@ -1,4 +1,169 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+function Common(){
+
+}
+
+Common.prototype = {
+
+  /**
+   * @param {number} now
+   * @param {number} max
+   * @param {boolean} int
+   * @returns {number}
+   */
+  getPercent: function (now, max, int){
+    var percent;
+
+    if(now == 0 || max == 0){
+      return 0;
+    }
+
+    percent = (now / max) * 100;
+    if(int){
+      percent = parseInt(percent, 10);
+    }else{
+      percent = parseFloat(percent.toFixed(1));
+    }
+
+    return percent;
+  },
+
+  /**
+   *
+   * @param {number} date
+   * @param {null|boolean} full
+   * @returns {object}
+   */
+  getNormalDate: function (date, full){
+    if(isNaN(date)) return {d: date, t: '-'};
+    if(date == 0) return {d: '-', t: '-'};
+
+    date = date * 1000;
+    date = new Date(date);
+    date = date.toLocaleString();
+
+    date = date.match(/(\d+).(\d+).(\d+), (\d+):(\d+):(.+)/);
+
+    if(full != null) {
+      date = {
+        d: `${date[1]}.${date[2]}.${date[3]}`,
+        t: `${date[4]}:${date[5]}`
+      };
+    }else{
+      date = {
+        d: `${date[1]}.${date[2]}.${date[3].charAt(2)}${date[3].charAt(3)}`,
+        t: `${date[4]}:${date[5]}`
+      };
+    }
+
+    return date;
+  },
+
+  /**
+   *
+   * @param {number} t
+   * @returns {string}
+   */
+  getNormalTime: function (t){
+    var result, hh, mm, ss;
+
+    hh = 0;
+    t = parseInt(t / 1000, 10);
+
+    if(t > 3600){
+      hh = parseInt(t / 3600, 10);
+      t = t % 3600;
+    }
+    mm = parseInt(t / 60, 10);
+    ss = parseInt(t % 60, 10);
+
+    if(mm < 10) mm = "0" + mm;
+    if(ss < 10) ss = "0" + ss;
+
+    result = `${mm}:${ss}`;
+
+    if(hh > 0){
+      if(hh < 10) hh = "0" + hh;
+      result = `${hh}:${result}`;
+    }
+    return result;
+  },
+
+  /**
+   * @param {number} value
+   * @returns {string}
+   */
+  convertID: function (value){
+    var result, i, j;
+
+    if(value < 1000) return value;
+
+    value = value.toString();
+    j = 1; i = value.length;
+    result = "";
+
+    while(i--){
+      result = value.charAt(i) + result;
+      if(j%3 == 0 && j != 0 && i != 0){
+        result = ',' + result;
+      }
+      j++
+    }
+    return result;
+  },
+
+  /**
+   * @param {string} str
+   * @returns {string}
+   */
+  encodeHeader: function (str){
+    var a, string;
+
+    if(!str) return str;
+
+    string = String(str).replace(/%/g, '%25').replace(/\+/g, '%2B').replace(/\n/g, '%0A');
+    a = document.createElement('a');
+    a.href = "http://www.ganjawars.ru/encoded_str=?" + string;
+    string = a.href.split('encoded_str=?')[1];
+    string = string.replace(/%20/g, '+').replace(/=/g, '%3D').replace(/&/g, '%26');
+
+    return string;
+  },
+
+  /**
+   * @param {number} min
+   * @param {number} max
+   * @returns {number}
+   */
+  randomNumber: function (min, max){
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  },
+
+  /**
+   *
+   * @param {*} value
+   * @param {*[]} array
+   * @returns {boolean}
+   */
+  exist: function(value, array){
+    var length;
+
+    length = array.length;
+
+    while(length--){
+      if(array[length] == value){
+        return true;
+      }
+    }
+    return false;
+  }
+};
+
+module.exports = function (){
+  return new Common();
+};
+
+},{}],2:[function(require,module,exports){
 function Api(param) {
   this.selector = param;
   this.nodeList = [];
@@ -211,7 +376,7 @@ module.exports = function $(param) {
   return api;
 };
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 module.exports = function bindEvent(element, event, callback) {
   if (!element) {
     return;
@@ -228,7 +393,9 @@ module.exports = function bindEvent(element, event, callback) {
     element.attachEvent(event, callback, false);
   }
 };
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+const $c = require('./common')();
+
 function DB(name){
   this.o = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   this.t = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
@@ -251,9 +418,9 @@ DB.prototype = {
    *
    */
   connectDB: function(){
-    return new Promise((onsuccess) =>{
-      var idb = this;
+    var idb = this;
 
+    return new Promise((onsuccess) =>{
       console.log("Run connect, version " + idb.version);
 
       idb.r = idb.o.open(this.name, idb.version);
@@ -392,7 +559,6 @@ DB.prototype = {
         this.index.onsuccess = function(event){
           onsuccess(event.target.result); // здесь возвращается результат
         };
-
       }
     });
   },
@@ -401,16 +567,25 @@ DB.prototype = {
    * @param {string} table
    * @param {number[]|null} range
    * @param {string|null} index
+   * @param {boolean} existInArrayKey Ключ включащий проверку значения которое содержится в массиве
+   * @returns {Promise}
    */
-  getFew: function(table, range, index){
-    return new Promise((onsuccess) =>{
-      var results = [];
-      var krv = range ? this.kr.bound(range[0], range[1]) : null;
+  getFew: function(table, range, index, existInArrayKey){
+    var f, krv, results = {};
+
+    f = (onsuccess) => {
+      if(range){
+        if(typeof range == 'object'){
+          krv = this.kr.bound(range[0], range[1]);
+        }else{
+          krv = existInArrayKey ? null : this.kr.only(range);
+        }
+      }
 
       this.tx = this.db.transaction([table], "readonly");
       this.store = this.tx.objectStore(table);
 
-      if(index){
+      if(!existInArrayKey && index){
         this.store = this.store.index(index);
       }
 
@@ -418,14 +593,24 @@ DB.prototype = {
         var cursor = event.target.result;
 
         if(cursor){
-          results.push(cursor.value);
+          if(existInArrayKey){
+            if($c.exist(range, cursor.value[index])){
+              results[cursor.value.id] = cursor.value;
+              //results.push(cursor.value);
+            }
+          }else{
+            results[cursor.value.id] = cursor.value;
+            //results.push(cursor.value);
+          }
           cursor.continue();
         }else{
           console.log("Got all results: ");
           onsuccess(results);
         }
       };
-    });
+    };
+
+    return new Promise(f);
   },
 
   /**
@@ -437,8 +622,13 @@ DB.prototype = {
       this.tx = this.db.transaction([table], "readwrite");
       this.store = this.tx.objectStore(table);
 
-      this.store.put(data);
-      console.log("Success added to " + table);
+      if(data._ch != null){
+        if(data._ch){
+          delete data._ch;
+          this.store.put(data);
+          console.log("Success added to " + table);
+        }
+      }
     }catch(e){
       console.log("Failed added");
       console.log(e);
@@ -452,22 +642,20 @@ DB.prototype = {
  */
 module.exports = function(name){
   return new Promise((onsuccess) => {
-      var db, idb;
+    var db, idb;
 
-      idb = new DB(name);
-      db = idb.o.open(name);
+    idb = new DB(name);
+    db = idb.o.open(name);
 
-      db.onsuccess = function(){
-        idb.version = db.result.version == 1 ? 2 : db.result.version;
-        db.result.close();
-
-        onsuccess(idb);
-      };
-    }
-  )
+    db.onsuccess = function(){
+      idb.version = db.result.version == 1 ? 2 : db.result.version;
+      db.result.close();
+      onsuccess(idb);
+    };
+  });
 };
 
-},{}],4:[function(require,module,exports){
+},{"./common":1}],5:[function(require,module,exports){
 module.exports = function(){
   /**
    * Вызывает функцию через указанное количество миллисекунд в контексте ctx с аргументами args.
@@ -503,16 +691,17 @@ module.exports = function(){
 
   /**
    * @param {Function} generator
-   * @param {*[]}args
+   * @param {*} ctx
+   * @param {*[]} args
    */
-  Function.prototype.gkWait = function(generator, args){
+  Function.prototype.gkWait = function(generator, ctx, args){
     var f = this;
-    f.apply(null, args || []).then((result)=>{
+    f.apply(ctx, args || []).then((result)=>{
       generator.next(result);
     });
   };
 };
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports = function (url, method, param) {
   return new Promise((onsuccess, onfailure) => {
     var request = new XMLHttpRequest();
@@ -530,7 +719,7 @@ module.exports = function (url, method, param) {
     }
   });
 };
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 require('./../../../lib/prototypes')();
 var db = require('./../../../lib/idb');
 var $ = require('./../../../lib/dom');
@@ -540,15 +729,23 @@ var bindEvent = require('./../../../lib/events');
 var $idb, $ts, $dbAnswer;
 
 
+var button = $('<input>').attr("type", "button").attr("value", "Click!").node();
+
+document.body.appendChild(button);
+
+bindEvent(button, "onclick", click);
+
+makeConnect("gk_StatsForum", true);
+
 var arr = ["/me/", "/syndicates.php", "/shop.php"];
 
-arr.reduce((sequence, u) => {
-  return sequence.then(()=>{
-    return forEach(u);
-  });
-}, Promise.resolve()).then(()=>{
-  console.log("ForEach - Ok");
-});
+//arr.reduce((sequence, u) => {
+//  return sequence.then(()=>{
+//    return forEach(u);
+//  });
+//}, Promise.resolve()).then(()=>{
+//  console.log("ForEach - Ok");
+//});
 
 function forEach(u){
   var g, f;
@@ -573,4 +770,40 @@ function forEach(u){
 
   return new Promise(f);
 }
-},{"./../../../lib/dom":1,"./../../../lib/events":2,"./../../../lib/idb":3,"./../../../lib/prototypes":4,"./../../../lib/request":5}]},{},[6]);
+
+function makeConnect(name, first){
+  var ini, g;
+
+  ini = [
+    {name: "players", key: "id", index: [["name", "a", true]]},
+    {name: "forums", key: "id"}
+  ];
+
+  g = connect();
+  g.next();
+
+  function* connect(){
+    if(first){
+      console.log(1);
+      $idb = yield db.gkWait(g, this, [name]);
+      console.log($idb);
+      $idb.setIniTableList(ini);
+    }
+    $idb = yield $idb.connectDB.gkWait(g, $idb);
+
+
+    var r = yield $idb.getFew.gkWait(g, $idb, ["players", 13579, "d", true]);
+
+    console.log(r);
+  }
+}
+
+function click(){
+  //$idb.setModifyingTableList([
+  //  {name: "players", index:[["forums", "d", false]]}
+  //]);
+  //$idb.db.close();
+  //$idb.nextVersion();
+  //makeConnect("gk_StatsForum", false);
+}
+},{"./../../../lib/dom":2,"./../../../lib/events":3,"./../../../lib/idb":4,"./../../../lib/prototypes":5,"./../../../lib/request":6}]},{},[7]);

@@ -420,7 +420,7 @@ function createGUI(){
   table.rows[0].appendChild(gui);
 
   renderBaseHTML();
-  //renderStatsTable();
+  renderStatsTable();
   //renderThemesTable();
   createShadowLayer();
 
@@ -2400,17 +2400,59 @@ function renderBaseHTML(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderStatsTable(sorted){
-  var table = $t.stats;
+  var g, table, players, members, o;
 
-  if(!sorted) {
-    table.clearContent();
-    prepareRenders("players", table);
-    table.sorting();
+  table = $t.stats;
+  g = render();
+  g.next();
+
+  function* render(){
+    if(!sorted){
+      table.clearContent();
+
+      members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
+      players = yield $idb.getFew.gkWait(g, $idb, ["players", $forum.id, "d", true]);
+
+      members.forEach((member)=>{
+        var player;
+
+        o = {};
+        member = Pack.member(member);
+        player = Pack.player(players[member.id]);
+
+        o.id = member.id;
+        o.sNumber = member.sn;
+        o.name = player.name;
+        o.member = member.sn ? true : false;
+        o.status = {text: player.status, date: player.date};
+        o.enter = member.enter;
+        o.exit = member.exit;
+        o.invite = member.invite;
+        o.startThemes = member.start.length;
+        o.writeThemes = member.write.length;
+        o.lastMessage = member.last;
+        o.posts = member.posts;
+        o.words = member.words;
+        o.wordsAverage = member.wordsAverage;
+        o.carma = member.carma;
+        o.carmaAverage = member.carmaAverage;
+        o.percentStartThemes = $c.getPercent(o.startThemes, $forum.themes[1], false);
+        o.percentWriteThemes = $c.getPercent(o.writeThemes, $forum.themes[1], false);
+        o.percentPosts = $c.getPercent(o.posts, $forum.posts, false);
+        o.percentWords = $c.getPercent(o.words, $forum.words, false);
+
+        table.pushContent(o);
+      });
+      table.sorting();
+    }
+
+    $cd.statsCount = 0;
+    showStats(table);
+
+    //console.log(table);
+
+    bindCheckingOnRows('#sf_content_SI');
   }
-
-  $cd.statsCount = 0;
-  showStats(table);
-  bindCheckingOnRows('#sf_content_SI');
 }
 
 function renderThemesTable(sorted){
@@ -2439,18 +2481,16 @@ function doFilter(td, tName, type, name){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function prepareRenders(value, table){
-  var m = [], f = [], added;
+  var added;
 
   if(value == "players"){
-    Object.keys($sd[value]).forEach(processing);
+    //Object.keys($sd[value]).forEach(processing);
     //Object.keys($ss.show.stats).forEach(prepareFilters);
   }else{
     Object.keys($sd.forums[$cd.fid].themes).forEach(processing);
   }
 
   if(added && $mode) saveToLocalStorage('data');
-
-  return {m: m, f: f};
 
   function processing(id){
     var p, pf, kicked, invite, f;
@@ -2599,21 +2639,21 @@ function showStats(table){
 
     code +=
       `<tr height="28" type="${light}">
-                            <td ${table.getWidth(0)} align="right">${convertID(tr.id)}</td>
+                            <td ${table.getWidth(0)} align="right">${$c.convertID(tr.id)}</td>
                             <td ${table.getWidth(1)} align="center">${hz(tr.sNumber)}</td>
                             <td ${table.getWidth(2)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
                             <td ${table.getWidth(3)} align="center"><img src="${memberIco}" /></td>
                             <td ${table.getWidth(4)} align="center">${hz(tr.startThemes)}</td>
                             <td ${table.getWidth(5)} align="center">${hz(tr.writeThemes)}</td>
-                            <td ${table.getWidth(6)} align="center">${getNormalDate(tr.lastMessage).d}</td>
+                            <td ${table.getWidth(6)} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
                             <td ${table.getWidth(7)} align="center">${hz(tr.posts)}</td>
                             <td ${table.getWidth(8)} align="center">${hz(tr.percentStartThemes, 1)}</td>
                             <td ${table.getWidth(9)} align="center">${hz(tr.percentWriteThemes, 1)}</td>
                             <td ${table.getWidth(10)} align="center">${hz(tr.percentPosts, 1)}</td>
                             <td ${table.getWidth(11)} align="center">${hz(tr.percentWords, 1)}</td>
                             <td ${table.getWidth(12)} align="center">${statusMember(tr.status)}</td>
-                            <td ${table.getWidth(13)} align="center">${getNormalDate(tr.enter).d}</td>
-                            <td ${table.getWidth(14)} align="center" ${kickedColor}>${getNormalDate(tr.exit).d}</td>
+                            <td ${table.getWidth(13)} align="center">${$c.getNormalDate(tr.enter).d}</td>
+                            <td ${table.getWidth(14)} align="center" ${kickedColor}>${$c.getNormalDate(tr.exit).d}</td>
                             <td ${table.getWidth(15)} align="center"><img src="${inviteIco}" /></td>
                             <td ${table.getWidth(16)} align="center">${hz(tr.words)}</td>
                             <td ${table.getWidth(17)} align="center">${hz(tr.wordsAverage)}</td>
@@ -2641,9 +2681,9 @@ function showStats(table){
     if(s.text == '')
       return "-";
     if(s.text == "Ok")
-      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${getNormalDate(s.date).d}]</div>`;
+      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(s.date).d}]</div>`;
     if(s.date != 0)
-      return $date > s.date ? "?" : `<span style="${$statusStyle[s.text]}">${s.text}</span> [${getNormalDate(s.date).d}]`;
+      return $date > s.date ? "?" : `<span style="${$statusStyle[s.text]}">${s.text}</span> [${$c.getNormalDate(s.date).d}]`;
 
     return`<span style="${$statusStyle[s.text]}">${s.text}</span>`;
   }

@@ -1,3 +1,5 @@
+const $c = require('./common')();
+
 function DB(name){
   this.o = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   this.t = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
@@ -169,16 +171,27 @@ DB.prototype = {
    * @param {string} table
    * @param {number[]|null} range
    * @param {string|null} index
+   * @param {boolean} existInArrayKey Ключ включащий проверку значения которое содержится в массиве
+   * @returns {Promise}
    */
-  getFew: function(table, range, index){
-    return new Promise((onsuccess) =>{
-      var results = [];
-      var krv = range ? this.kr.bound(range[0], range[1]) : null;
+  getFew: function(table, range, index, existInArrayKey){
+    var f, krv, results;
+
+    results = existInArrayKey ? {} : [];
+
+    f = (onsuccess) => {
+      if(range){
+        if(typeof range == 'object'){
+          krv = this.kr.bound(range[0], range[1]);
+        }else{
+          krv = existInArrayKey ? null : this.kr.only(range);
+        }
+      }
 
       this.tx = this.db.transaction([table], "readonly");
       this.store = this.tx.objectStore(table);
 
-      if(index){
+      if(!existInArrayKey && index){
         this.store = this.store.index(index);
       }
 
@@ -186,14 +199,22 @@ DB.prototype = {
         var cursor = event.target.result;
 
         if(cursor){
-          results.push(cursor.value);
+          if(existInArrayKey){
+            if($c.exist(range, cursor.value[index])){
+              results[cursor.value.id] = cursor.value;
+            }
+          }else{
+            results.push(cursor.value);
+          }
           cursor.continue();
         }else{
           console.log("Got all results: ");
           onsuccess(results);
         }
       };
-    });
+    };
+
+    return new Promise(f);
   },
 
   /**
@@ -225,16 +246,15 @@ DB.prototype = {
  */
 module.exports = function(name){
   return new Promise((onsuccess) => {
-      var db, idb;
+    var db, idb;
 
-      idb = new DB(name);
-      db = idb.o.open(name);
+    idb = new DB(name);
+    db = idb.o.open(name);
 
-      db.onsuccess = function(){
-        idb.version = db.result.version == 1 ? 2 : db.result.version;
-        db.result.close();
-        onsuccess(idb);
-      };
-    }
-  )
+    db.onsuccess = function(){
+      idb.version = db.result.version == 1 ? 2 : db.result.version;
+      db.result.close();
+      onsuccess(idb);
+    };
+  });
 };

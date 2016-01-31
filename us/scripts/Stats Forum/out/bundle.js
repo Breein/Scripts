@@ -394,6 +394,8 @@ module.exports = function bindEvent(element, event, callback) {
   }
 };
 },{}],4:[function(require,module,exports){
+const $c = require('./common')();
+
 function DB(name){
   this.o = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
   this.t = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
@@ -565,16 +567,27 @@ DB.prototype = {
    * @param {string} table
    * @param {number[]|null} range
    * @param {string|null} index
+   * @param {boolean} existInArrayKey Ключ включащий проверку значения которое содержится в массиве
+   * @returns {Promise}
    */
-  getFew: function(table, range, index){
-    return new Promise((onsuccess) =>{
-      var results = [];
-      var krv = range ? this.kr.bound(range[0], range[1]) : null;
+  getFew: function(table, range, index, existInArrayKey){
+    var f, krv, results;
+
+    results = existInArrayKey ? {} : [];
+
+    f = (onsuccess) => {
+      if(range){
+        if(typeof range == 'object'){
+          krv = this.kr.bound(range[0], range[1]);
+        }else{
+          krv = existInArrayKey ? null : this.kr.only(range);
+        }
+      }
 
       this.tx = this.db.transaction([table], "readonly");
       this.store = this.tx.objectStore(table);
 
-      if(index){
+      if(!existInArrayKey && index){
         this.store = this.store.index(index);
       }
 
@@ -582,14 +595,22 @@ DB.prototype = {
         var cursor = event.target.result;
 
         if(cursor){
-          results.push(cursor.value);
+          if(existInArrayKey){
+            if($c.exist(range, cursor.value[index])){
+              results[cursor.value.id] = cursor.value;
+            }
+          }else{
+            results.push(cursor.value);
+          }
           cursor.continue();
         }else{
           console.log("Got all results: ");
           onsuccess(results);
         }
       };
-    });
+    };
+
+    return new Promise(f);
   },
 
   /**
@@ -621,21 +642,20 @@ DB.prototype = {
  */
 module.exports = function(name){
   return new Promise((onsuccess) => {
-      var db, idb;
+    var db, idb;
 
-      idb = new DB(name);
-      db = idb.o.open(name);
+    idb = new DB(name);
+    db = idb.o.open(name);
 
-      db.onsuccess = function(){
-        idb.version = db.result.version == 1 ? 2 : db.result.version;
-        db.result.close();
-        onsuccess(idb);
-      };
-    }
-  )
+    db.onsuccess = function(){
+      idb.version = db.result.version == 1 ? 2 : db.result.version;
+      db.result.close();
+      onsuccess(idb);
+    };
+  });
 };
 
-},{}],5:[function(require,module,exports){
+},{"./common":1}],5:[function(require,module,exports){
 module.exports = function(){
   /**
    * Вызывает функцию через указанное количество миллисекунд в контексте ctx с аргументами args.
@@ -1638,7 +1658,7 @@ function createGUI(){
   table.rows[0].appendChild(gui);
 
   renderBaseHTML();
-  //renderStatsTable();
+  renderStatsTable();
   //renderThemesTable();
   createShadowLayer();
 
@@ -3618,17 +3638,59 @@ function renderBaseHTML(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderStatsTable(sorted){
-  var table = $t.stats;
+  var g, table, players, members, o;
 
-  if(!sorted) {
-    table.clearContent();
-    prepareRenders("players", table);
-    table.sorting();
+  table = $t.stats;
+  g = render();
+  g.next();
+
+  function* render(){
+    if(!sorted){
+      table.clearContent();
+
+      members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
+      players = yield $idb.getFew.gkWait(g, $idb, ["players", $forum.id, "d", true]);
+
+      members.forEach((member)=>{
+        var player;
+
+        o = {};
+        member = Pack.member(member);
+        player = Pack.player(players[member.id]);
+
+        o.id = member.id;
+        o.sNumber = member.sn;
+        o.name = player.name;
+        o.member = member.sn ? true : false;
+        o.status = {text: player.status, date: player.date};
+        o.enter = member.enter;
+        o.exit = member.exit;
+        o.invite = member.invite;
+        o.startThemes = member.start.length;
+        o.writeThemes = member.write.length;
+        o.lastMessage = member.last;
+        o.posts = member.posts;
+        o.words = member.words;
+        o.wordsAverage = member.wordsAverage;
+        o.carma = member.carma;
+        o.carmaAverage = member.carmaAverage;
+        o.percentStartThemes = $c.getPercent(o.startThemes, $forum.themes[1], false);
+        o.percentWriteThemes = $c.getPercent(o.writeThemes, $forum.themes[1], false);
+        o.percentPosts = $c.getPercent(o.posts, $forum.posts, false);
+        o.percentWords = $c.getPercent(o.words, $forum.words, false);
+
+        table.pushContent(o);
+      });
+      table.sorting();
+    }
+
+    $cd.statsCount = 0;
+    showStats(table);
+
+    //console.log(table);
+
+    bindCheckingOnRows('#sf_content_SI');
   }
-
-  $cd.statsCount = 0;
-  showStats(table);
-  bindCheckingOnRows('#sf_content_SI');
 }
 
 function renderThemesTable(sorted){
@@ -3657,18 +3719,16 @@ function doFilter(td, tName, type, name){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function prepareRenders(value, table){
-  var m = [], f = [], added;
+  var added;
 
   if(value == "players"){
-    Object.keys($sd[value]).forEach(processing);
+    //Object.keys($sd[value]).forEach(processing);
     //Object.keys($ss.show.stats).forEach(prepareFilters);
   }else{
     Object.keys($sd.forums[$cd.fid].themes).forEach(processing);
   }
 
   if(added && $mode) saveToLocalStorage('data');
-
-  return {m: m, f: f};
 
   function processing(id){
     var p, pf, kicked, invite, f;
@@ -3817,21 +3877,21 @@ function showStats(table){
 
     code +=
       `<tr height="28" type="${light}">
-                            <td ${table.getWidth(0)} align="right">${convertID(tr.id)}</td>
+                            <td ${table.getWidth(0)} align="right">${$c.convertID(tr.id)}</td>
                             <td ${table.getWidth(1)} align="center">${hz(tr.sNumber)}</td>
                             <td ${table.getWidth(2)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
                             <td ${table.getWidth(3)} align="center"><img src="${memberIco}" /></td>
                             <td ${table.getWidth(4)} align="center">${hz(tr.startThemes)}</td>
                             <td ${table.getWidth(5)} align="center">${hz(tr.writeThemes)}</td>
-                            <td ${table.getWidth(6)} align="center">${getNormalDate(tr.lastMessage).d}</td>
+                            <td ${table.getWidth(6)} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
                             <td ${table.getWidth(7)} align="center">${hz(tr.posts)}</td>
                             <td ${table.getWidth(8)} align="center">${hz(tr.percentStartThemes, 1)}</td>
                             <td ${table.getWidth(9)} align="center">${hz(tr.percentWriteThemes, 1)}</td>
                             <td ${table.getWidth(10)} align="center">${hz(tr.percentPosts, 1)}</td>
                             <td ${table.getWidth(11)} align="center">${hz(tr.percentWords, 1)}</td>
                             <td ${table.getWidth(12)} align="center">${statusMember(tr.status)}</td>
-                            <td ${table.getWidth(13)} align="center">${getNormalDate(tr.enter).d}</td>
-                            <td ${table.getWidth(14)} align="center" ${kickedColor}>${getNormalDate(tr.exit).d}</td>
+                            <td ${table.getWidth(13)} align="center">${$c.getNormalDate(tr.enter).d}</td>
+                            <td ${table.getWidth(14)} align="center" ${kickedColor}>${$c.getNormalDate(tr.exit).d}</td>
                             <td ${table.getWidth(15)} align="center"><img src="${inviteIco}" /></td>
                             <td ${table.getWidth(16)} align="center">${hz(tr.words)}</td>
                             <td ${table.getWidth(17)} align="center">${hz(tr.wordsAverage)}</td>
@@ -3859,9 +3919,9 @@ function showStats(table){
     if(s.text == '')
       return "-";
     if(s.text == "Ok")
-      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${getNormalDate(s.date).d}]</div>`;
+      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(s.date).d}]</div>`;
     if(s.date != 0)
-      return $date > s.date ? "?" : `<span style="${$statusStyle[s.text]}">${s.text}</span> [${getNormalDate(s.date).d}]`;
+      return $date > s.date ? "?" : `<span style="${$statusStyle[s.text]}">${s.text}</span> [${$c.getNormalDate(s.date).d}]`;
 
     return`<span style="${$statusStyle[s.text]}">${s.text}</span>`;
   }
