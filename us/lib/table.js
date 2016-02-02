@@ -58,9 +58,10 @@ Table.prototype = {
 
   /**
    * @param {object} icons
+   * @param {Function} callback
    */
-  setControl: function(icons){
-    this.setSorts(icons);
+  setControl: function(icons, callback){
+    this.setSorts(icons, callback);
     this.setFilters(icons);
   },
 
@@ -184,10 +185,6 @@ Table.prototype = {
             p1 = p1.name;
             p2 = p2.name;
           }
-          if(p1.text){
-            p1 = p1.text;
-            p2 = p2.text;
-          }
         }
 
         res = compare(p1, p2);
@@ -205,8 +202,9 @@ Table.prototype = {
 
   /**
    * @param {object} icons
+   * @param {Function} callback
    */
-  setSorts: function(icons){
+  setSorts: function(icons, callback){
     var table = this;
 
     $(table.header).find('td[sort]').nodeArr().forEach(function(td){
@@ -214,7 +212,28 @@ Table.prototype = {
 
       value = td.getAttribute("sort");
       table.setSortImage(td, value, icons);
-      bindEvent(td, 'onclick', function(){doSort(td, table)});
+      bindEvent(td, 'onclick', ()=>{
+        var cell, name = table.getName();
+
+        table.setSort(icons);
+
+        cell = td.getAttribute("sort");
+        if(cell == table.settings.sort[name].cell){
+          table.settings.sort[name].type = table.settings.sort[name].type == 0 ? 1 : 0;
+        }else{
+          table.settings.sort[name].cell = cell;
+          table.settings.sort[name].type = 1;
+        }
+
+        table.changeSortImage(icons);
+        table.sorting();
+
+        //saveToLocalStorage('settings');
+
+        callback();
+        //if(name == "stats") renderStatsTable(true);
+        //if(name == "themes") renderThemesTable(true);
+      });
     });
   },
 
@@ -222,32 +241,14 @@ Table.prototype = {
    * @param {*[]} values
    */
   setStructure: function(values){
-    var table, paths;
-
-    table = this;
-    paths = values[0];
+    var table= this;
 
     values.forEach(function(elem){
-      if(elem[0] != "paths") {
-        table.structure[elem[0]] = {
-          path: getPath(elem[1], elem[2]),
-          filterType: elem[3],
-          filterName: elem[4]
-        };
-      }
+      table.structure[elem[0]] = {
+        filterType: elem[3],
+        filterName: elem[4]
+      };
     });
-
-    function getPath(e1, e2){
-      var result;
-
-      if(e1){
-        result = paths[e1] + e2;
-        result = result.split("[id]");
-      }else{
-        result = [e2];
-      }
-      return result;
-    }
   },
 
   /**
@@ -293,11 +294,11 @@ Table.prototype = {
           break;
 
         case "multiple":
-          if(!exist(row[value].text, filter[value].value)) return false;
+          if(!$c.exist(row[value].text, filter[value].value)) return false;
           break;
 
         case "check":
-          if(!exist(row[value].name, filter[value].value)) return false;
+          if(!$c.exist(row[value].name, filter[value].value)) return false;
           break;
 
         default:
@@ -307,7 +308,6 @@ Table.prototype = {
     return true;
 
     function compare(k, n){
-      //if(k == null) return false;
       if(isNaN(n)) n = parseInt(n, 10);
       return !(k[0] <= n && n <= k[1]);
     }

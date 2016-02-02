@@ -87,6 +87,36 @@ GeneratorData.prototype = {
       data: [],
       _ch: true
     }
+  },
+
+  /**
+   * @param {object} m member (упакованный)
+   * @param {object} p player (упакованный)
+   * @returns {object}
+   */
+  characters: function(m, p){
+    return {
+      id: m.id,
+      name: p.a,
+      member: (m.i != 0) + "",
+      status: p.b,
+      date: p.c,
+      posts: m.a,
+      lastMessage: m.b,
+      starts: m.c,
+      start: m.c.length,
+      writes: m.d,
+      write: m.d.length,
+      words: m.e,
+      wordsAverage: m.f,
+      carma: m.g,
+      carmaAverage: m.h,
+      sNumber: m.i,
+      enter: m.j,
+      exit: m.k,
+      kick: (m.l != 0) + "",
+      invite: (m.m != 0) + ""
+    };
   }
 };
 

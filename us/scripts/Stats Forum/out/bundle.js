@@ -780,9 +780,10 @@ Table.prototype = {
 
   /**
    * @param {object} icons
+   * @param {Function} callback
    */
-  setControl: function(icons){
-    this.setSorts(icons);
+  setControl: function(icons, callback){
+    this.setSorts(icons, callback);
     this.setFilters(icons);
   },
 
@@ -906,10 +907,6 @@ Table.prototype = {
             p1 = p1.name;
             p2 = p2.name;
           }
-          if(p1.text){
-            p1 = p1.text;
-            p2 = p2.text;
-          }
         }
 
         res = compare(p1, p2);
@@ -927,8 +924,9 @@ Table.prototype = {
 
   /**
    * @param {object} icons
+   * @param {Function} callback
    */
-  setSorts: function(icons){
+  setSorts: function(icons, callback){
     var table = this;
 
     $(table.header).find('td[sort]').nodeArr().forEach(function(td){
@@ -936,7 +934,28 @@ Table.prototype = {
 
       value = td.getAttribute("sort");
       table.setSortImage(td, value, icons);
-      bindEvent(td, 'onclick', function(){doSort(td, table)});
+      bindEvent(td, 'onclick', ()=>{
+        var cell, name = table.getName();
+
+        table.setSort(icons);
+
+        cell = td.getAttribute("sort");
+        if(cell == table.settings.sort[name].cell){
+          table.settings.sort[name].type = table.settings.sort[name].type == 0 ? 1 : 0;
+        }else{
+          table.settings.sort[name].cell = cell;
+          table.settings.sort[name].type = 1;
+        }
+
+        table.changeSortImage(icons);
+        table.sorting();
+
+        //saveToLocalStorage('settings');
+
+        callback();
+        //if(name == "stats") renderStatsTable(true);
+        //if(name == "themes") renderThemesTable(true);
+      });
     });
   },
 
@@ -944,32 +963,14 @@ Table.prototype = {
    * @param {*[]} values
    */
   setStructure: function(values){
-    var table, paths;
-
-    table = this;
-    paths = values[0];
+    var table= this;
 
     values.forEach(function(elem){
-      if(elem[0] != "paths") {
-        table.structure[elem[0]] = {
-          path: getPath(elem[1], elem[2]),
-          filterType: elem[3],
-          filterName: elem[4]
-        };
-      }
+      table.structure[elem[0]] = {
+        filterType: elem[3],
+        filterName: elem[4]
+      };
     });
-
-    function getPath(e1, e2){
-      var result;
-
-      if(e1){
-        result = paths[e1] + e2;
-        result = result.split("[id]");
-      }else{
-        result = [e2];
-      }
-      return result;
-    }
   },
 
   /**
@@ -1015,11 +1016,11 @@ Table.prototype = {
           break;
 
         case "multiple":
-          if(!exist(row[value].text, filter[value].value)) return false;
+          if(!$c.exist(row[value].text, filter[value].value)) return false;
           break;
 
         case "check":
-          if(!exist(row[value].name, filter[value].value)) return false;
+          if(!$c.exist(row[value].name, filter[value].value)) return false;
           break;
 
         default:
@@ -1029,7 +1030,6 @@ Table.prototype = {
     return true;
 
     function compare(k, n){
-      //if(k == null) return false;
       if(isNaN(n)) n = parseInt(n, 10);
       return !(k[0] <= n && n <= k[1]);
     }
@@ -1135,6 +1135,36 @@ GeneratorData.prototype = {
       data: [],
       _ch: true
     }
+  },
+
+  /**
+   * @param {object} m member (упакованный)
+   * @param {object} p player (упакованный)
+   * @returns {object}
+   */
+  characters: function(m, p){
+    return {
+      id: m.id,
+      name: p.a,
+      member: (m.i != 0) + "",
+      status: p.b,
+      date: p.c,
+      posts: m.a,
+      lastMessage: m.b,
+      starts: m.c,
+      start: m.c.length,
+      writes: m.d,
+      write: m.d.length,
+      words: m.e,
+      wordsAverage: m.f,
+      carma: m.g,
+      carmaAverage: m.h,
+      sNumber: m.i,
+      enter: m.j,
+      exit: m.k,
+      kick: (m.l != 0) + "",
+      invite: (m.m != 0) + ""
+    };
   }
 };
 
@@ -1148,8 +1178,8 @@ module.exports = function(){
 },{}],9:[function(require,module,exports){
 module.exports = {
     loading: "data:image/gif;base64,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",
-    inTeam: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAABgUExURaHCpdDlz5m2nJ69orLVs5q5npawmKnLq/3//fb89aPFp5Stl5e0mpKxlqXIqejx5py7oJ7Aopa4mZu6n6vGrJy8oI+kkcLZw4utjt3t3Z+/o+P24PL48a7Qr7fVt////1D+6W0AAAAgdFJOU/////////////////////////////////////////8AXFwb7QAAAORJREFUeNrM0tGSgyAMBdCYCGpEF4mhK632//9y8aUjtLOvu/f1zGUyCfD8JfCHGC2+MsYSY9e+crQUrxjnHRIA85zT7a3GC+KsIl6JFlBl7jp7QbeIJ8pdSN2e+wVa9d5TSovh+53TPBfojQqaJKHpmwW4REERVZmO/guIKzToeLt98+OxBqiaI+LEw7Bv/eEo5XcrdNOtH4YmyDn1G45h67fgKGOq0Dmc1madvColggKz5XJA8ZL3VKPN6iyKEdK8jitGNNadbXN2DbhYnEyXlAc5t8vMPlbHxkviP/h9H/MjwAB5L0bCGQGg2gAAAABJRU5ErkJggg==",
-    outTeam: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAABgUExURcy6o7eLg8KqlbqUiMWrmP79/cmynr2djcKllMCiksWjjLmRh8Clkr+gkL2Zjb6dj8zAouHWwvv59buXi93MusSllsGdjsSnmLJ9fLyci8OjlsSmkLuZi7ycjeLYwv////ACeG4AAAAgdFJOU/////////////////////////////////////////8AXFwb7QAAAONJREFUeNrM0tGOgyAQBVAEOjLKgJYqUIX+/18ubNNG7GZfd2/m7SRk4MIev4T9IYZOvNOFFgNME5te6cMRg2RIqDXnsgy89Ikjj7tF1EpV5QDdEamYlJvWEqBwizFazBk3L+dcTz5iF/ee8iWDnK+fuLtkoWiZxXvOG3QmJVX0kv2iziiMSZZVZL6sfEJn4jJ/HwveqxMKc79d8zDkspBC3eA4uuWWl22AciH8QGHcSuvqARRaarGWYoylu1dItj9iEE6UnZKtr09Wj6GpLJneEhHWalQMp7LFIeEf/L4f8yXAAK3KR+odaCMIAAAAAElFTkSuQmCC",
+    true: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAABgUExURaHCpdDlz5m2nJ69orLVs5q5npawmKnLq/3//fb89aPFp5Stl5e0mpKxlqXIqejx5py7oJ7Aopa4mZu6n6vGrJy8oI+kkcLZw4utjt3t3Z+/o+P24PL48a7Qr7fVt////1D+6W0AAAAgdFJOU/////////////////////////////////////////8AXFwb7QAAAORJREFUeNrM0tGSgyAMBdCYCGpEF4mhK632//9y8aUjtLOvu/f1zGUyCfD8JfCHGC2+MsYSY9e+crQUrxjnHRIA85zT7a3GC+KsIl6JFlBl7jp7QbeIJ8pdSN2e+wVa9d5TSovh+53TPBfojQqaJKHpmwW4REERVZmO/guIKzToeLt98+OxBqiaI+LEw7Bv/eEo5XcrdNOtH4YmyDn1G45h67fgKGOq0Dmc1madvColggKz5XJA8ZL3VKPN6iyKEdK8jitGNNadbXN2DbhYnEyXlAc5t8vMPlbHxkviP/h9H/MjwAB5L0bCGQGg2gAAAABJRU5ErkJggg==",
+    false: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAABgUExURcy6o7eLg8KqlbqUiMWrmP79/cmynr2djcKllMCiksWjjLmRh8Clkr+gkL2Zjb6dj8zAouHWwvv59buXi93MusSllsGdjsSnmLJ9fLyci8OjlsSmkLuZi7ycjeLYwv////ACeG4AAAAgdFJOU/////////////////////////////////////////8AXFwb7QAAAONJREFUeNrM0tGOgyAQBVAEOjLKgJYqUIX+/18ubNNG7GZfd2/m7SRk4MIev4T9IYZOvNOFFgNME5te6cMRg2RIqDXnsgy89Ikjj7tF1EpV5QDdEamYlJvWEqBwizFazBk3L+dcTz5iF/ee8iWDnK+fuLtkoWiZxXvOG3QmJVX0kv2iziiMSZZVZL6sfEJn4jJ/HwveqxMKc79d8zDkspBC3eA4uuWWl22AciH8QGHcSuvqARRaarGWYoylu1dItj9iEE6UnZKtr09Wj6GpLJneEhHWalQMp7LFIeEf/L4f8yXAAK3KR+odaCMIAAAAAElFTkSuQmCC",
     ok: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAABgUExURcfZyZq2nNnk2rbMt6C+o+Ts5KLBpZ68oaTFqLHVsqrFrarMrJq4nqTBppSsl6XIqZawmKLDpr3RvvL18s7ez5++pPn6+Zy5oO3y7Z/Aov/+/4+kkZu7oLTYtaDApP///9goXtYAAAAgdFJOU/////////////////////////////////////////8AXFwb7QAAAOhJREFUeNrM0ttuhCAQgGGQ4bAgq+Cg7oDs+79lsWkaMU1v2z/cfZlkArD3L7E/xDzz7565x+yOx1fH8YB8xTy5ACoEM525o+QL8qmUVFMNxgQVjHPzFV8lgWoF48/5DudSwCJTHhEjopt6HAXtq/SSJNIubrgtDOzOPFk5GNPjKBYNwKSiffE3fHIhNagoPQ0Ltp17tOuWFA6KvFituiGXg49rFBT9gDbc0C5ECCuRiIQdzjMfN2HhM1+hnzxRg24ba6gArytmPo6lSWqnpXjunqy8zrlUa7tao/Ptsfml/A9+3499CDAAMUlI6MueeL4AAAAASUVORK5CYII=",
     boxOff: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAMAAABFNRROAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAAwUExURcXGyLO4venp6dvc3tPW2uXm5uDh4tTV1rq9wc3R1/Ly8u3t7cvP1a6zufT09I6PjxdGPcgAAABTSURBVHjaZM7LDsAgCERRRMUHFv//bztKm5r0rjibCTTPaNrX0uWF6hqopUivcIs8agnIPLYCblbVslVjZu29R9cC9mWLHJZdBRvKyvb75ewWYACxKAd6tFGoMwAAAABJRU5ErkJggg==",
     boxOn: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAMAAABFNRROAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAAwUExURbS80err7Pj5+dja22d5psrMzs/U4t/h5U5jmUddlcDF0fb29svP1a6zufT09I6Pj+Y/NIsAAABeSURBVHjaTM5BDsAgCABBUCwiCv//bVGaxr1NIATwO3DLSlHbWru2iPVoRthl/GIQwtysXI0E6tGYC2OkKSZ5qMOnySJCxfioofcYaV5p/Cw3xFT8oVb2P6G7V4ABAJrfBzFmr8JyAAAAAElFTkSuQmCC",
@@ -1157,7 +1187,8 @@ module.exports = {
     sortUp: "data:image/gif;base64,R0lGODlhBwAUAIABAARrAf///yH5BAEAAAEALAAAAAAHABQAAAIQjI+py+0IEphn2mDz27yrAgA7",
     sortNull: "data:image/gif;base64,R0lGODlhBwAUAIABAARrAf///yH5BAEAAAEALAAAAAAHABQAAAIUjI+pywYJ4ok00NvglXtK9GTiiBQAOw==",
     filter: "data:image/png;base64,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",
-    memberIco: " data:image/png;base64,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"
+    memberIco: "data:image/png;base64,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",
+    kickIco: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAACUSURBVHja7FXLDcAgCJWmI3Ua5ugYzsE03YleNKkElJLYQyMnI4TH9wHMnGbKlibLdIDdYwQHZO2fLz5DAIpDNOyGgCCbXJxjsCIkQUCbIqskI3Fl8EmTg2UiLQPPmJJ4k6EL7UGNimqNH1E2uv9u8gJYdJ2wMCYqHNXoTKq3uOglXZB1G7pk52XV3uGBdfRHcgswAI/DSWvdTcJ4AAAAAElFTkSuQmCC"
 };
 },{}],10:[function(require,module,exports){
 function PackerData(){
@@ -1245,7 +1276,7 @@ var createTable = require('./../../../lib/table');
 
 
 const $c = require('./../../../lib/common')();
-const Create = require('./../src/generator')();
+const Create = require('./../src/creator')();
 const Pack = require('./../src/packer')();
 const $ico = require('./../src/icons');
 
@@ -1513,6 +1544,11 @@ span[id^="sf_bCheckAll"]{
     `
     td[sort="member"]{
       background-image: url(${$ico.memberIco});
+      background-position: 10px center;
+      background-repeat:no-repeat;
+    }
+    td[sort="kick"]{
+      background-image: url(${$ico.kickIco});
       background-position: 10px center;
       background-repeat:no-repeat;
     }
@@ -2340,60 +2376,106 @@ function closeWindows(){
 function getMembersList(){
   var url;
 
-  if($cd.sid){
-    url = `http://www.ganjawars.ru/syndicate.php?id=${$cd.sid}&page=members`;
+  if($forum.sid){
+    url = `http://www.ganjawars.ru/syndicate.php?id=${$forum.sid}&page=members`;
     displayProgress('start', 'Сбор и обработка информации о составе синдиката', 0, 1);
 
-    try{
-      REQ(url, 'GET', null, true,
-        function (req){
-          $answer.innerHTML = req.responseText;
-          parse();
-          saveToLocalStorage('data');
+    ajax(url, "GET", null).then((res)=>{
+      $answer.innerHTML = res;
+
+      prepareMembers().then(()=>{
+        $($answer)
+          .find('b:contains("Состав синдиката")')
+          .up('table')
+          .find('a[href*="info.php"]')
+          .nodeArr()
+          .reduce((sequence, a) => {
+          return sequence.then(()=>{
+            return parseNodes(a);
+          });
+        }, Promise.resolve()).then(()=>{
           renderStatsTable();
           displayProgress('done');
-        },
-        function (){
-          errorLog("Сбор информации о составе синдиката", 0, 0);
-        }
-      );
-    }catch (e){
-      errorLog("сборе информации о составе синдиката", 1, e);
-    }
+        });
+      });
+    }, (e)=>{
+      errorLog("Сбор информации о составе синдиката", 0, e);
+    });
   }
   /////////////////////////////
 
-  function parse(){
-    var list, id, name, sn, pf;
-
-    list = $($answer).find('b:contains("Состав синдиката")').up('table').find('a[href*="info.php"]').nodeArr();
-
-    Object.keys($sd.players).forEach(function(id){
-      pf = $sd.players[id].forums[$cd.fid];
-      if(pf != null){
-        pf.member = false;
-        pf.sn = 0;
-      }
-    });
-
-    list.forEach(function(node){
-      id = Number(node.href.match(/(\d+)/)[1]);
-      name = node.textContent;
-      sn = $(node).up('tr').node().cells[0].textContent;
-      sn = parseInt(sn, 10);
-
-      if($sd.players[id] == null){
-        $sd.players[id] = generatePlayer(name);
-      }
-
-      if($sd.players[id].forums[$cd.fid] == null){
-        $sd.players[id].forums[$cd.fid] = generateForumPlayer();
-      }
-
-      $sd.players[id].forums[$cd.fid].member = true;
-      $sd.players[id].forums[$cd.fid].sn = sn;
+  function prepareMembers(){
+    return $idb.getFew(`members_${$forum.id}`).then((members)=>{
+      members.forEach((member)=>{
+        member.i = 0;
+        $idb.add(`members_${$forum.id}`, member);
+      });
     });
   }
+  /////////////////////////////
+
+  function parseNodes(node){
+    var id, name, sn, character, player, member;
+    var g, f;
+
+    f = (resolve) => {
+      g = parse();
+      g.next();
+
+      function* parse(){
+        id = Number(node.href.match(/(\d+)/)[1]);
+        name = node.textContent;
+        sn = $(node).up('tr').node().cells[0].textContent;
+        sn = parseInt(sn, 10);
+
+        character = yield getCharacter.gkWait(g, this, [id]);
+        player = character.p; member = character.m;
+
+        if(player._ch) player.name = name;
+        member.sn = sn;
+        member._ch = true;
+
+        $idb.add(`players`, Pack.player(player));
+        $idb.add(`members_${$forum.id}`, Pack.member(member));
+        resolve();
+      }
+    };
+
+    return new Promise(f);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getCharacter(id){
+  var player, member;
+  var g, f;
+
+  f = (resolve) => {
+    g = getHim();
+    g.next();
+
+    function* getHim(){
+      player = yield $idb.getOne.gkWait(g, $idb, [`players`, "id", id]);
+      player = Pack.player(player);
+
+      if(player == null) player = Create.player(id);
+
+      member = yield $idb.getOne.gkWait(g, $idb, [`members_${$forum.id}`, "id", id]);
+      member = Pack.member(member);
+
+      if(member == null) member = Create.member(id);
+
+      if(!$c.exist($forum.id, player.forums)){
+        player.forums.push($forum.id);
+        player._ch = true;
+      }
+
+      resolve({p: player, m: member});
+    }
+  };
+
+  return new Promise(f);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2614,50 +2696,17 @@ function parseForum(index, mode, stopDate){
           parseForum.gkDelay(750, this, [index, mode, stopDate]);
           console.log("Done");
         });
-    }, (res)=>{
-      errorLog("Сбор информации о темах", 0, res);
+    }, (e)=>{
+      errorLog("Сбор информации о темах", 0, e);
     });
-
-    //parseForum.gkDelay(750, this, [index, mode, stopDate]);
-
-    //try{
-    //  REQ(url, 'GET', null, true,
-    //    function(req){
-    //      displayProgress('work');
-    //
-    //      $answer.innerHTML = req.responseText;
-    //      $($answer)
-    //        .find('td[style="color: #990000"]:contains("Тема")')
-    //        .up('table')
-    //        .find('tr[bgcolor="#e0eee0"],[bgcolor="#d0f5d0"]')
-    //        .nodeArr()
-    //        .forEach(parse);
-    //
-    //      index = mode ? index - 1 : index + 1;
-    //      if(mode && $cd.fPage != $cd.f.page) $cd.f.page++;
-    //
-    //      correctionTime();
-    //      calcNewThemes();
-    //      saveToLocalStorage('data');
-    //      parseForum.gkDelay(750, this, [index, mode, stopDate]);
-    //    },
-    //    function(){
-    //      errorLog("Сбор информации о темах", 0, 0);
-    //    }
-    //  );
-    //}catch(e){
-    //  errorLog("сборе информации о темах", 1, e);
-    //}
   }else{
-    //saveToLocalStorage('data');
     //renderTables();
     displayProgress('done');
-
   }
   /////////////////////////////
 
   function parseRow(tr){
-    var td, tid, theme, player, member, pages, posts;
+    var td, tid, theme, player, character, member, pages, posts;
     var g, f;
 
     f = (resolve) => {
@@ -2694,26 +2743,11 @@ function parseForum(index, mode, stopDate){
 
         $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
 
-        player = yield $idb.getOne.gkWait(g, $idb, [`players`, "id", theme.author[0]]);
-        player = Pack.player(player);
+        character = yield getCharacter.gkWait(g, this, [theme.author[0]]);
+        player = character.p; member = character.m;
 
-        if(player == null){
-          player = Create.player(theme.author[0]);
-          player.name = theme.author[1];
-        }
+        if(player._ch) player.name = theme.author[1];
 
-        member = yield $idb.getOne.gkWait(g, $idb, [`members_${$forum.id}`, "id", player.id]);
-        member = Pack.member(member);
-
-        if(member == null){
-          member = Create.member(theme.author[0]);
-          member.start.push(theme.id);
-        }
-
-        if(!$c.exist($forum.id, player.forums)){
-          player.forums.push($forum.id);
-          player._ch = true;
-        }
         if(!$c.exist(theme.id, member.start)){
           member.start.push(theme.id);
           member._ch = true;
@@ -3418,31 +3452,30 @@ function doGoAway(sid, id){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderBaseHTML(){
-  var header, footer, b1, b2, width;
+  var header, footer, b1, b2, width, t;
 
-  $t.stats.setWidth([65, 45, -1, 40, 75, 75, 95, 80, 75, 75, 75, 75, 172, 80, 80, 50, 75, 95, 45]);
-
-  $t.stats.setStructure([
-    ["paths", "$sd.players[id]", "$sd.players[id].forums[$cd.fid]", "$checked.players[id]", "getPercent($sd.players[id].forums[$cd.fid]"],
-    ["id", 0, "Number(id)", "number", "ID"],
-    ["sNumber", 2, ".sn", "number", "Номер в списке синдиката"],
-    ["name", 1, ".name", "check", "Имя"],
-    ["member", 2, ".member", "boolean", "В составе"],
-    ["status", 1, ".status", "multiple", "Статус"],
-    ["enter", 2, ".enter", "date", "Принят"],
-    ["exit", 2, ".exit", "date", "Покинул"],
-    ["invite", 2, ".invite", "date", "Приглашен"],
-    ["checked", 3, "", null, null],
-    ["startThemes", 2, ".start.length", "number", "Начато тем"],
-    ["writeThemes", 2, ".themes.length", "number", "Учавствовал в темах"],
-    ["lastMessage", 2, ".last", "date", "Последнее сообщение"],
-    ["posts", 2, ".posts", "number", "Всего сообщений"],
-    ["percentStartThemes", 4, ".start.length, $cd.f.threads.all, false);", "number", "Процент начатых тем"],
-    ["percentWriteThemes", 4, ".themes.length, $cd.f.threads.all, false);", "number", "Процент участия в темах"],
-    ["percentPosts", 4, ".posts, $cd.f.posts, false);", "number", "Процент сообщений"],
-    ["percentWords", 4, ".words[0], $cd.f.words, false);", "number", "Процент написанных слов"],
-    ["words", 2, ".words[0]", "number", "Всего написанных слов"],
-    ["wordsAverage", 2, ".words[1]", "number", "Среднее количество написанных слов"]
+  t = $t.stats;
+  //          #   № name sn  ts  tw  lm   p  w   wa   c  ca  sta  ent ex  ki  in  @
+  t.setWidth([65, 45, -1, 40, 75, 75, 95, 80, 75, 95, 75, 95, 172, 80, 80, 40, 40, 45]);
+  t.setStructure([
+    ["id", "number", "ID"],
+    ["sNumber", "number", "Номер в списке синдиката"],
+    ["name", "check", "Имя"],
+    ["member", "boolean", "В составе"],
+    ["status", "multiple", "Статус"],
+    ["enter", "date", "Принят"],
+    ["exit", "date", "Покинул"],
+    ["kick", "boolean", "Выгнан"],
+    ["invite", "boolean", "Приглашен"],
+    ["checked", null, null],
+    ["start", "number", "Начато тем"],
+    ["write", "number", "Учавствовал в темах"],
+    ["lastMessage", "date", "Последнее сообщение"],
+    ["posts", "number", "Всего сообщений"],
+    ["words", "number", "Всего написанных слов"],
+    ["wordsAverage", "number", "Среднее количество написанных слов"],
+    ["carma", "number", "Всего кармы"],
+    ["carmaAverage", "number", "Среднее количество кармы"]
   ]);
 
   //<div style="width: 24px; height: 24px; margin-left: 5px; float: left; background-image: url(${$ico.memberIco})"></div>
@@ -3453,59 +3486,57 @@ function renderBaseHTML(){
                     <td align="center" colspan="17">Данные по форуму #${$cd.fid}<b> «${$forum.name}»</b></td>
                 </tr>
                 <tr type="header">
-                    <td ${$t.stats.getWidth(0)} align="center" rowspan="2" sort="id" height="60">#<img /></td>
-                    <td ${$t.stats.getWidth(1)} align="center" rowspan="2" sort="sNumber">№<img /></td>
-                    <td ${$t.stats.getWidth(2)} align="center" rowspan="2" sort="name">Имя<img /></td>
-                    <td ${$t.stats.getWidth(3)} align="center" rowspan="2" sort="member"><img /></td>
+                    <td ${t.getWidth(0)} align="center" rowspan="2" sort="id" height="60">#<img /></td>
+                    <td ${t.getWidth(1)} align="center" rowspan="2" sort="sNumber">№<img /></td>
+                    <td ${t.getWidth(2)} align="center" rowspan="2" sort="name">Имя<img /></td>
+                    <td ${t.getWidth(3)} align="center" rowspan="2" sort="member"><img /></td>
                     <td align="center" colspan="2">Темы</td>
-                    <td align="center" colspan="2">Посты</td>
-                    <td align="center" colspan="4">Процент</td>
-                    <td ${$t.stats.getWidth(12)} align="center" rowspan="2" sort="status">Статус<img /></td>
-                    <td ${$t.stats.getWidth(13)} align="center" rowspan="2" sort="enter">Принят<img /></td>
-                    <td ${$t.stats.getWidth(14)} align="center" rowspan="2" sort="exit">Покинул<img /></td>
-                    <td ${$t.stats.getWidth(15)} align="center" rowspan="2" sort="invite">Звал<img /></td>
-                    <td align="center" colspan="2">Слов в постах</td>
-                    <td ${$t.stats.getWidth(18)} align="center" rowspan="2" sort="checked" width="45">@<img /></td>
+                    <td align="center" colspan="2">Сообщения</td>
+                    <td align="center" colspan="2">Слов в сообщениях</td>
+                    <td align="center" colspan="2">Карма</td>
+                    <td ${t.getWidth(12)} align="center" rowspan="2" sort="status">Статус<img /></td>
+                    <td ${t.getWidth(13)} align="center" rowspan="2" sort="enter">Принят<img /></td>
+                    <td ${t.getWidth(14)} align="center" rowspan="2" sort="exit">Покинул<img /></td>
+                    <td ${t.getWidth(15)} align="center" rowspan="2" sort="kick"><img /></td>
+                    <td ${t.getWidth(16)} align="center" rowspan="2" sort="invite"><img /></td>
+                    <td ${t.getWidth(17)} align="center" rowspan="2" sort="checked">@<img /></td>
                 </tr>
                 <tr type="header">
-                    <td ${$t.stats.getWidth(4)} align="center" sort="startThemes">Начато<img /></td>
-                    <td ${$t.stats.getWidth(5)} align="center" sort="writeThemes">Участия<img /></td>
-                    <td ${$t.stats.getWidth(6)} align="center" sort="lastMessage">Последний<img /></td>
-                    <td ${$t.stats.getWidth(7)} align="center" sort="posts">Кол-во<img /></td>
-                    <td ${$t.stats.getWidth(8)} align="center" sort="percentStartThemes">Нач.тем<img /></td>
-                    <td ${$t.stats.getWidth(9)} align="center" sort="percentWriteThemes">Участия<img /></td>
-                    <td ${$t.stats.getWidth(10)} align="center" sort="percentPosts">Постов<img /></td>
-                    <td ${$t.stats.getWidth(11)} align="center" sort="percentWords">Слов<img /></td>
-                    <td ${$t.stats.getWidth(16)} align="center" sort="words">Всего<img /></td>
-                    <td ${$t.stats.getWidth(17)} align="center" sort="wordsAverage" title="Среднее количесвто слов в одном сообщении">В среднем<img /></td>
+                    <td ${t.getWidth(4)} align="center" sort="startThemes">Начато<img /></td>
+                    <td ${t.getWidth(5)} align="center" sort="writeThemes">Участия<img /></td>
+                    <td ${t.getWidth(6)} align="center" sort="lastMessage">Последний<img /></td>
+                    <td ${t.getWidth(7)} align="center" sort="posts">Кол-во<img /></td>
+                    <td ${t.getWidth(8)} align="center" sort="words">Всего<img /></td>
+                    <td ${t.getWidth(9)} align="center" sort="wordsAverage">В среднем<img /></td>
+                    <td ${t.getWidth(10)} align="center" sort="carma">Всего<img /></td>
+                    <td ${t.getWidth(11)} align="center" sort="carmaAverage">В среднем<img /></td>
                 </tr>
             </table>`;
 
   footer =
     `<table align="center" style="width: 100%;" type="padding">
                 <tr style="background-color: #d0eed0;" type="filters">
-                    <td align="center" ${$t.stats.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(1)} filter="sNumber"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(2)} filter="name"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(3)} filter="member"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(4)} filter="startThemes"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(5)} filter="writeThemes"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(6)} filter="lastMessage"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(7)} filter="posts"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(8)} filter="percentStartThemes"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(9)} filter="percentWriteThemes"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(10)} filter="percentPosts"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(11)} filter="percentWords"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(12)} filter="status"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(13)} filter="enter"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(14)} filter="exit"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(15)} filter="invite"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(16)} filter="words"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(17)} filter="wordsAverage"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.stats.getWidth(18)} ></td>
+                    <td align="center" ${t.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(1)} filter="sNumber"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(2)} filter="name"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(3)} filter="member"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(4)} filter="start"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(5)} filter="write"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(6)} filter="lastMessage"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(7)} filter="posts"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(8)} filter="words"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(9)} filter="wordsAverage"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(10)} filter="carma"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(11)} filter="carmaAverage"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(12)} filter="status"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(13)} filter="enter"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(14)} filter="exit"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(15)} filter="invite"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(16)} filter="kick"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(17)} ></td>
                 </tr>
                 <tr style="height: 35px; background-color: #d0eed0;">
-                    <td colspan="12" id="sf_currentFilters"></td>
+                    <td colspan="11" id="sf_currentFilters"></td>
                     <td colspan="2">
                         Всего тем: <b> ${$forum.themes[1]}</b>, всего постов: <b>${$forum.posts}</b>
                     </td>
@@ -3519,7 +3550,7 @@ function renderBaseHTML(){
   $('#sf_header_SI').html(header);
   $('#sf_footer_SI').html(footer);
 
-  $t.stats.setControl($ico);
+  $t.stats.setControl($ico, ()=>{renderStatsTable(true)});
 
   b1 = $('#sf_bCheckAllMembers').node();
   bindEvent(b1, 'onclick', function(){checkAllMembers(b1, '#sf_content_SI')});
@@ -3540,16 +3571,16 @@ function renderBaseHTML(){
   //
   //$('#sf_header_STI').html(header);
 
-  $t.themes.setWidth([70, -1, 250, 80, 100, 100, 43]);
-  $t.themes.setStructure([
-    ["paths", "$cd.f.themes[id]", "$checked.themes[id]"],
-    ["id", 0, "Number(id)", "number", "ID"],
-    ["name", 1, ".name", "check", "Названии темы"],
-    ["author", 1, ".author", "check", "Имени автора"],
-    ["date", 1, ".date", "date", "Дате создания"],
-    ["check", 2, "", null, null],
-    ["postsDone", 1, ".posts[0]", "number", "Обработано сообщений"],
-    ["postsAll", 1, ".posts[1]", "number", "Всего сообщений"]
+  t = $t.themes;
+  t.setWidth([70, -1, 250, 80, 100, 100, 43]);
+  t.setStructure([
+    ["id", "number", "ID"],
+    ["name", "check", "Названии темы"],
+    ["author", "check", "Имени автора"],
+    ["date", "date", "Дате создания"],
+    ["check", null, null],
+    ["postsDone", "number", "Обработано сообщений"],
+    ["postsAll", "number", "Всего сообщений"]
   ]);
 
   header =
@@ -3558,29 +3589,29 @@ function renderBaseHTML(){
                     <td align="center" colspan="7">Данные по обработанным темам</td>
                 </tr>
                 <tr type="header">
-                    <td align="center" ${$t.themes.getWidth(0)} sort="id" rowspan="2" style="height: 50px;">#<img /></td>
-                    <td align="center" ${$t.themes.getWidth(1)} sort="name" rowspan="2">Тема<img /></td>
-                    <td align="center" ${$t.themes.getWidth(2)} sort="author" rowspan="2">Автор<img /></td>
-                    <td align="center" ${$t.themes.getWidth(3)} sort="date" rowspan="2">Создана<img /></td>
+                    <td align="center" ${t.getWidth(0)} sort="id" rowspan="2" style="height: 50px;">#<img /></td>
+                    <td align="center" ${t.getWidth(1)} sort="name" rowspan="2">Тема<img /></td>
+                    <td align="center" ${t.getWidth(2)} sort="author" rowspan="2">Автор<img /></td>
+                    <td align="center" ${t.getWidth(3)} sort="date" rowspan="2">Создана<img /></td>
                     <td align="center" colspan="2">Сообщений</td>
-                    <td align="center" ${$t.themes.getWidth(6)} sort="check" rowspan="2">@<img /></td>
+                    <td align="center" ${t.getWidth(6)} sort="check" rowspan="2">@<img /></td>
                 </tr>
                 <tr type="header">
-                    <td align="center" ${$t.themes.getWidth(4)} sort="postsDone">Обработано<img /></td>
-                    <td align="center" ${$t.themes.getWidth(5)} sort="postsAll">Всего<img /></td>
+                    <td align="center" ${t.getWidth(4)} sort="postsDone">Обработано<img /></td>
+                    <td align="center" ${t.getWidth(5)} sort="postsAll">Всего<img /></td>
                 </tr>
             </table>`;
 
   footer =
     `<table align="center" style="width: 100%;" type="padding">
                 <tr style="background-color: #d0eed0;" type="filters">
-                    <td align="center" ${$t.themes.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.themes.getWidth(1)} filter="name"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.themes.getWidth(2)} filter="author"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.themes.getWidth(3)} filter="date"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.themes.getWidth(4)} filter="postsDone"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.themes.getWidth(5)} filter="postsAll"><img src="${$ico.filter}"></td>
-                    <td align="center" ${$t.themes.getWidth(6)} ></td>
+                    <td align="center" ${t.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(1)} filter="name"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(2)} filter="author"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(3)} filter="date"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(4)} filter="postsDone"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(5)} filter="postsAll"><img src="${$ico.filter}"></td>
+                    <td align="center" ${t.getWidth(6)} ></td>
                 </tr>
                 <tr style="height: 35px; background-color: #d0eed0;">
                     <td colspan="4">
@@ -3594,7 +3625,7 @@ function renderBaseHTML(){
   $('#sf_header_TL').html(header);
   $('#sf_footer_TL').html(footer);
 
-  $t.themes.setControl($ico);
+  $t.themes.setControl($ico, null);
 
   b2 = $('#sf_bCheckAllThemes').node();
   bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});
@@ -3638,7 +3669,7 @@ function renderBaseHTML(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderStatsTable(sorted){
-  var g, table, players, members, o;
+  var g, table, players, members, row;
 
   table = $t.stats;
   g = render();
@@ -3646,49 +3677,30 @@ function renderStatsTable(sorted){
 
   function* render(){
     if(!sorted){
+
+      console.log("One");
+
       table.clearContent();
 
+      console.log("Two");
       members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
+      // Поставить замер времени.
       players = yield $idb.getFew.gkWait(g, $idb, ["players", $forum.id, "d", true]);
 
+      console.log("Three");
       members.forEach((member)=>{
-        var player;
-
-        o = {};
-        member = Pack.member(member);
-        player = Pack.player(players[member.id]);
-
-        o.id = member.id;
-        o.sNumber = member.sn;
-        o.name = player.name;
-        o.member = member.sn ? true : false;
-        o.status = {text: player.status, date: player.date};
-        o.enter = member.enter;
-        o.exit = member.exit;
-        o.invite = member.invite;
-        o.startThemes = member.start.length;
-        o.writeThemes = member.write.length;
-        o.lastMessage = member.last;
-        o.posts = member.posts;
-        o.words = member.words;
-        o.wordsAverage = member.wordsAverage;
-        o.carma = member.carma;
-        o.carmaAverage = member.carmaAverage;
-        o.percentStartThemes = $c.getPercent(o.startThemes, $forum.themes[1], false);
-        o.percentWriteThemes = $c.getPercent(o.writeThemes, $forum.themes[1], false);
-        o.percentPosts = $c.getPercent(o.posts, $forum.posts, false);
-        o.percentWords = $c.getPercent(o.words, $forum.words, false);
-
-        table.pushContent(o);
+        row = Create.characters(member, players[member.id]);
+        if(table.filtering(row)) table.pushContent(row);
       });
+
+      console.log("Four");
       table.sorting();
+
+      console.log("Five");
     }
 
     $cd.statsCount = 0;
     showStats(table);
-
-    //console.log(table);
-
     bindCheckingOnRows('#sf_content_SI');
   }
 }
@@ -3849,7 +3861,7 @@ function bindCheckingOnRows(id){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function showStats(table){
+function showStats(t){
   var code;
 
   code =
@@ -3857,8 +3869,8 @@ function showStats(table){
                 <table align="center" style="width: 100%;" type="padding">`;
 
 
-  table.getContent().forEach(function(tr){
-    var memberIco, inviteIco, light, check, box, kickedColor;
+  t.getContent().forEach(function(tr){
+    var light, check, box;
 
     if (tr.check){
       light = "lightChecked";
@@ -3871,33 +3883,28 @@ function showStats(table){
       box = $ico.boxOff;
     }
 
-    memberIco = tr.member ? $ico.inTeam : $ico.outTeam;
-    inviteIco = tr.invite ? $ico.inTeam : $ico.outTeam;
-    kickedColor = tr.goAway ? 'style="color: brown; font-weight: bold;"' : "";
-
     code +=
       `<tr height="28" type="${light}">
-                            <td ${table.getWidth(0)} align="right">${$c.convertID(tr.id)}</td>
-                            <td ${table.getWidth(1)} align="center">${hz(tr.sNumber)}</td>
-                            <td ${table.getWidth(2)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
-                            <td ${table.getWidth(3)} align="center"><img src="${memberIco}" /></td>
-                            <td ${table.getWidth(4)} align="center">${hz(tr.startThemes)}</td>
-                            <td ${table.getWidth(5)} align="center">${hz(tr.writeThemes)}</td>
-                            <td ${table.getWidth(6)} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
-                            <td ${table.getWidth(7)} align="center">${hz(tr.posts)}</td>
-                            <td ${table.getWidth(8)} align="center">${hz(tr.percentStartThemes, 1)}</td>
-                            <td ${table.getWidth(9)} align="center">${hz(tr.percentWriteThemes, 1)}</td>
-                            <td ${table.getWidth(10)} align="center">${hz(tr.percentPosts, 1)}</td>
-                            <td ${table.getWidth(11)} align="center">${hz(tr.percentWords, 1)}</td>
-                            <td ${table.getWidth(12)} align="center">${statusMember(tr.status)}</td>
-                            <td ${table.getWidth(13)} align="center">${$c.getNormalDate(tr.enter).d}</td>
-                            <td ${table.getWidth(14)} align="center" ${kickedColor}>${$c.getNormalDate(tr.exit).d}</td>
-                            <td ${table.getWidth(15)} align="center"><img src="${inviteIco}" /></td>
-                            <td ${table.getWidth(16)} align="center">${hz(tr.words)}</td>
-                            <td ${table.getWidth(17)} align="center">${hz(tr.wordsAverage)}</td>
-                            <td ${table.getWidth(18, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
-                        </tr>
-                    `;
+        <td ${t.getWidth(0)} align="right">${$c.convertID(tr.id)}</td>
+        <td ${t.getWidth(1)} align="center">${hz(tr.sNumber)}</td>
+        <td ${t.getWidth(2)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
+        <td ${t.getWidth(3)} align="center"><img src="${$ico[tr.member]}" /></td>
+        <td ${t.getWidth(4)} align="center">${hz(tr.start)}</td>
+        <td ${t.getWidth(5)} align="center">${hz(tr.write)}</td>
+        <td ${t.getWidth(6)} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
+        <td ${t.getWidth(7)} align="center">${hz(tr.posts)}</td>
+        <td ${t.getWidth(8)} align="center">${hz(tr.words)}</td>
+        <td ${t.getWidth(9)} align="center">${hz(tr.wordsAverage)}</td>
+        <td ${t.getWidth(10)} align="center">${hz(tr.carma)}</td>
+        <td ${t.getWidth(11)} align="center">${hz(tr.carmaAverage)}</td>
+        <td ${t.getWidth(12)} align="center">${statusMember(tr)}</td>
+        <td ${t.getWidth(13)} align="center">${$c.getNormalDate(tr.enter).d}</td>
+        <td ${t.getWidth(14)} align="center">${$c.getNormalDate(tr.exit).d}</td>
+        <td ${t.getWidth(15)} align="center"><img src="${$ico[tr.kick]}" /></td>
+        <td ${t.getWidth(16)} align="center"><img src="${$ico[tr.invite]}" /></td>
+        <td ${t.getWidth(17, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
+      </tr>
+      `;
 
     $cd.statsCount++;
   });
@@ -3915,15 +3922,15 @@ function showStats(table){
   }
   /////////////////////////////
 
-  function statusMember(s){
-    if(s.text == '')
+  function statusMember(tr){
+    if(tr.status == '')
       return "-";
-    if(s.text == "Ok")
-      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(s.date).d}]</div>`;
-    if(s.date != 0)
-      return $date > s.date ? "?" : `<span style="${$statusStyle[s.text]}">${s.text}</span> [${$c.getNormalDate(s.date).d}]`;
+    if(tr.status == "Ok")
+      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(tr.date).d}]</div>`;
+    if(tr.date != 0)
+      return $date > tr.date ? "?" : `<span style="${$statusStyle[tr.status]}">${tr.status}</span> [${$c.getNormalDate(tr.date).d}]`;
 
-    return`<span style="${$statusStyle[s.text]}">${s.text}</span>`;
+    return`<span style="${$statusStyle[s.status]}">${tr.status}</span>`;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4089,4 +4096,4 @@ function REQ(url, method, param, async, onsuccess, onfailure) {
     else if (request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
   }
 }
-},{"./../../../lib/common":1,"./../../../lib/dom":2,"./../../../lib/events":3,"./../../../lib/idb":4,"./../../../lib/prototypes":5,"./../../../lib/request":6,"./../../../lib/table":7,"./../src/generator":8,"./../src/icons":9,"./../src/packer":10}]},{},[11]);
+},{"./../../../lib/common":1,"./../../../lib/dom":2,"./../../../lib/events":3,"./../../../lib/idb":4,"./../../../lib/prototypes":5,"./../../../lib/request":6,"./../../../lib/table":7,"./../src/creator":8,"./../src/icons":9,"./../src/packer":10}]},{},[11]);
