@@ -51,7 +51,6 @@ gulp.task('bundle', function(){
     .pipe(gulp.dest('./out'));
 
   //.transform(babelify.configure({stage: 0, compact: false}))
-
   //.transform(hbsfy.configure({knownHelpersOnly: true}))
 });
 

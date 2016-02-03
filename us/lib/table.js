@@ -245,8 +245,8 @@ Table.prototype = {
 
     values.forEach(function(elem){
       table.structure[elem[0]] = {
-        filterType: elem[3],
-        filterName: elem[4]
+        filterType: elem[1],
+        filterName: elem[2]
       };
     });
   },
@@ -260,16 +260,17 @@ Table.prototype = {
     $(table.footer).find('td[filter]').nodeArr().forEach(function(td){
       var value, ico;
 
-      value = td.getAttribute("filter");
+      value = $(td).attr("filter");
 
       if(table.structure[value].filterType){
         ico = table.settings.show.themes[value] ? icons.boxOn : icons.boxOff;
-        ico = `<img style="margin-left: 1px;" src="${ico}"/>`;
-        td.innerHTML += ico;
+        ico = `<img src="${icons.filter}"><img style="margin-left: 1px;" src="${ico}"/>`;
 
-        bindEvent(td, 'onclick', function(){
-          doFilter(td, table.settings, table.structure[value].filterType, table.structure[value].filterName);
-        });
+        $(td).html(ico);
+
+        //bindEvent(td, 'onclick', function(){
+        //  doFilter(td, table.settings, table.structure[value].filterType, table.structure[value].filterName);
+        //});
       }
     });
   },

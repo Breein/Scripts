@@ -18,18 +18,19 @@ var $sd, $cd, $ss, $tsd, $answer, $screenWidth, $screenHeight, $date, $checked, 
 
 var $idb, $forum;
 
-const $statusStyle = {
-  "Ok": "",
-  "Торговый": "font-weight: bold;",
-  "Арестован": "color: blue;",
-  "Форумный": "color: red;",
-  "Общий бан": "color: green; font-weight: bold;",
-  "Заблокирован": "color: red; font-weight: bold;"
-};
-
 $checked = {
   themes: {},
   players: {}
+};
+
+
+const $status = {
+  "1": {t: "Ok", s: ""},
+  "2": { t: "Торговый", s: "font-weight: bold;"},
+  "3": { t: "Арестован", s: "color: blue;"},
+  "4": { t: "Форумный", s: "color: red;"},
+  "5": { t: "Общий бан", s: "color: green; font-weight: bold;"},
+  "6": { t: "Заблокирован", s: "color: red; font-weight: bold;"}
 };
 
 $screenWidth = document.body.clientWidth;
@@ -187,7 +188,7 @@ function makeConnect(name, first){
   var ini, g;
 
   ini = [
-    {name: "players", key: "id", index: [["name", "a", true]]},
+    {name: "players", key: "id", index: [["name", "a", true], ["blackList", "e", false]]},
     {name: "forums", key: "id"}
   ];
 
@@ -201,7 +202,7 @@ function makeConnect(name, first){
     }
     $idb = yield $idb.connectDB.gkWait(g, $idb);
 
-    //$idb.deleteDB();
+    //if(first) $idb.deleteDB();
     addToDB();
   }
 }
@@ -218,6 +219,7 @@ function addToDB(){
 
     $idb.add("forums", forum);
     $idb.setModifyingTableList([
+      {name: "players", index:[[`fid_${$cd.fid}`, `d.f${$cd.fid}`, false]]},
       {name: `themes_${$cd.fid}`, key: "id"},
       {name: `members_${$cd.fid}`, key: "id"},
       {name: `timestamp_${$cd.fid}`, key: "id"}
@@ -234,8 +236,8 @@ function addToDB(){
     };
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
-      $forum = res;
-      $forum = Pack.forum($forum);
+      $forum = Pack.forum(res);
+      $forum.page[0] = 0;
       createGUI();
     });
   }
@@ -254,8 +256,7 @@ function createGUI(){
   table.rows[0].appendChild(gui);
 
   renderBaseHTML();
-  renderStatsTable();
-  //renderThemesTable();
+  renderTables();
   createShadowLayer();
 
   bindEvent($('#sf_gui_settings').node(), 'onclick', openControlPanelWindow);
@@ -681,7 +682,7 @@ function openControlPanelWindow(){
   $("#sf_shadowLayer").node().style.display = "block";
 
   $("#sf_countThreads").html($forum.themes[0] + '/' + $forum.themes[1]);
-  //$("#sf_countMembers").html($cd.countMembers);
+  $("#sf_countMembers").html($cd.statsCount);
   $("#sf_controlPanelWindow").node().style.display = "block";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -832,33 +833,84 @@ function getMembersList(){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getCharacter(id){
-  var player, member;
+function getCharacter(value){
+  var player, member, index, id, result;
   var g, f;
+
+  index = typeof value == "string" ? "name" : "id";
+
+  /////////////////////////////
 
   f = (resolve) => {
     g = getHim();
     g.next();
 
     function* getHim(){
-      player = yield $idb.getOne.gkWait(g, $idb, [`players`, "id", id]);
+      player = yield $idb.getOne.gkWait(g, $idb, [`players`, index, value]);
       player = Pack.player(player);
 
-      if(player == null) player = Create.player(id);
+      if(player == null){
+        if(index == "id"){
+          id = value;
+        }else{
+          result = yield requestID.gkWait(g, this, [value]);
+          id = result[0];
+          displayProgress('extra', '<br><b>Получаю ID персонажа:</b> -');
+        }
+        player = Create.player(id);
+      }
 
-      member = yield $idb.getOne.gkWait(g, $idb, [`members_${$forum.id}`, "id", id]);
+      if(result){
+        if(player.status != result[1] || player.date < result[2]){
+          player.status = result[1];
+          player.date = result[2];
+          player._ch = true;
+        }
+      }
+
+      member = yield $idb.getOne.gkWait(g, $idb, [`members_${$forum.id}`, "id", player.id]);
       member = Pack.member(member);
 
-      if(member == null) member = Create.member(id);
+      if(member == null) member = Create.member(player.id);
 
-      if(!$c.exist($forum.id, player.forums)){
-        player.forums.push($forum.id);
+      if(player.forums[`f${$forum.id}`] == null){
+        player.forums[`f${$forum.id}`] = 1;
         player._ch = true;
       }
 
       resolve({p: player, m: member});
     }
   };
+  /////////////////////////////
+
+  function requestID(name){
+    var url, answer, id, result;
+    var g, f;
+
+    url = "http://www.ganjawars.ru/search.php?key=" + $c.encodeHeader(name);
+    answer = $('<span>').node();
+
+    displayProgress('extra', `<br><b>Получаю ID персонажа:</b> <i>${name}</i>`);
+
+    f = (resolve)=>{
+      g = getHim();
+      g.next();
+
+      function* getHim(){
+        answer.innerHTML = yield ajax.gkWait(g, this, [url, 'GET', null]);
+        id = $(answer).find(`a:contains("~форму нападения")`).node();
+        id = id.href.match(/(\d+)/);
+        id = Number(id[0]);
+
+        result = getStatusPlayer(answer);
+
+        yield setTimeout(()=>{g.next()}, 500);
+        resolve([id, result.status, result.date]);
+      }
+    };
+
+    return new Promise(f);
+  }
 
   return new Promise(f);
 }
@@ -867,36 +919,29 @@ function getCharacter(id){
 function getMaxPageSindicateLog(){
   var url, page;
 
-  url = `http://www.ganjawars.ru/syndicate.log.php?id=${$cd.sid}&page_id=10000000`;
+  url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=10000000`;
 
-  try{
-    REQ(url, 'GET', null, true,
-      function (req){
-        $answer.innerHTML = req.responseText;
-        $cd.lPage = parse();
-        page = $cd.lPage - $cd.f.log;
+  ajax(url, 'GET', null).then((res)=>{
+    $answer.innerHTML = res;
 
-        displayProgress('start', `Обработка протокола синдиката #${$cd.fid} «${$sd.forums[$cd.fid].name}»`, 0, page + 1);
-        displayProgressTime((page + 1) * 1250);
-        parseSindicateLog.gkDelay(750, this, [page]);
-      },
-      function (){
-        errorLog("Сбор информации о максимальной странцие протокола синдиката", 0, 0);
-      }
-    );
-  }catch (e){
-    errorLog("сборе информации о максимальной странцие протокола синдиката", 1, e);
-  }
-  /////////////////////////////
-
-  function parse(){
-    var page;
-
-    page = $($answer).find(`b:contains("~Протокол синдиката #${$cd.sid}")`).up('div').next('center').find('a');
+    page = $($answer).find(`b:contains("~Протокол синдиката #${$forum.sid}")`).up('div').next('center').find('a');
     page = page.node(-1).href.split('page_id=')[1];
+    page = Number(page);
 
-    return Number(page);
-  }
+    if($forum.page[1] != page){
+      $forum.page[1] = page;
+      $forum._ch = true;
+    }
+
+    page = $forum.page[1] - $forum.page[0];
+    $idb.add("forums", Pack.forum($forum));
+
+    displayProgress('start', `Обработка протокола синдиката #${$forum.id} «${$forum.name}»`, 0, page + 1);
+    displayProgressTime((page + 1) * 1250);
+    parseSindicateLog.gkDelay(750, this, [page]);
+  }, (e)=>{
+    errorLog("Сбор информации о максимальной странцие протокола синдиката", 1, e);
+  });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -904,111 +949,118 @@ function parseSindicateLog(index){
   var url;
 
   if(index != -1){
-    url = `http://www.ganjawars.ru/syndicate.log.php?id=${$cd.sid}&page_id=${index}`;
+    url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=${$forum.page[0]}`;
 
-    try{
-      REQ(url, 'GET', null, true,
-        function (req){
-          displayProgress('work');
-          $answer.innerHTML = req.responseText;
-          $($answer)
-            .find('font[color="green"]')
-            .nodeArr()
-            .reverse()
-            .forEach(parse);
-          index--;
-
-          if($cd.lPage != $cd.f.log) $cd.f.log++;
-
-          correctionTime();
-          saveToLocalStorage('data');
-          parseSindicateLog.gkDelay(750, this, [index]);
-        },
-        function (){
-          errorLog("Сбор информации с протокола синдиката", 0, 0);
-        }
-      );
-    }catch (e){
-      errorLog("сборе информации с протокола синдиката", 1, e);
-    }
+    ajax(url, 'GET', null).then((res)=>{
+      $answer.innerHTML = res;
+      $($answer)
+        .find('font[color="green"]')
+        .nodeArr()
+        .reverse()
+        .reduce((sequence, font) => {
+          return sequence.then(()=>{
+            return parseNode(font);
+          });
+        }, Promise.resolve())
+        .then(()=>{
+          displayProgress("work");
+          nextPage();
+        });
+    }, (e)=>{
+      errorLog("Сбор информации с протокола синдиката", 1, e);
+    });
   }else{
     renderStatsTable();
     displayProgress('done');
   }
   /////////////////////////////
 
-  function parse(node){
-    var next, id, date, name;
-
-    node = node.parentNode;
-    date = node.textContent.match(/(\d)(\d).(\d)(\d).(\d)(\d) (\d)(\d):(\d)(\d)/);
-
-    if(date){
-      next = $(node).next('nobr').node();
-
-      if(next.textContent.match(/принят в синдикат/)){
-        setDate('enter');
-        return;
-      }
-      if(next.textContent.match(/вышел из синдиката/)){
-        setDate('exit');
-        return;
-      }
-      if(next.textContent.match(/покинул синдикат/)){
-        setDate('exit');
-      }
-      if(next.textContent.match(/пригласил в синдикат/)){
-        setInvite();
-      }
+  function nextPage(){
+    index--;
+    if($forum.page[0] != $forum.page[1]){
+      $forum.page[0]++;
+      $forum._ch = true;
     }
-    /////////////////////////////
+    $idb.add("forums", Pack.forum($forum));
+    parseSindicateLog.gkDelay(750, this, [index]);
+  }
 
-    function setDate(key){
-      var extra;
+  /////////////////////////////
 
-      id = $(next).find('a[href*="info.php"]');
+  function parseNode(node){
+    var nobr, type, data, character, value, member, player;
+    var g, f;
+
+    f = (resolve)=>{
+      g = parse();
+      g.next();
+
+      function* parse(){
+        node = node.parentNode;
+        nobr = $(node).next('nobr').node();
+        type = getType(nobr);
+
+        if(type){
+          data = getData(node, nobr, type);
+          value = data.id ? data.id : data.name;
+          character = yield getCharacter.gkWait(g, this, [value]);
+          player = character.p; member = character.m;
+
+          if(player.name == ""){
+            player.name = data.name;
+            player._ch = true;
+          }
+
+          if(member[type] < data.date){
+            member[type] = data.date;
+            member._ch = true;
+          }
+
+          if(type == "kick" && member.exit < data.date){
+            member.exit = data.date;
+            member._ch = true;
+          }
+
+          $idb.add("players", Pack.player(player));
+          $idb.add(`members_${$forum.id}`, Pack.member(member));
+        }
+        resolve();
+      }
+    };
+
+    return new Promise(f);
+  }
+  /////////////////////////////
+
+  function getType(nobr){
+    if(/принят в синдикат/.test(nobr.textContent)) return "enter";
+    if(/вышел из синдиката/.test(nobr.textContent)) return "exit";
+    if(/покинул синдикат/.test(nobr.textContent)) return "kick";
+    if(/пригласил в синдикат/.test(nobr.textContent)) return "invite";
+    return null;
+  }
+  /////////////////////////////
+
+  function getData(node, nobr, type){
+    var id, name, date;
+
+    date = node.textContent.match(/(\d+)/g);
+    date = `${date[1]}/${date[0]}/20${date[2]} ${date[3]}:${date[4]}`;
+    date = Date.parse(date) / 1000;
+
+    if(type == "enter" || type == "exit"){
+      id = $(nobr).find('a[href*="info.php"]');
       name = id.text();
-      date = `${date[3]}${date[4]}/${date[1]}${date[2]}/20${date[5]}${date[6]} ${date[7]}${date[8]}:${date[9]}${date[10]}`;
-      date = Date.parse(date) / 1000;
-
-      if(id.length != 0){
-        id = id.node().href;
-        id = Number(id.match(/(\d+)/)[1]);
-      }else{
-        name = next.textContent.match(/(.+) покинул синдикат \((.+)\)/)[1];
-        id = $cd.nameToId[name];
-        extra = true;
-      }
-
-      if(id != null){
-        if($sd.players[id] == null) $sd.players[id] = generatePlayer(name);
-        if($sd.players[id].forums[$cd.fid] == null) $sd.players[id].forums[$cd.fid] = generateForumPlayer();
-
-        $sd.players[id].forums[$cd.fid].goAway = extra ? 1 : 0;
-        $sd.players[id].forums[$cd.fid][key] = date;
-      }else if(name != null){
-        if($sd.kicked[$cd.fid] == null) $sd.kicked[$cd.fid] = {};
-        $sd.kicked[$cd.fid][name] = date;
-      }
+      id = id.node().href;
+      id = Number(id.match(/(\d+)/)[1]);
+    }else{
+      name = type == "kick"?
+        nobr.textContent.match(/(.+) покинул синдикат \((.+)\)/)[1] :
+        nobr.textContent.match(/(.+) пригласил в синдикат (.+)/)[2];
+      id = null;
     }
-    /////////////////////////////
 
-    function setInvite(){
-      var name, id;
-      name = next.textContent.match(/(.+) пригласил в синдикат (.+)/)[2];
-      id = $cd.nameToId[name];
-
-      if(id != null){
-        if ($sd.players[id] == null) $sd.players[id] = generatePlayer(name);
-        if ($sd.players[id].forums[$cd.fid] == null) $sd.players[id].forums[$cd.fid] = generateForumPlayer();
-
-        $sd.players[id].forums[$cd.fid].invite = 1;
-      }else if(name != null){
-        if($sd.invite == null) $sd.invite = {};
-        if($sd.invite[$cd.fid] == null) $sd.invite[$cd.fid] = {};
-        $sd.invite[$cd.fid][name] = 1;
-      }
-    }
+    return {id: id, name: name, date: date};
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1452,28 +1504,22 @@ function prepareParseMembers(count){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function parseMembers(id, count, list){
-  var url, player;
+  var url;
 
   if(id < count){
-    player = $sd.players[list[id]];
     url = `http://www.ganjawars.ru/info.php?id=${list[id]}`;
-    try{
-      REQ(url, 'GET', null, true,
-        function (req){
-          $answer.innerHTML = req.responseText;
-          parse();
-          saveToLocalStorage('data');
-          correctionTime();
-          nextMember();
-        },
-        function (){
-          errorLog('Сбор статуса персонажа', 0, 0);
-          nextMember();
-        }
-      );
-    }catch (e){
-      errorLog('сборе статуса персонажа', 1, e);
-    }
+
+    ajax(url, 'GET', null).then((res)=>{
+      $answer.innerHTML = res;
+
+      parseMember(list[id]).then(()=>{
+        nextMember();
+      });
+
+    }, (e)=>{
+      errorLog('Сбор статуса персонажа', 1, e);
+      nextMember();
+    });
   }else{
     renderStatsTable();
     displayProgress('done');
@@ -1487,42 +1533,70 @@ function parseMembers(id, count, list){
   }
   /////////////////////////////
 
-  function parse(){
-    var block, arrest, banDefault, banCommon, banTrade, status, date;
+  function parseMember(id){
+    var player, result;
+    var g, f;
 
-    status = 'Ok';
-    date = parseInt(new Date().getTime() / 1000, 10);
+    f = (resolve)=>{
+      g = parse();
+      g.next();
 
-    block = $($answer).find('font[color="red"]:contains("Персонаж заблокирован")');
-    arrest = $($answer).find('center:contains("Персонаж арестован, информация скрыта")').find('font[color="#000099"]');
-    banDefault = $($answer).find('font[color="red"]:contains("~временно забанен в форуме модератором")');
-    banCommon = $($answer).find('center:contains("~Персонаж под общим баном")').find('font[color="#009900"]');
-    banTrade = $($answer).find('font[color="red"]:contains("~забанен в торговых форумах")');
+      function* parse(){
+        player = yield $idb.getOne.gkWait(g, $idb, ["players", "id", id]);
+        player = Pack.player(player);
 
-    if(banTrade.length){
-      date = getDate(banTrade.text());
-      status = 'Торговый';
-    }
-    if(arrest.length){
-      date = 0;
-      status = 'Арестован';
-    }
-    if(banDefault.length){
-      date = getDate(banDefault.text());
-      status = 'Форумный';
-    }
-    if(banCommon.length){
-      date = getDate(banCommon.text());
-      status = 'Общий бан';
-    }
-    if(block.length){
-      date = 0;
-      status = 'Заблокирован';
-    }
+        result = getStatusPlayer($answer);
 
-    player.status.text = status;
-    player.status.date = date;
+        if(player.status != result.status || player.date < result.date){
+          player.status = result.status;
+          player.date = result.date;
+          player._ch = true;
+        }
+
+        $idb.add("players", Pack.player(player));
+        resolve();
+      }
+    };
+
+    return new Promise(f);
   }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getStatusPlayer(answer){
+  var block, arrest, banDefault, banCommon, banTrade, status, date;
+
+  status = 1;
+  date = parseInt(new Date().getTime() / 1000, 10);
+
+  block = $(answer).find('font[color="red"]:contains("Персонаж заблокирован")');
+  arrest = $(answer).find('center:contains("Персонаж арестован, информация скрыта")').find('font[color="#000099"]');
+  banDefault = $(answer).find('font[color="red"]:contains("~временно забанен в форуме модератором")');
+  banCommon = $(answer).find('center:contains("~Персонаж под общим баном")').find('font[color="#009900"]');
+  banTrade = $(answer).find('font[color="red"]:contains("~забанен в торговых форумах")');
+
+  if(banTrade.length){
+    date = getDate(banTrade.text());
+    status = 2;
+  }
+  if(arrest.length){
+    date = 0;
+    status = 3;
+  }
+  if(banDefault.length){
+    date = getDate(banDefault.text());
+    status = 4;
+  }
+  if(banCommon.length){
+    date = getDate(banCommon.text());
+    status = 5;
+  }
+  if(block.length){
+    date = 0;
+    status = 6;
+  }
+
+  return {status: status, date: date};
   /////////////////////////////
 
   function getDate(string){
@@ -1807,41 +1881,13 @@ function doGoAway(sid, id){
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//function generatePlayer(name){
-//  return {
-//    name: name,
-//    status: {
-//      text: '',
-//      date: 0
-//    },
-//    forums:{}
-//  };
-//}
-//
-//function generateForumPlayer(){
-//  return {
-//    sn: 0,
-//    enter: 0,
-//    exit: 0,
-//    goAway: 0,
-//    invite: 0,
-//    member: false,
-//    posts: 0,
-//    last: 0,
-//    words: [0, 0],
-//    start: [],
-//    themes: []
-//  };
-//}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderBaseHTML(){
-  var header, footer, b1, b2, width, t;
+  var b1, b2, t;
 
   t = $t.stats;
-  //          #   № name sn  ts  tw  lm   p  w   wa   c  ca  sta  ent ex  ki  in  @
-  t.setWidth([65, 45, -1, 40, 75, 75, 95, 80, 75, 95, 75, 95, 172, 80, 80, 40, 40, 45]);
+  //          #   № name sn  ts  tw  lm   p  w   wa   c  ca  sta  ent ex  ki  in  bl   @
+  t.setWidth([65, 45, -1, 40, 75, 75, 95, 80, 75, 95, 75, 95, 172, 80, 80, 40, 40, 40, 45]);
   t.setStructure([
     ["id", "number", "ID"],
     ["sNumber", "number", "Номер в списке синдиката"],
@@ -1852,6 +1898,7 @@ function renderBaseHTML(){
     ["exit", "date", "Покинул"],
     ["kick", "boolean", "Выгнан"],
     ["invite", "boolean", "Приглашен"],
+    ["bl", "boolean", "В черном списке"],
     ["checked", null, null],
     ["start", "number", "Начато тем"],
     ["write", "number", "Учавствовал в темах"],
@@ -1863,154 +1910,32 @@ function renderBaseHTML(){
     ["carmaAverage", "number", "Среднее количество кармы"]
   ]);
 
-  //<div style="width: 24px; height: 24px; margin-left: 5px; float: left; background-image: url(${$ico.memberIco})"></div>
-
-  header =
-    `<table align="center" style="width: 100%;" type="padding">
-                <tr style="height: 35px; font-style: italic;">
-                    <td align="center" colspan="17">Данные по форуму #${$cd.fid}<b> «${$forum.name}»</b></td>
-                </tr>
-                <tr type="header">
-                    <td ${t.getWidth(0)} align="center" rowspan="2" sort="id" height="60">#<img /></td>
-                    <td ${t.getWidth(1)} align="center" rowspan="2" sort="sNumber">№<img /></td>
-                    <td ${t.getWidth(2)} align="center" rowspan="2" sort="name">Имя<img /></td>
-                    <td ${t.getWidth(3)} align="center" rowspan="2" sort="member"><img /></td>
-                    <td align="center" colspan="2">Темы</td>
-                    <td align="center" colspan="2">Сообщения</td>
-                    <td align="center" colspan="2">Слов в сообщениях</td>
-                    <td align="center" colspan="2">Карма</td>
-                    <td ${t.getWidth(12)} align="center" rowspan="2" sort="status">Статус<img /></td>
-                    <td ${t.getWidth(13)} align="center" rowspan="2" sort="enter">Принят<img /></td>
-                    <td ${t.getWidth(14)} align="center" rowspan="2" sort="exit">Покинул<img /></td>
-                    <td ${t.getWidth(15)} align="center" rowspan="2" sort="kick"><img /></td>
-                    <td ${t.getWidth(16)} align="center" rowspan="2" sort="invite"><img /></td>
-                    <td ${t.getWidth(17)} align="center" rowspan="2" sort="checked">@<img /></td>
-                </tr>
-                <tr type="header">
-                    <td ${t.getWidth(4)} align="center" sort="startThemes">Начато<img /></td>
-                    <td ${t.getWidth(5)} align="center" sort="writeThemes">Участия<img /></td>
-                    <td ${t.getWidth(6)} align="center" sort="lastMessage">Последний<img /></td>
-                    <td ${t.getWidth(7)} align="center" sort="posts">Кол-во<img /></td>
-                    <td ${t.getWidth(8)} align="center" sort="words">Всего<img /></td>
-                    <td ${t.getWidth(9)} align="center" sort="wordsAverage">В среднем<img /></td>
-                    <td ${t.getWidth(10)} align="center" sort="carma">Всего<img /></td>
-                    <td ${t.getWidth(11)} align="center" sort="carmaAverage">В среднем<img /></td>
-                </tr>
-            </table>`;
-
-  footer =
-    `<table align="center" style="width: 100%;" type="padding">
-                <tr style="background-color: #d0eed0;" type="filters">
-                    <td align="center" ${t.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(1)} filter="sNumber"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(2)} filter="name"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(3)} filter="member"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(4)} filter="start"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(5)} filter="write"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(6)} filter="lastMessage"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(7)} filter="posts"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(8)} filter="words"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(9)} filter="wordsAverage"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(10)} filter="carma"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(11)} filter="carmaAverage"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(12)} filter="status"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(13)} filter="enter"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(14)} filter="exit"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(15)} filter="invite"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(16)} filter="kick"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(17)} ></td>
-                </tr>
-                <tr style="height: 35px; background-color: #d0eed0;">
-                    <td colspan="11" id="sf_currentFilters"></td>
-                    <td colspan="2">
-                        Всего тем: <b> ${$forum.themes[1]}</b>, всего постов: <b>${$forum.posts}</b>
-                    </td>
-                    <td colspan="5">
-                        Позиций в таблице: <b id="sf_SI_ListCount">0</b>, отмечено: <b id="sf_SI_ListChecked">0</b>
-                    </td>
-                </tr>
-            </table>
-            <span id="sf_bCheckAllMembers">[отметить всё]</span>`;
-
-  $('#sf_header_SI').html(header);
-  $('#sf_footer_SI').html(footer);
+  $('#sf_header_SI').html('@include: ./html/statsTableHeader.html');
+  $('#sf_footer_SI').html('@include: ./html/statsTableFooter.html');
 
   $t.stats.setControl($ico, ()=>{renderStatsTable(true)});
 
   b1 = $('#sf_bCheckAllMembers').node();
   bindEvent(b1, 'onclick', function(){checkAllMembers(b1, '#sf_content_SI')});
 
-  //header =
-  //    `<table align="center" style="width: 100%" type="padding">
-  //        <tr style="height: 35px; font-style: italic;">
-  //            <td align="center" colspan="2">Данные по начатым игроком темам</td>
-  //        </tr>
-  //        <tr type="header" height="48">
-  //            <td align="center" style="width: 100px;">Имя игрока:</td>
-  //            <td align="left">${createSelect()}</td>
-  //        </tr>
-  //        <tr>
-  //            <td id="sf_STI" colspan="2" valign="top"></td>
-  //        </tr>
-  //    </table>`;
-  //
-  //$('#sf_header_STI').html(header);
-
   t = $t.themes;
-  t.setWidth([70, -1, 250, 80, 100, 100, 43]);
+  t.setWidth([70, -1, 300, 80, 100, 100, 100, 100, 43]);
   t.setStructure([
     ["id", "number", "ID"],
     ["name", "check", "Названии темы"],
     ["author", "check", "Имени автора"],
-    ["date", "date", "Дате создания"],
+    ["start", "date", "Дате создания"],
     ["check", null, null],
     ["postsDone", "number", "Обработано сообщений"],
-    ["postsAll", "number", "Всего сообщений"]
+    ["postsAll", "number", "Всего сообщений"],
+    ["pageDone", "number", "Обработано страниц"],
+    ["pageAll", "number", "Всего страниц"]
   ]);
 
-  header =
-    `<table align="center" style="width: 100%;" type="padding">
-                <tr style="height: 35px; font-style: italic;">
-                    <td align="center" colspan="7">Данные по обработанным темам</td>
-                </tr>
-                <tr type="header">
-                    <td align="center" ${t.getWidth(0)} sort="id" rowspan="2" style="height: 50px;">#<img /></td>
-                    <td align="center" ${t.getWidth(1)} sort="name" rowspan="2">Тема<img /></td>
-                    <td align="center" ${t.getWidth(2)} sort="author" rowspan="2">Автор<img /></td>
-                    <td align="center" ${t.getWidth(3)} sort="date" rowspan="2">Создана<img /></td>
-                    <td align="center" colspan="2">Сообщений</td>
-                    <td align="center" ${t.getWidth(6)} sort="check" rowspan="2">@<img /></td>
-                </tr>
-                <tr type="header">
-                    <td align="center" ${t.getWidth(4)} sort="postsDone">Обработано<img /></td>
-                    <td align="center" ${t.getWidth(5)} sort="postsAll">Всего<img /></td>
-                </tr>
-            </table>`;
+  $('#sf_header_TL').html('@include: ./html/themesTableHeader.html');
+  $('#sf_footer_TL').html('@include: ./html/themesTableFooter.html');
 
-  footer =
-    `<table align="center" style="width: 100%;" type="padding">
-                <tr style="background-color: #d0eed0;" type="filters">
-                    <td align="center" ${t.getWidth(0)} filter="id"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(1)} filter="name"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(2)} filter="author"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(3)} filter="date"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(4)} filter="postsDone"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(5)} filter="postsAll"><img src="${$ico.filter}"></td>
-                    <td align="center" ${t.getWidth(6)} ></td>
-                </tr>
-                <tr style="height: 35px; background-color: #d0eed0;">
-                    <td colspan="4">
-                    </td>
-                    <td colspan="3">
-                    </td>
-                </tr>
-            </table>
-            <span style="float: right; margin-right: 5px; font-size: 10px; cursor: pointer;" id="sf_bCheckAllThemes">[отметить всё]</span>`;
-
-  $('#sf_header_TL').html(header);
-  $('#sf_footer_TL').html(footer);
-
-  $t.themes.setControl($ico, null);
+  $t.themes.setControl($ico, ()=>{renderThemesTable(true)});
 
   b2 = $('#sf_bCheckAllThemes').node();
   bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});
@@ -2056,34 +1981,36 @@ function renderBaseHTML(){
 function renderStatsTable(sorted){
   var g, table, players, members, row;
 
+  var t;
+
   table = $t.stats;
   g = render();
   g.next();
 
   function* render(){
+
     if(!sorted){
-
-      console.log("One");
-
       table.clearContent();
 
-      console.log("Two");
-      members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
-      // Поставить замер времени.
-      players = yield $idb.getFew.gkWait(g, $idb, ["players", $forum.id, "d", true]);
+      t = new Date().getTime();
 
-      console.log("Three");
+      members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
+
+      console.log(new Date().getTime() - t);
+      t = new Date().getTime();
+
+      players = yield $idb.getFew.gkWait(g, $idb, ["players", "{}", `fid_${$cd.fid}`]);
+
+      console.log(new Date().getTime() - t);
+      t = new Date().getTime();
+
       members.forEach((member)=>{
         row = Create.characters(member, players[member.id]);
         if(table.filtering(row)) table.pushContent(row);
       });
 
-      console.log("Four");
       table.sorting();
-
-      console.log("Five");
     }
-
     $cd.statsCount = 0;
     showStats(table);
     bindCheckingOnRows('#sf_content_SI');
@@ -2091,17 +2018,30 @@ function renderStatsTable(sorted){
 }
 
 function renderThemesTable(sorted){
-  var table = $t.themes;
+  var g, table, themes, row;
 
-  if(!sorted){
-    table.clearContent();
-    prepareRenders("themes", table);
-    table.sorting();
+  table = $t.themes;
+  g = render();
+  g.next();
+
+  function* render(){
+    if(!sorted){
+      table.clearContent();
+
+      themes = yield $idb.getFew.gkWait(g, $idb, [`themes_${$forum.id}`]);
+
+      themes.forEach((theme)=>{
+        row = Create.thread(theme);
+        if(table.filtering(row)) table.pushContent(row);
+      });
+
+      table.sorting();
+    }
+
+    $cd.themesCount = 0;
+    showThemeList(table);
+    bindCheckingOnRows('#sf_content_TL');
   }
-
-  $cd.themesCount = 0;
-  showThemeList(table);
-  bindCheckingOnRows('#sf_content_TL');
 }
 
 function renderTables(){
@@ -2253,8 +2193,20 @@ function showStats(t){
     `<div style="max-height: 477px; overflow-y: scroll;">
                 <table align="center" style="width: 100%;" type="padding">`;
 
-
   t.getContent().forEach(function(tr){
+    code += row(tr);
+    $cd.statsCount++;
+  });
+
+  code += `</table>
+            </div>`;
+
+  $('#sf_content_SI').html(code);
+  $('#sf_SI_ListCount').html($cd.statsCount);
+
+  /////////////////////////////
+
+  function row(tr){
     var light, check, box;
 
     if (tr.check){
@@ -2268,8 +2220,7 @@ function showStats(t){
       box = $ico.boxOff;
     }
 
-    code +=
-      `<tr height="28" type="${light}">
+    return `<tr height="28" type="${light}">
         <td ${t.getWidth(0)} align="right">${$c.convertID(tr.id)}</td>
         <td ${t.getWidth(1)} align="center">${hz(tr.sNumber)}</td>
         <td ${t.getWidth(2)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
@@ -2287,18 +2238,11 @@ function showStats(t){
         <td ${t.getWidth(14)} align="center">${$c.getNormalDate(tr.exit).d}</td>
         <td ${t.getWidth(15)} align="center"><img src="${$ico[tr.kick]}" /></td>
         <td ${t.getWidth(16)} align="center"><img src="${$ico[tr.invite]}" /></td>
-        <td ${t.getWidth(17, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
+        <td ${t.getWidth(17)} align="center"><img src="${$ico[tr.bl]}" /></td>
+        <td ${t.getWidth(18, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
       </tr>
       `;
-
-    $cd.statsCount++;
-  });
-
-  code += `</table>
-            </div>`;
-
-  $('#sf_content_SI').html(code);
-  $('#sf_SI_ListCount').html($cd.statsCount);
+  }
 
   /////////////////////////////
 
@@ -2308,14 +2252,14 @@ function showStats(t){
   /////////////////////////////
 
   function statusMember(tr){
-    if(tr.status == '')
+    if(tr.status == 0)
       return "-";
-    if(tr.status == "Ok")
+    if(tr.status == 1)
       return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(tr.date).d}]</div>`;
     if(tr.date != 0)
-      return $date > tr.date ? "?" : `<span style="${$statusStyle[tr.status]}">${tr.status}</span> [${$c.getNormalDate(tr.date).d}]`;
+      return $date > tr.date ? "?" : `<span style="${$status[tr.status].s}">${$status[tr.status].t}</span> [${$c.getNormalDate(tr.date).d}]`;
 
-    return`<span style="${$statusStyle[s.status]}">${tr.status}</span>`;
+    return`<span style="${$status[tr.status].s}">${$status[tr.status].t}</span>`;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2328,6 +2272,15 @@ function showThemeList(table){
                 <table align="center" style="width: 100%;" type="padding">`;
 
   table.getContent().forEach(function(tr){
+    code += row(tr);
+  });
+
+  code += `</table>
+            </div>`;
+
+  $('#sf_content_TL').html(code);
+
+  function row(tr){
     if(tr.check){
       light = "lightChecked";
       check = "checked";
@@ -2339,22 +2292,19 @@ function showThemeList(table){
       box = $ico.boxOff;
     }
 
-    code +=
-      `<tr height="28" type="${light}">
-                        <td ${table.getWidth(0)} align="right">${convertID(tr.id)} </td>
-                        <td ${table.getWidth(1)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$cd.fid}&tid=${tr.id}">${tr.name}</a></td>
-                        <td ${table.getWidth(2)} style="text-indent: 5px;" width="250"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author.id}">${tr.author.name}</a></td>
-                        <td ${table.getWidth(3)} align="center">${getNormalDate(tr.date).d}</td>
-                        <td ${table.getWidth(4)} align="center">${tr.postsDone}</td>
-                        <td ${table.getWidth(5)} align="center">${tr.postsAll}</td>
-                        <td ${table.getWidth(6, true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
-                    </tr>`;
-  });
-
-  code += `</table>
-            </div>`;
-
-  $('#sf_content_TL').html(code);
+    return `<tr height="28" type="${light}">
+      <td ${table.getWidth(0)} align="right">${$c.convertID(tr.id)} </td>
+      <td ${table.getWidth(1)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$forum.id}&tid=${tr.id}">${tr.name}</a></td>
+      <td ${table.getWidth(2)} style="text-indent: 5px;" width="250"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
+      <td ${table.getWidth(3)} align="center">${$c.getNormalDate(tr.start).d}</td>
+      <td ${table.getWidth(4)} align="center">${tr.postsDone}</td>
+      <td ${table.getWidth(5)} align="center">${tr.postsAll}</td>
+      <td ${table.getWidth(6)} align="center">${tr.pageDone}</td>
+      <td ${table.getWidth(7)} align="center">${tr.pageAll}</td>
+      <td ${table.getWidth(8, true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
+    </tr>
+    `;
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function getCurrentFilters(){

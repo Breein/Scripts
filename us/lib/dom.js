@@ -7,7 +7,7 @@ function Api(param) {
 Api.prototype = {
 
   /**
-   * @param {null|number} param
+   * @param {number=} param
    * @returns {Array}
    */
   node: function (param) {
@@ -52,8 +52,8 @@ Api.prototype = {
   },
 
   /**
-   * @param {null|*} param
-   * @returns {Api|string}
+   * @param {*=} param - Без параметра для получения, с параметром для вставки
+   * @returns {Api|string} - Строка HTML исходного кода или объект API
    */
   html: function (param) {
     if (param != null) {
@@ -73,12 +73,16 @@ Api.prototype = {
 
   /**
    * @param {string} attribute
-   * @param {string} value
-   * @returns {Api}
+   * @param {string=} value
+   * @returns {Api|string}
    */
   attr: function(attribute, value){
-    this.nodeList[0].setAttribute(attribute, value);
-    return this;
+    if(value){
+      this.nodeList[0].setAttribute(attribute, value);
+      return this;
+    }else{
+      return this.nodeList[0].getAttribute(attribute);
+    }
   },
 
   /**

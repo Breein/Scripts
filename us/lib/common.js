@@ -30,7 +30,7 @@ Common.prototype = {
   /**
    *
    * @param {number} date
-   * @param {null|boolean} full
+   * @param {boolean=} full
    * @returns {object}
    */
   getNormalDate: function (date, full){

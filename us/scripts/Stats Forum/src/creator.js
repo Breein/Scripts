@@ -11,9 +11,10 @@ GeneratorData.prototype = {
     return {
       id: id,
       name: "",
-      status: "",
+      status: 0,
       date: 0,
-      forums: [],
+      forums: {},
+      bl: 0,
       _ch: true
     }
   },
@@ -90,9 +91,9 @@ GeneratorData.prototype = {
   },
 
   /**
-   * @param {object} m member (упакованный)
-   * @param {object} p player (упакованный)
-   * @returns {object}
+   * @param {{}} m - member (упакованный)
+   * @param {{}} p - player (упакованный)
+   * @returns {{}}
    */
   characters: function(m, p){
     return {
@@ -115,7 +116,25 @@ GeneratorData.prototype = {
       enter: m.j,
       exit: m.k,
       kick: (m.l != 0) + "",
-      invite: (m.m != 0) + ""
+      invite: (m.m != 0) + "",
+      bl: (p.e != 0) + ""
+    };
+  },
+
+  /**
+   * @param {{}} t - theme (упакованный)
+   * @returns {{id:number, name:string, author:[number,string], start:number, postsDone:number, postsAll:number, pageDone:number, pageAll:number}}
+   */
+  thread: function(t){
+    return {
+      id: t.id,
+      name: t.a,
+      author: [t.b[0], t.b[1]],
+      start: t.e,
+      postsDone: t.c[0],
+      postsAll: t.c[1],
+      pageDone: t.d[0],
+      pageAll: t.d[1] + 1
     };
   }
 };

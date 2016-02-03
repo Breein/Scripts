@@ -169,29 +169,25 @@ DB.prototype = {
 
   /**
    * @param {string} table
-   * @param {number[]|null} range
-   * @param {string|null} index
-   * @param {boolean} existInArrayKey Ключ включащий проверку значения которое содержится в массиве
+   * @param {string=} type - Тип возвращаемого значения
+   * @param {string=} index
+   * @param {*[]|*=} range
    * @returns {Promise}
    */
-  getFew: function(table, range, index, existInArrayKey){
+  getFew: function(table, type, index, range){
     var f, krv, results;
 
-    results = existInArrayKey ? {} : [];
+    results = type == "{}" ? {} : [];
 
     f = (onsuccess) => {
       if(range){
-        if(typeof range == 'object'){
-          krv = this.kr.bound(range[0], range[1]);
-        }else{
-          krv = existInArrayKey ? null : this.kr.only(range);
-        }
+        krv = typeof range == 'object' ? this.kr.bound(range[0], range[1]) : this.kr.only(range);
       }
 
       this.tx = this.db.transaction([table], "readonly");
       this.store = this.tx.objectStore(table);
 
-      if(!existInArrayKey && index){
+      if(index){
         this.store = this.store.index(index);
       }
 
@@ -199,10 +195,8 @@ DB.prototype = {
         var cursor = event.target.result;
 
         if(cursor){
-          if(existInArrayKey){
-            if($c.exist(range, cursor.value[index])){
-              results[cursor.value.id] = cursor.value;
-            }
+          if(type == "{}"){
+            results[cursor.value.id] = cursor.value;
           }else{
             results.push(cursor.value);
           }
@@ -230,11 +224,12 @@ DB.prototype = {
         if(data._ch){
           delete data._ch;
           this.store.put(data);
-          console.log("Success added to " + table);
+          console.log(`Success added to "${table}", id[${data.id}]!`);
         }
       }
     }catch(e){
-      console.log("Failed added");
+      console.log(`Failed added to table "${table}", id[${data.id}]:`);
+      console.log(data);
       console.log(e);
     }
   }
