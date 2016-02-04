@@ -98,6 +98,15 @@ Table.prototype = {
   },
 
   /**
+   * @param {number} index
+   * @param {string} key
+   * @param {*} value
+   */
+  setContentValue: function(index, key, value){
+    this.content[index][key] = value;
+  },
+
+  /**
    * @param {number} id
    * @returns {object[]}
    */
@@ -176,18 +185,18 @@ Table.prototype = {
 
     array.sort(
       function(e1, e2){
-        var p1, p2, res;
+        var p1, p2, res, i1, i2;
 
         p1 = e1[value]; p2 = e2[value];
+        i1 = e1.id; i2 = e2.id;
 
         if(typeof p1 == "object"){
-          if(p1.name){
-            p1 = p1.name;
-            p2 = p2.name;
-          }
+          p1 = p1[1];
+          p2 = p2[1];
         }
 
         res = compare(p1, p2);
+        if(res == 0) res = compare(i1, i2);
         if(type) res = res == -1 ? 1 : -1;
         return res;
       }

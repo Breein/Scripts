@@ -1886,13 +1886,12 @@ function renderBaseHTML(){
   var b1, b2, t;
 
   t = $t.stats;
-  //          #   № name sn  ts  tw  lm   p  w   wa   c  ca  sta  ent ex  ki  in  bl   @
-  t.setWidth([65, 45, -1, 40, 75, 75, 95, 80, 75, 95, 75, 95, 172, 80, 80, 40, 40, 40, 45]);
+  //          #   sn name ts  tw  lm   p  w   wa   c  ca  sta  ent ex  ki  in  bl   @
+  t.setWidth([65, 45, -1, 75, 75, 95, 80, 75, 95, 75, 95, 172, 80, 80, 40, 40, 40, 45]);
   t.setStructure([
     ["id", "number", "ID"],
     ["sNumber", "number", "Номер в списке синдиката"],
     ["name", "check", "Имя"],
-    ["member", "boolean", "В составе"],
     ["status", "multiple", "Статус"],
     ["enter", "date", "Принят"],
     ["exit", "date", "Покинул"],
@@ -1981,8 +1980,6 @@ function renderBaseHTML(){
 function renderStatsTable(sorted){
   var g, table, players, members, row;
 
-  var t;
-
   table = $t.stats;
   g = render();
   g.next();
@@ -1992,29 +1989,19 @@ function renderStatsTable(sorted){
     if(!sorted){
       table.clearContent();
 
-      getTimeRequest();
-
       members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
-
-      getTimeRequest(1);
-      getTimeRequest();
-
       players = yield $idb.getFew.gkWait(g, $idb, ["players", "{}", `fid_${$cd.fid}`]);
-
-      getTimeRequest(1);
-      getTimeRequest();
 
       members.forEach((member)=>{
         row = Create.characters(member, players[member.id]);
         if(table.filtering(row)) table.pushContent(row);
-        if($checked.players[member.id] == null) $checked.players[member.id] = false;
       });
 
       table.sorting();
     }
     $cd.statsCount = 0;
-    showStats(table);
-    bindCheckingOnRows('#sf_content_SI');
+    yield showStats.gkWait(g, this, [table]);
+    bindCheckingOnRows('#sf_content_SI', table);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2035,7 +2022,6 @@ function renderThemesTable(sorted){
       themes.forEach((theme)=>{
         row = Create.thread(theme);
         if(table.filtering(row)) table.pushContent(row);
-        if($checked.themes[theme.id] == null) $checked.themes[theme.id] = false;
       });
 
       table.sorting();
@@ -2043,44 +2029,42 @@ function renderThemesTable(sorted){
 
     $cd.themesCount = 0;
     showThemeList(table);
-    bindCheckingOnRows('#sf_content_TL');
+    bindCheckingOnRows('#sf_content_TL', table);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderTables(){
   renderStatsTable();
-  renderThemesTable();
+  //renderThemesTable();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function bindCheckingOnRows(id){
+function bindCheckingOnRows(id, table){
   $(id)
     .find('tr')
     .nodeArr()
     .forEach(
-      function(node) {
+      function(node){
         bindEvent(node, 'onclick',function(){checkedId(node)});
       }
     );
 
   function checkedId(node){
+    var index = node.rowIndex;
+
     if(node.getAttribute("type") == "light"){
       node.setAttribute("type", "lightChecked");
     }else{
       node.setAttribute("type", "light");
     }
+
     node = $(node).find('input[type="checkbox"]').node();
     node.nextSibling.style.background = node.checked ? `url("${$ico.boxOff}")` : `url("${$ico.boxOn}")`;
     node.checked = !node.checked;
+    table.setContentValue(index, "checked", node.checked);
 
-    if(id == "#sf_content_SI"){
-      $checked.players[node.value] = !$checked.players[node.value];
-      changeCount('#sf_SI_ListChecked', node.checked);
-    }
-    if(id == "#sf_content_TL"){
-      $checked.themes[node.value] = !$checked.themes[node.value];
-    }
+    //  changeCount('#sf_SI_ListChecked', node.checked);
   }
 
   function changeCount(id, state){
@@ -2094,44 +2078,71 @@ function bindCheckingOnRows(id){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function showStats(t){
-  var code;
+  var code, rows, table, html, first = 1, n = 0;
+  var i, length;
+
+  table = $('#sf_content_SI');
+  rows = t.getContent();
+  code = [];
+  html = "";
+
+  for(i = 0, length = rows.length; i < length; i++){
+    if(!n && i == 80){
+      code[n] = html;
+      html = "";
+      n++;
+    }
+    //if(i && i % 1000 == 0){
+    //  code[n] = html;
+    //  html = "";
+    //  n++;
+    //}
+    html += row(rows[i]);
+  }
+  code[n] = html;
+
 
   getTimeRequest();
 
-  code =
-    `<div style="max-height: 477px; overflow-y: scroll;">
-                <table align="center" style="width: 100%;" type="padding">`;
+  return code.reduce((sequence, c) => {
+    return sequence.then(()=>{
+      return insert(c);
+    });
+  }, Promise.resolve()).then(()=>{
 
-  t.getContent().forEach(function(tr){
-    code += row(tr);
-    $cd.statsCount++;
+    getTimeRequest(1);
+
+    $cd.statsCount = length;
+
+    $('#sf_SI_ListCount').html($cd.statsCount);
   });
 
+  /////////////////////////////
 
-
-  code += `</table>
-            </div>`;
-
-  getTimeRequest(1);
-  getTimeRequest();
-
-  $('#sf_content_SI').html(code);
-
-  getTimeRequest(1);
-
-  $('#sf_SI_ListCount').html($cd.statsCount);
+  function insert(code){
+    return new Promise((resolve)=>{
+      if(first){
+        table.html(code);
+        first = 0;
+      }else{
+        table.html(code, true);
+      }
+      setTimeout(()=>{
+        resolve();
+      }, 100);
+    })
+  }
 
   /////////////////////////////
 
   function row(tr){
     var light, check, box;
 
-    if (tr.check){
+    if(tr.checked){
       light = "lightChecked";
       check = "checked";
       box = $ico.boxOn;
-    }
-    else {
+    }else{
       light = "light";
       check = "";
       box = $ico.boxOff;
@@ -2141,38 +2152,43 @@ function showStats(t){
         <td ${t.getWidth(0)} align="right">${$c.convertID(tr.id)}</td>
         <td ${t.getWidth(1)} align="center">${hz(tr.sNumber)}</td>
         <td ${t.getWidth(2)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
-        <td ${t.getWidth(3)} align="center"><img src="${$ico[tr.member]}" /></td>
-        <td ${t.getWidth(4)} align="center">${hz(tr.start)}</td>
-        <td ${t.getWidth(5)} align="center">${hz(tr.write)}</td>
-        <td ${t.getWidth(6)} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
-        <td ${t.getWidth(7)} align="center">${hz(tr.posts)}</td>
-        <td ${t.getWidth(8)} align="center">${hz(tr.words)}</td>
-        <td ${t.getWidth(9)} align="center">${hz(tr.wordsAverage)}</td>
-        <td ${t.getWidth(10)} align="center">${hz(tr.carma)}</td>
-        <td ${t.getWidth(11)} align="center">${hz(tr.carmaAverage)}</td>
-        <td ${t.getWidth(12)} align="center">${statusMember(tr)}</td>
-        <td ${t.getWidth(13)} align="center">${$c.getNormalDate(tr.enter).d}</td>
-        <td ${t.getWidth(14)} align="center">${$c.getNormalDate(tr.exit).d}</td>
-        <td ${t.getWidth(15)} align="center" title="${$c.getNormalDate(tr.kick).d}"><img src="${$ico[(tr.kick != 0) + '']}" /></td>
-        <td ${t.getWidth(16)} align="center" title="${$c.getNormalDate(tr.invite).d}"><img src="${$ico[(tr.invite != 0) + '']}" /></td>
-        <td ${t.getWidth(17)} align="center"><img src="${$ico[tr.bl]}" /></td>
-        <td ${t.getWidth(18, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
+        <td ${t.getWidth(3)} align="center">${hz(tr.start)}</td>
+        <td ${t.getWidth(4)} align="center">${hz(tr.write)}</td>
+        <td ${t.getWidth(5)} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
+        <td ${t.getWidth(6)} align="center">${hz(tr.posts)}</td>
+        <td ${t.getWidth(7)} align="center">${hz(tr.words)}</td>
+        <td ${t.getWidth(8)} align="center">${hz(tr.wordsAverage)}</td>
+        <td ${t.getWidth(9)} align="center">${hz(tr.carma)}</td>
+        <td ${t.getWidth(10)} align="center">${hz(tr.carmaAverage)}</td>
+        <td ${t.getWidth(11)} align="center">${statusMember(tr)}</td>
+        <td ${t.getWidth(12)} align="center">${$c.getNormalDate(tr.enter).d}</td>
+        <td ${t.getWidth(13)} align="center">${$c.getNormalDate(tr.exit).d}</td>
+        <td ${t.getWidth(14)} align="center" title="${$c.getNormalDate(tr.kick).d}">${tr.kick ? '√' : ''}</td>
+        <td ${t.getWidth(15)} align="center" title="${$c.getNormalDate(tr.invite).d}">${tr.invite ? '√' : ''}</td>
+        <td ${t.getWidth(16)} align="center">${tr.bl ? '√' : ''}</td>
+        <td ${t.getWidth(17, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
       </tr>
       `;
   }
 
+  //<img src="${$ico[tr.member]}" />
+  //<img src="${$ico[(tr.kick != 0) + '']}" />
+  //<img src="${$ico[(tr.invite != 0) + '']}" />
+  //<img src="${$ico[tr.bl]}" />
+
   /////////////////////////////
 
   function hz(value, p){
-    return value == 0 ? "-" : p != null ? value + '<span style="font-size: 9px;"> %</span>' : value;
+    return value == 0 ? "" : p != null ? value + '<span style="font-size: 9px;"> %</span>' : value;
   }
   /////////////////////////////
 
   function statusMember(tr){
     if(tr.status == 0)
-      return "-";
+      return "";
     if(tr.status == 1)
-      return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(tr.date).d}]</div>`;
+      //return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(tr.date).d}]</div>`;
+      return `В порядке [${$c.getNormalDate(tr.date).d}]`;
     if(tr.date != 0)
       return $date > tr.date ? "?" : `<span style="${$status[tr.status].s}">${$status[tr.status].t}</span> [${$c.getNormalDate(tr.date).d}]`;
 
@@ -2181,7 +2197,7 @@ function showStats(t){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function showThemeList(table){
+function showThemeList(table, count){
   var code, light, check, box;
 
   code =
@@ -2198,7 +2214,7 @@ function showThemeList(table){
   $('#sf_content_TL').html(code);
 
   function row(tr){
-    if(tr.check){
+    if(tr.checked){
       light = "lightChecked";
       check = "checked";
       box = $ico.boxOn;

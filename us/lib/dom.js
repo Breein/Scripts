@@ -53,11 +53,16 @@ Api.prototype = {
 
   /**
    * @param {*=} param - Без параметра для получения, с параметром для вставки
+   * @param {*=} add - Добавление к коду.
    * @returns {Api|string} - Строка HTML исходного кода или объект API
    */
-  html: function (param) {
+  html: function (param, add) {
     if (param != null) {
-      this.nodeList[0].innerHTML = param;
+      if(add){
+        this.nodeList[0].innerHTML += param;
+      }else{
+        this.nodeList[0].innerHTML = param;
+      }
       return this;
     } else {
       return this.nodeList[0] ? this.nodeList[0].innerHTML : "This node is null. Selector: " + this.selector;

@@ -35,7 +35,7 @@ Common.prototype = {
    */
   getNormalDate: function (date, full){
     if(isNaN(date)) return {d: date, t: '-'};
-    if(date == 0) return {d: '-', t: '-'};
+    if(date == 0) return {d: '', t: '-'};
 
     date = date * 1000;
     date = new Date(date);

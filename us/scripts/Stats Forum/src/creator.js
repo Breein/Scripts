@@ -100,14 +100,14 @@ GeneratorData.prototype = {
     var member, sNumber, enter, exit, kick, invite;
 
     if(mc){
-      member = (mc.i != 0) + "";
+      member = mc.i != 0;
       sNumber = mc.i;
       enter = mc.j;
       exit = mc.k;
       kick = mc.l;
       invite = mc.m;
     }else{
-      member = (m.i != 0) + "";
+      member = m.i != 0;
       sNumber = m.i;
       enter = m.j;
       exit = m.k;
@@ -136,7 +136,8 @@ GeneratorData.prototype = {
       exit: exit,
       kick: kick,
       invite: invite,
-      bl: (p.e != 0) + ""
+      bl: p.e != 0,
+      checked: false
     };
   },
 
@@ -153,7 +154,8 @@ GeneratorData.prototype = {
       postsDone: t.c[0],
       postsAll: t.c[1],
       pageDone: t.d[0],
-      pageAll: t.d[1] + 1
+      pageAll: t.d[1] + 1,
+      checked: false
     };
   }
 };
