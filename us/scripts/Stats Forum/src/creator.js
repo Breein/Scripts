@@ -154,7 +154,7 @@ GeneratorData.prototype = {
       postsDone: t.c[0],
       postsAll: t.c[1],
       pageDone: t.d[0],
-      pageAll: t.d[1] + 1,
+      pageAll: t.d[1],
       checked: false
     };
   }

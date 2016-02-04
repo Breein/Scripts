@@ -522,8 +522,8 @@ function prepareDoTask(node){
         break;
 
       case 'all':
-        displayProgress('start', `Обработка тем`, 0, $cd.f.threads.new);
-        prepareParseThemes(0);
+        displayProgress('start', `Обработка тем`, 0, $forum.themes[1] - $forum.themes[0]);
+        prepareParseThemes();
         break;
     }
   }
@@ -595,19 +595,8 @@ function prepareDoTask(node){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function forgetForum(){
-  var id;
-
   if(confirm('Вы уврены что хотите удалить все данные об этом форуме?')){
-    delete $sd.forums[$cd.fid];
-    for (id in $sd.players) {
-      if ($sd.players[id].forums[$cd.fid]) {
-        delete $sd.players[id].forums[$cd.fid];
-      }
-    }
-    for (id in $sd.kicked){
-      delete $sd.kicked[$cd.fid];
-    }
-    saveToLocalStorage('data');
+
     location.reload();
   }
 }
@@ -928,6 +917,8 @@ function getMaxPageSindicateLog(){
     page = page.node(-1).href.split('page_id=')[1];
     page = Number(page);
 
+    console.log(page);
+
     if($forum.page[1] != page){
       $forum.page[1] = page;
       $forum._ch = true;
@@ -1119,8 +1110,7 @@ function parseForum(index, mode, stopDate){
           return sequence.then(()=>{
             return parseRow(tr);
           });
-        }, Promise.resolve())
-        .then(()=>{
+        }, Promise.resolve()).then(()=>{
 
           index = mode ? index - 1 : index + 1;
           if(mode && $forum.page[0] != $forum.page[1]){
@@ -1131,19 +1121,18 @@ function parseForum(index, mode, stopDate){
           $idb.add(`forums`, Pack.forum($forum));
 
           parseForum.gkDelay(750, this, [index, mode, stopDate]);
-          console.log("Done");
         });
     }, (e)=>{
       errorLog("Сбор информации о темах", 0, e);
     });
   }else{
-    //renderTables();
+    renderTables();
     displayProgress('done');
   }
   /////////////////////////////
 
   function parseRow(tr){
-    var td, tid, theme, player, character, member, pages, posts;
+    var td, tid, theme, player, character, member, pages, posts, date;
     var g, f;
 
     f = (resolve) => {
@@ -1153,6 +1142,14 @@ function parseForum(index, mode, stopDate){
       function* parse(){
         td = tr.cells;
         tid = getId();
+        date = getDate();
+
+        if(stopDate != null && !(stopDate < date)) count++;
+
+        if(count > 5){
+          index = -2;
+          return resolve();
+        }
 
         theme = yield $idb.getOne.gkWait(g, $idb, [`themes_${$forum.id}`, "id", tid]);
         theme = Pack.theme(theme);
@@ -1166,7 +1163,7 @@ function parseForum(index, mode, stopDate){
           theme.author = getAuthor();
           theme.posts = getPosts();
           theme.pages = getPages();
-          theme.start = getDate();
+          theme.start = date;
         }else{
           posts = getPosts();
           pages = getPages();
@@ -1197,21 +1194,6 @@ function parseForum(index, mode, stopDate){
     };
 
     return new Promise(f);
-
-    //if(mode){
-    //  addTheme();
-    //}else{
-    //  if(stopDate != null && stopDate < date){
-    //    addTheme();
-    //  }else{
-    //    count++;
-    //    if(count == 5){
-    //      index = -2;
-    //    }
-    //  }
-    //}
-
-
     /////////////////////////////
 
     function getId(){
@@ -1248,7 +1230,7 @@ function parseForum(index, mode, stopDate){
 
       page = [
         parseInt(theme.posts[0] / 20, 10),
-        parseInt(theme.posts[1] / 20, 10)
+        parseInt(theme.posts[1] / 20, 10) + 1
       ];
 
       return page;
@@ -1295,137 +1277,139 @@ function parseForum(index, mode, stopDate){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function prepareParseThemes(max){
-  var themes, tid, list, count;
+  var list, count, theme;
+  var i, length;
 
-  themes = $cd.f.themes;
-  list = [];
   count = 0;
+  list = [];
 
-  for(tid in themes){
-    if(themes[tid].posts[0] != themes[tid].posts[1]){
-      list.push(tid);
-      count += calculateThemePages(Number(tid)).count;
-      if(list.length == max) break;
+  $idb.getFew(`themes_${$forum.id}`).then((themes)=>{
+
+    for(i = 0, length = max ? max : themes.length; i < length; i++){
+      theme = Pack.theme(themes[i]);
+
+      if(theme.posts[0] != theme.posts[1]){
+        count += theme.pages[1] - theme.pages[0];
+        list.push(theme);
+      }
     }
-  }
-  count = list.length * 750 + count * 1250 + 500;
-  displayProgressTime(count);
-  parseThemes(0, list.length, list);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function calculateThemePages(id){
-  var theme, pages, sPage, start;
-
-  theme = $cd.f.themes[id];
-
-  pages = theme.posts[1] / 20;
-  pages = pages < 1 ? 0 : parseInt(pages, 10);
-
-  sPage = theme.posts[0] / 20;
-  sPage = sPage < 1 ? 0 : parseInt(sPage, 10);
-
-  start = (theme.posts[0] % 20) + 1;
-
-  return {id: sPage , count: pages + 1, start: start};
+    count = list.length * 750 + count * 1250 + 500;
+    displayProgressTime(count);
+    parseThemes(0, list.length, list);
+  });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function parseThemes(index, max, list){
-  var info, theme;
-
-  $cd.tid = Number(list[index]);
-  theme = $cd.f.themes[$cd.tid];
+  var info, theme, startPost;
 
   if(index < max){
-    info = calculateThemePages($cd.tid);
-    parseTheme(info.id, info.count, info.start);
+    theme = list[index];
+    startPost = theme.posts[0] % 20;
+    startPost = startPost ? startPost : 1;
+
+    parseTheme();
   }else{
-    saveToLocalStorage('data');
     renderTables();
     displayProgress('done');
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function parseTheme(id, count, start){
-    var url;
+  function parseTheme(){
+    var url, table, tr;
+    var i, length, rows = [];
 
-    $cd.tPage = id;
-    url = 'http://www.ganjawars.ru/messages.php?fid=' + $cd.fid + '&tid='+ $cd.tid +'&page_id=' + $cd.tPage;
+    url = 'http://www.ganjawars.ru/messages.php?fid=' + $forum.id + '&tid='+ theme.id +'&page_id=' + theme.pages[0];
 
-    if(id < count){
-      try{
-        REQ(url, 'GET', null, true,
-          function (req){
-            $answer.innerHTML = req.responseText;
-            parse();
-            correctionTime();
-          },
-          function (){
-            errorLog('Сбор информации о сообщениях', 0, 0);
-            nextPageTheme();
+    if(theme.pages[0] < theme.pages[1]){
+
+      ajax(url, "GET", null).then((res)=>{
+        $answer.innerHTML = res;
+
+        table = $($answer).find('td[style="color: #990000"]:contains("Автор")').up('table').node();
+        tr = table.rows;
+
+        $(table).find('font:contains("~Тема закрыта")').nodeArr().forEach(
+          function(node){
+            node = $(node).up('tr').node();
+            node.parentNode.removeChild(node);
           }
         );
-      }catch (e){
-        errorLog('сборе информации о сообщениях', 1, e);
+
+        for(i = startPost, length = tr.length; i < length; i++){
+          rows.push(tr[i]);
+        }
+
+        rows.reduce(
+          (sequence, tr)=>{return sequence.then(()=>{return parseRow(tr);});},
+          Promise.resolve()
+        ).then(()=>{
+          nextPageTheme();
+        });
+
+      }, (e)=>{
+        errorLog('Сбор информации о сообщениях', 1, e);
         nextPageTheme();
-      }
+      });
     }else{
       nextTheme();
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function parse(){
-      var table, tr, pid, player, pf, w;
-      var i, length;
+    function parseRow(tr){
+      var table, pid, words, date, carma;
+      var character, player, member;
+      var g, f;
 
-      table = $($answer).find('td[style="color: #990000"]:contains("Автор")').up('table').node();
+      f = (resolve) => {
+        g = parse();
+        g = g.next();
 
-      $(table).find('font:contains("~Тема закрыта")').nodeArr().forEach(
-        function(node){
-          node = $(node).up('tr').node();
-          node.parentNode.removeChild(node);
+        function* parse(){
+          pid = getId();
+
+          character = yield getCharacter.gkWait(g, this, [pid]);
+          player = character.p; member = character.m;
+
+          date = getLastDate();
+          words = getWords();
+          carma = getCarma();
+
+          if(player.name == ""){
+            player.name = getName();
+            player._ch = true;
+          }
+
+          theme.posts[0]++;
+          theme._ch = true;
+
+          $forum.posts++;
+          $forum.words += words;
+          $forum._ch = true;
+
+          member.posts++;
+          member.last = date;
+          member.words += words;
+          member.wordsAverage += parseInt(member.words / member.posts, 10);
+          member.carma += carma;
+          member.carmaAverage = parseInt(member.carma / member.posts, 10);
+          if(!$c.exist(theme.id, member.write)) member.write.push(theme.id);
+          member._ch = true;
+
+          $idb.add("players", Pack.player(player));
+          $idb.add(`members_${$forum.id}`, Pack.member(member));
+          resolve();
         }
-      );
-      tr = table.rows;
-      length = tr.length;
+      };
 
-      for(i = start; i < length; i++){
-        pid = getId();
-
-        if($sd.players[pid] == null){
-          $sd.players[pid] = generatePlayer(getName());
-        }
-        player = $sd.players[pid];
-
-        if(player.forums[$cd.fid] == null){
-          player.forums[$cd.fid] = generateForumPlayer();
-        }
-        pf = player.forums[$cd.fid];
-
-        theme.posts[0]++;
-        $cd.f.posts++;
-
-        pf.posts++;
-        pf.last = getLastDate();
-
-        w = getWords();
-        $cd.f.words += w;
-        pf.words[0] += w;
-        pf.words[1] = parseInt(pf.words[0] / pf.posts, 10);
-
-        if(!pf.themes.gkExist($cd.tid)){
-          pf.themes.push($cd.tid);
-        }
-      }
-
-      nextPageTheme();
+      return new Promise(f);
       /////////////////////////////
 
       function getId(){
         var id;
 
-        id = $(tr[i].cells[0]).find('a[href*="info.php"]').node();
+        id = $(tr.cells[0]).find('a[href*="info.php"]').node();
         id = id.href.match(/(\d+)/)[1];
         id = Number(id);
 
@@ -1434,46 +1418,67 @@ function parseThemes(index, max, list){
       /////////////////////////////
 
       function getName(){
-        return $(tr[i].cells[0]).find('a[href*="info.php"]').text();
+        return $(tr.cells[0]).find('a[href*="info.php"]').text();
       }
       /////////////////////////////
 
       function getLastDate(){
         var date;
 
-        date = $(tr[i].cells[1]).find('td[align="left"]:contains("~написано")').text();
+        date = $(tr.cells[1]).find('td[align="left"]:contains("~написано")').text();
 
         date = date.match(/(.+): (\d+)-(\d+)-(\d+) (.+) /);
         date = `${date[3]}/${date[4]}/${date[2]} ${date[5]}`;
         date = Date.parse(date) / 1000;
 
-        return date > pf.last ? date : pf.last;
+        return date > member.last ? date : member.last;
       }
+      /////////////////////////////
 
       function getWords(){
         var words;
 
-        words = $(tr[i].cells[1]).find('table[cellpadding="5"]').text();
+        words = $(tr.cells[1]).find('table[cellpadding="5"]').text();
         words = (words.replace(/\s['";:,.?¿\-!¡]/g, '').match(/\s+/g) || []).length + 1;
 
         return words;
+      }
+      /////////////////////////////
+
+      function getCarma(){
+        var carma;
+
+        carma = $(tr).find('span[title="Балл сообщения"]');
+        carma = carma.length ? Number(carma.text()) : 0;
+
+        return carma;
       }
     }
     /////////////////////////////
 
     function nextTheme(){
       index++;
-      $cd.f.threads.new--;
+      $forum.themes[0]++;
+      $forum._ch = true;
+
+      $idb.add("forums", Pack.forum($forum));
+      $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
+
       displayProgress('work');
-      saveToLocalStorage('data');
       parseThemes.gkDelay(750, this, [index, max, list]);
     }
     /////////////////////////////
 
     function nextPageTheme(){
-      id++;
-      displayProgress.gkDelay(750, this, ['extra', `<br><b>Тема:</b> <i>${$cd.f.themes[$cd.tid].name}</i> [${id}/${count}]`]);
-      parseTheme.gkDelay(750, this, [id, count, 1]);
+      theme.pages[0]++;
+      startPost = 1;
+      theme._ch = true;
+
+      $idb.add("forums", Pack.forum($forum));
+      $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
+
+      displayProgress.gkDelay(750, this, ['extra', `<br><b>Тема:</b> <i>${theme.name}</i> [${theme.pages[0]}/${theme.pages[1]}]`]);
+      parseTheme.gkDelay(750, this, []);
     }
     /////////////////////////////
   }
@@ -1978,8 +1983,9 @@ function renderBaseHTML(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderStatsTable(sorted){
-  var g, table, players, members, row;
+  var g, table, players, cMembers, members, row;
 
+  cMembers = {};
   table = $t.stats;
   g = render();
   g.next();
@@ -1992,8 +1998,11 @@ function renderStatsTable(sorted){
       members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
       players = yield $idb.getFew.gkWait(g, $idb, ["players", "{}", `fid_${$cd.fid}`]);
 
+      if($forum.sid == null && $idb.exist('members_17930'))
+        cMembers = yield $idb.getFew.gkWait(g, $idb, ['members_17930', '{}']);
+
       members.forEach((member)=>{
-        row = Create.characters(member, players[member.id]);
+        row = Create.characters(member, players[member.id], cMembers[member.id]);
         if(table.filtering(row)) table.pushContent(row);
       });
 
@@ -2036,7 +2045,7 @@ function renderThemesTable(sorted){
 
 function renderTables(){
   renderStatsTable();
-  //renderThemesTable();
+  renderThemesTable();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2158,8 +2167,8 @@ function showStats(t){
         <td ${t.getWidth(6)} align="center">${hz(tr.posts)}</td>
         <td ${t.getWidth(7)} align="center">${hz(tr.words)}</td>
         <td ${t.getWidth(8)} align="center">${hz(tr.wordsAverage)}</td>
-        <td ${t.getWidth(9)} align="center">${hz(tr.carma)}</td>
-        <td ${t.getWidth(10)} align="center">${hz(tr.carmaAverage)}</td>
+        <td ${t.getWidth(9)} align="center">${tr.carma}</td>
+        <td ${t.getWidth(10)} align="center">${tr.carmaAverage}</td>
         <td ${t.getWidth(11)} align="center">${statusMember(tr)}</td>
         <td ${t.getWidth(12)} align="center">${$c.getNormalDate(tr.enter).d}</td>
         <td ${t.getWidth(13)} align="center">${$c.getNormalDate(tr.exit).d}</td>
