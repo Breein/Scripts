@@ -237,7 +237,7 @@ function addToDB(){
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
       $forum = Pack.forum(res);
-      $forum.page[0] = 0;
+      //$forum.page[0] = 0;
       createGUI();
     });
   }
@@ -1992,21 +1992,22 @@ function renderStatsTable(sorted){
     if(!sorted){
       table.clearContent();
 
-      t = new Date().getTime();
+      getTimeRequest();
 
       members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
 
-      console.log(new Date().getTime() - t);
-      t = new Date().getTime();
+      getTimeRequest(1);
+      getTimeRequest();
 
       players = yield $idb.getFew.gkWait(g, $idb, ["players", "{}", `fid_${$cd.fid}`]);
 
-      console.log(new Date().getTime() - t);
-      t = new Date().getTime();
+      getTimeRequest(1);
+      getTimeRequest();
 
       members.forEach((member)=>{
         row = Create.characters(member, players[member.id]);
         if(table.filtering(row)) table.pushContent(row);
+        if($checked.players[member.id] == null) $checked.players[member.id] = false;
       });
 
       table.sorting();
@@ -2016,6 +2017,7 @@ function renderStatsTable(sorted){
     bindCheckingOnRows('#sf_content_SI');
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderThemesTable(sorted){
   var g, table, themes, row;
@@ -2033,6 +2035,7 @@ function renderThemesTable(sorted){
       themes.forEach((theme)=>{
         row = Create.thread(theme);
         if(table.filtering(row)) table.pushContent(row);
+        if($checked.themes[theme.id] == null) $checked.themes[theme.id] = false;
       });
 
       table.sorting();
@@ -2043,107 +2046,11 @@ function renderThemesTable(sorted){
     bindCheckingOnRows('#sf_content_TL');
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderTables(){
   renderStatsTable();
   renderThemesTable();
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function doFilter(td, tName, type, name){
-  console.log(td);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function prepareRenders(value, table){
-  var added;
-
-  if(value == "players"){
-    //Object.keys($sd[value]).forEach(processing);
-    //Object.keys($ss.show.stats).forEach(prepareFilters);
-  }else{
-    Object.keys($sd.forums[$cd.fid].themes).forEach(processing);
-  }
-
-  if(added && $mode) saveToLocalStorage('data');
-
-  function processing(id){
-    var p, pf, kicked, invite, f;
-
-    if($checked[value][id] == null){
-      $checked[value][id] = false;
-    }
-
-    if(value == "players"){
-      p = $sd.players[id];
-      pf = p.forums[$cd.fid];
-
-      if(pf != null){
-        //kicked = $mode ? $sd.kicked[$cd.fid] : $tsd.kicked[$cd.fid];
-        //if(kicked != null && pf != null && kicked[p.name] != null){
-        //    if(pf.exit <= kicked[p.name]){
-        //        pf.goAway = 1;
-        //        pf.exit = kicked[p.name];
-        //        if($mode) delete kicked[p.name];
-        //        added = true;
-        //    }
-        //}
-        //
-        //invite = $mode ? $sd.invite[$cd.fid] : $tsd.invite[$cd.fid];
-        //
-        //if(invite != null && invite[p.name] != null){
-        //    pf.invite = 1;
-        //    if($mode) delete invite[p.name];
-        //    added = true;
-        //}
-        //
-        //if(!$mode && $tsd.players[id] && $tsd.players[id].forums['17930']){
-        //    f = $tsd.players[id].forums['17930'];
-        //    pf.sn = f.sn;
-        //    pf.enter = f.enter;
-        //    pf.exit = f.exit;
-        //    pf.invite = f.invite;
-        //    pf.member = f.member;
-        //    pf.goAway = f.goAway;
-        //}
-        //
-        //m.push(id);
-
-        table.setContent(id);
-      }
-    }else{
-      table.setContent(id);
-    }
-  }
-  /////////////////////////////////////
-
-  function prepareFilters(value){
-    if($ss.show.stats[value] != null) f.push(value);
-  }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function doSort(td, table){
-  var cell, name = table.getName();
-
-  table.setSort($ico);
-
-  cell = td.getAttribute("sort");
-  if(cell == $ss.sort[name].cell){
-    $ss.sort[name].type = $ss.sort[name].type == 0 ? 1 : 0;
-  }else{
-    $ss.sort[name].cell = cell;
-    $ss.sort[name].type = 1;
-  }
-
-  table.changeSortImage($ico);
-  table.sorting();
-
-  saveToLocalStorage('settings');
-
-  if(name == "stats") renderStatsTable(true);
-  if(name == "themes") renderThemesTable(true);
-
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2189,6 +2096,8 @@ function bindCheckingOnRows(id){
 function showStats(t){
   var code;
 
+  getTimeRequest();
+
   code =
     `<div style="max-height: 477px; overflow-y: scroll;">
                 <table align="center" style="width: 100%;" type="padding">`;
@@ -2198,10 +2107,18 @@ function showStats(t){
     $cd.statsCount++;
   });
 
+
+
   code += `</table>
             </div>`;
 
+  getTimeRequest(1);
+  getTimeRequest();
+
   $('#sf_content_SI').html(code);
+
+  getTimeRequest(1);
+
   $('#sf_SI_ListCount').html($cd.statsCount);
 
   /////////////////////////////
@@ -2236,8 +2153,8 @@ function showStats(t){
         <td ${t.getWidth(12)} align="center">${statusMember(tr)}</td>
         <td ${t.getWidth(13)} align="center">${$c.getNormalDate(tr.enter).d}</td>
         <td ${t.getWidth(14)} align="center">${$c.getNormalDate(tr.exit).d}</td>
-        <td ${t.getWidth(15)} align="center"><img src="${$ico[tr.kick]}" /></td>
-        <td ${t.getWidth(16)} align="center"><img src="${$ico[tr.invite]}" /></td>
+        <td ${t.getWidth(15)} align="center" title="${$c.getNormalDate(tr.kick).d}"><img src="${$ico[(tr.kick != 0) + '']}" /></td>
+        <td ${t.getWidth(16)} align="center" title="${$c.getNormalDate(tr.invite).d}"><img src="${$ico[(tr.invite != 0) + '']}" /></td>
         <td ${t.getWidth(17)} align="center"><img src="${$ico[tr.bl]}" /></td>
         <td ${t.getWidth(18, true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
       </tr>
@@ -2330,6 +2247,7 @@ function getTimeRequest(type){
     $cd.timeRequest = new Date().getTime();
   }else{
     $cd.timeRequest = new Date().getTime() - $cd.timeRequest;
+    console.log($cd.timeRequest);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

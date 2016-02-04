@@ -93,13 +93,32 @@ GeneratorData.prototype = {
   /**
    * @param {{}} m - member (упакованный)
    * @param {{}} p - player (упакованный)
+   * @param {{}=} mc - member-combine (упакованный)
    * @returns {{}}
    */
-  characters: function(m, p){
+  characters: function(m, p, mc){
+    var member, sNumber, enter, exit, kick, invite;
+
+    if(mc){
+      member = (mc.i != 0) + "";
+      sNumber = mc.i;
+      enter = mc.j;
+      exit = mc.k;
+      kick = mc.l;
+      invite = mc.m;
+    }else{
+      member = (m.i != 0) + "";
+      sNumber = m.i;
+      enter = m.j;
+      exit = m.k;
+      kick = m.l;
+      invite = m.m;
+    }
+
     return {
       id: m.id,
       name: p.a,
-      member: (m.i != 0) + "",
+      member: member,
       status: p.b,
       date: p.c,
       posts: m.a,
@@ -112,11 +131,11 @@ GeneratorData.prototype = {
       wordsAverage: m.f,
       carma: m.g,
       carmaAverage: m.h,
-      sNumber: m.i,
-      enter: m.j,
-      exit: m.k,
-      kick: (m.l != 0) + "",
-      invite: (m.m != 0) + "",
+      sNumber: sNumber,
+      enter: enter,
+      exit: exit,
+      kick: kick,
+      invite: invite,
       bl: (p.e != 0) + ""
     };
   },

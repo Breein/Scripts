@@ -231,8 +231,6 @@ Table.prototype = {
         //saveToLocalStorage('settings');
 
         callback();
-        //if(name == "stats") renderStatsTable(true);
-        //if(name == "themes") renderThemesTable(true);
       });
     });
   },
@@ -295,11 +293,11 @@ Table.prototype = {
           break;
 
         case "multiple":
-          if(!$c.exist(row[value].text, filter[value].value)) return false;
+          if(!$c.exist(row[value], filter[value].value)) return false;
           break;
 
         case "check":
-          if(!$c.exist(row[value].name, filter[value].value)) return false;
+          if(!$c.exist(row[value][0], filter[value].value)) return false;
           break;
 
         default:
