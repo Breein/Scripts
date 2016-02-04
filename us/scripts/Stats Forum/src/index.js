@@ -261,7 +261,7 @@ function createGUI(){
 
   bindEvent($('#sf_gui_settings').node(), 'onclick', openControlPanelWindow);
   //bindEvent($('#sf_gui_message').node(), 'onclick', openMessageWindow);
-  //bindEvent($('#sf_forgetForum').node(), 'onclick', forgetForum);
+  bindEvent($('#sf_forgetForum').node(), 'onclick', forgetForum);
 
 
   $('#sf_controlPanelWindow')
@@ -596,8 +596,18 @@ function prepareDoTask(node){
 
 function forgetForum(){
   if(confirm('Вы уврены что хотите удалить все данные об этом форуме?')){
+    $idb.clear(`members_${$forum.id}`);
+    $idb.clear(`themes_${$forum.id}`);
+    $idb.clear(`timestamp_${$forum.id}`);
+    $forum.posts = 0;
+    $forum.words = 0;
+    $forum.page = [0, 0];
+    $forum.themes = [0, 0];
+    $forum.log = [0, 0];
+    $forum._ch = true;
 
-    location.reload();
+    $idb.add("forums", Pack.forum($forum));
+    //location.href = location.href + "";
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -916,8 +926,6 @@ function getMaxPageSindicateLog(){
     page = $($answer).find(`b:contains("~Протокол синдиката #${$forum.sid}")`).up('div').next('center').find('a');
     page = page.node(-1).href.split('page_id=')[1];
     page = Number(page);
-
-    console.log(page);
 
     if($forum.page[1] != page){
       $forum.page[1] = page;
@@ -2167,8 +2175,8 @@ function showStats(t){
         <td ${t.getWidth(6)} align="center">${hz(tr.posts)}</td>
         <td ${t.getWidth(7)} align="center">${hz(tr.words)}</td>
         <td ${t.getWidth(8)} align="center">${hz(tr.wordsAverage)}</td>
-        <td ${t.getWidth(9)} align="center">${tr.carma}</td>
-        <td ${t.getWidth(10)} align="center">${tr.carmaAverage}</td>
+        <td ${t.getWidth(9)} align="center">${hz(tr.carma, tr.posts)}</td>
+        <td ${t.getWidth(10)} align="center">${hz(tr.carmaAverage, tr.posts)}</td>
         <td ${t.getWidth(11)} align="center">${statusMember(tr)}</td>
         <td ${t.getWidth(12)} align="center">${$c.getNormalDate(tr.enter).d}</td>
         <td ${t.getWidth(13)} align="center">${$c.getNormalDate(tr.exit).d}</td>
@@ -2187,8 +2195,16 @@ function showStats(t){
 
   /////////////////////////////
 
-  function hz(value, p){
-    return value == 0 ? "" : p != null ? value + '<span style="font-size: 9px;"> %</span>' : value;
+  function hz(value, key){
+    if(key){
+      if(key == "%"){
+        return value == 0 ? "" : value + '<span style="font-size: 9px;"> %</span>';
+      }else{
+        return key == 0 ? "" : value;
+      }
+    }else{
+      return value == 0 ? "" : value;
+    }
   }
   /////////////////////////////
 

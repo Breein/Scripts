@@ -232,6 +232,22 @@ DB.prototype = {
       console.log(data);
       console.log(e);
     }
+  },
+
+  /**
+   * @param {string} table
+   */
+  clear: function(table){
+    try{
+      this.tx = this.db.transaction([table], "readwrite");
+      this.store = this.tx.objectStore(table);
+      this.store.clear();
+      console.log(`Success clear table "${table}"`);
+    }catch(e){
+      console.log(`Failed clear table "${table}"`);
+      console.log(data);
+      console.log(e);
+    }
   }
 };
 
