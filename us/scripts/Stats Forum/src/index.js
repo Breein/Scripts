@@ -237,7 +237,7 @@ function addToDB(){
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
       $forum = Pack.forum(res);
-      //$forum.page[0] = 0;
+      //$forum.log[0] = 0;
       createGUI();
     });
   }
@@ -927,12 +927,12 @@ function getMaxPageSindicateLog(){
     page = page.node(-1).href.split('page_id=')[1];
     page = Number(page);
 
-    if($forum.page[1] != page){
-      $forum.page[1] = page;
+    if($forum.log[1] != page){
+      $forum.log[1] = page;
       $forum._ch = true;
     }
 
-    page = $forum.page[1] - $forum.page[0];
+    page = $forum.log[1] - $forum.log[0];
     $idb.add("forums", Pack.forum($forum));
 
     displayProgress('start', `Обработка протокола синдиката #${$forum.id} «${$forum.name}»`, 0, page + 1);
@@ -948,7 +948,7 @@ function parseSindicateLog(index){
   var url;
 
   if(index != -1){
-    url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=${$forum.page[0]}`;
+    url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=${$forum.log[0]}`;
 
     ajax(url, 'GET', null).then((res)=>{
       $answer.innerHTML = res;
@@ -976,8 +976,8 @@ function parseSindicateLog(index){
 
   function nextPage(){
     index--;
-    if($forum.page[0] != $forum.page[1]){
-      $forum.page[0]++;
+    if($forum.log[0] != $forum.log[1]){
+      $forum.log[0]++;
       $forum._ch = true;
     }
     $idb.add("forums", Pack.forum($forum));
