@@ -462,7 +462,6 @@ function createCalendar(cDate, nodeTextDate){
       nYear = parseInt(nYear, 10);
       if(isNaN(nYear)) nYear = year;
     }
-    console.log(nYear);
 
     createCalendar(Date.parse(`${month}/01/${nYear}`) / 1000, nodeTextDate);
   }
