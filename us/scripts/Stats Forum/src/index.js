@@ -261,7 +261,7 @@ function createGUI(){
   createShadowLayer();
 
   bindEvent($('#sf_gui_settings').node(), 'onclick', openControlPanelWindow);
-  //bindEvent($('#sf_gui_message').node(), 'onclick', openMessageWindow);
+  bindEvent($('#sf_gui_message').node(), 'onclick', openMessageWindow);
   bindEvent($('#sf_forgetForum').node(), 'onclick', forgetForum);
 
 
@@ -274,7 +274,7 @@ function createGUI(){
       }
     );
 
-  //bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
+  bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
 
   $calendar.setContainer("#sf_calendar");
   $calendar.bind($('span[type="calendarCall"]').node());
@@ -517,32 +517,33 @@ function openMessageWindow(){
   window = $("#sf_messageWindow").node();
   n = 0;
 
-  $(window).find('select[name="mid"]').html(createSelectList());
-  $(window).find('select[name="sid"]').html(createSelectSID());
+  createSelectList();
+  createSelectSID();
   $(window).find('span[type="count"]').html(n);
 
   window.style.display = "block";
   /////////////////////////////
 
   function createSelectSID(){
-    var code, list, sid;
+    var code;
 
     code = '<option value="0">Выберите...</option>';
-    list = $mode ? $sd.forums : $tsd.forums;
 
-    Object.keys(list).forEach(
-      function(id){
-        sid = id.substring(1, id.length);
-        code += `<option value="${sid}">[#${sid}] ${list[id].name}</option>`;
-      }
-    );
+    $idb.getFew("forums").then((forums)=>{
+      forums.forEach((forum)=>{
+        forum = Pack.forum(forum);
+        if(forum.sid){
+          code += `<option value="${forum.sid}">[#${forum.sid}] ${forum.name}</option>`;
+        }
+      });
 
-    return code;
+      $(window).find('select[name="sid"]').html(code);
+    });
   }
   /////////////////////////////
 
   function createSelectList(){
-    var code;
+    var code, name;
 
     code = '<option>Посмотреть список...</option>';
 
@@ -551,11 +552,12 @@ function openMessageWindow(){
       .forEach(
         function(box){
           n++;
-          code += `<option value="${$sd.players[box.value].name}|${box.value}">${n}. ${$sd.players[box.value].name}</option>`;
+          name = $(box).up('tr').node().cells[2].textContent;
+          code += `<option value="${box.value}">${n}. ${name}</option>`;
         }
       );
 
-    return code;
+    $(window).find('select[name="mid"]').html(code);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -931,7 +933,7 @@ function parseForum(index, mode, stopDate){
         .find('td[style="color: #990000"]:contains("Тема")')
         .up('table')
         .find('tr[bgcolor="#e0eee0"],[bgcolor="#d0f5d0"]')
-        .nodeArr();
+        .nodes();
 
       if(!mode && rows.length == 0){
         endParseForum();
@@ -1468,188 +1470,126 @@ function getStatusPlayer(answer){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function prepareSendMails(){
-  var param, window, count, mode, tm, sid;
-  var queue, f, invites = {};
+  var param, window, sid, tm, members, count, invites = {};
+  var g, f;
 
-  param = {
-    list: [],
-    awayList: {},
-    lopata: '',
-    out: 0,
-    subject: '',
-    message: '',
-    sid: 0,
-    mode: ''
+  f = (resolve) => {
+    g = prepare();
+    g.next();
+
+    function* prepare(){
+      tm = {
+        mail: "Отправка почты",
+        invite: "Отправка почты и приглашений",
+        goAway: "Отправка почты и изгнание"
+      };
+
+      param = {
+        list: [],
+        awayList: {},
+        lopata: '',
+        out: 0,
+        subject: '',
+        message: '',
+        sid: 0,
+        mode: ''
+      };
+
+      window = $("#sf_messageWindow").node();
+      param.subject = $c.encodeHeader($(window).find('input[type="text"][name="subject"]').node().value);
+      param.message = $c.encodeHeader($(window).find('textarea[name="message"]').node().value);
+      param.mode = $(window).find('select[name="workMode"]').find('option:checked').node().value;
+      sid = $(window).find('select[name="sid"]').find('option:checked').node();
+      param.sid = Number(sid.value); sid = sid.textContent;
+
+
+      if(param.mode == "mail"){
+        if(!confirm(`Режим: ${tm[param.mode]}\n\n Все правильно?`)) return;
+      }else{
+        if(param.sid == 0){
+          alert("Не выбран синдикат!");
+          return;
+        }
+        if(!confirm(`Режим:       ${tm[param.mode]}\nСиндикат:  ${sid}\n\n Все правильно?`)) return;
+      }
+
+      if(param.mode == "invite"){
+        $answer.innerHTML = yield ajax.gkWait(g, this, ['http://www.ganjawars.ru/syndicate.edit.php?key=invites&id=' + param.sid, 'GET', null]);
+        $($answer)
+          .find('b:contains("Приглашенные персоны:")')
+          .up('td')
+          .find('a[href*="info.php"]')
+          .nodeArr()
+          .forEach((node)=>{
+            invites[node.textContent] = node.href.split('=')[1];
+          });
+
+        yield setTimeout(()=>{g.next()}, 750);
+      }
+
+      if(param.mode == "goAway"){
+        $answer.innerHTML = yield ajax.gkWait(g, this, ['http://www.ganjawars.ru/syndicate.edit.php?key=users&id=' + param.sid, 'GET', null]);
+        param.awayList = {};
+        $($answer)
+          .find('select[name="cid"]')
+          .find("option")
+          .nodeArr()
+          .forEach((option)=>{
+            var id, name;
+
+            id = Number(option.value);
+            name = option.textContent;
+            name = name.match(/(\d+)\. (.+) \/ \$(\d+)/);
+            name = name[2];
+
+            param.awayList[name] = id;
+          });
+
+        yield setTimeout(()=>{g.next()}, 750);
+      }
+
+      $answer.innerHTML = yield ajax.gkWait(g, this, ['http://www.ganjawars.ru/sms-create.php', 'GET', null]);
+      param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
+      param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
+
+      members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`, "{}"]);
+
+      $(window).find('select')
+        .find('option[value]')
+        .nodeArr()
+        .forEach((option)=>{
+          var name, id;
+
+          id = Number(option.value);
+          name = option.textContent.match(/(\d+)\. (.+)/)[2];
+
+          //// проверка на черный список надо.
+
+          if(invites[name] == null){
+            param.list.push({
+              id: id,
+              name: name,
+              encode: $c.encodeHeader(name),
+              member: Pack.member(members[id])
+            });
+          }
+        });
+
+      count = param.list.length;
+
+      yield setTimeout(()=>{g.next()}, 750);
+
+      openStatusWindow();
+      displayProgress('start', 'Рассылка сообщений выбранным игрокам', 0, count);
+      displayProgressTime((count * 39500) + 500);
+      //doActions(0, count, param);
+
+      console.log(param);
+      resolve();
+    }
   };
 
-  tm = {
-    mail: "Отправка почты",
-    invite: "Отправка почты и приглашений",
-    goAway: "Отправка почты и изгнание"
-  };
-
-  queue = ["getLopata", "stop"];
-  f = {
-    getInvitesId: function(){getInvitesId()},
-    getGoAwayId: function(){getGoAwayId()},
-    getLopata: function(){getLopata()},
-    stop: function(){stop()}
-  };
-
-
-  window = $("#sf_messageWindow").node();
-  param.subject = encodeURIComponent($(window).find('input[type="text"][name="subject"]').node().value);
-  param.message = encodeURIComponent($(window).find('textarea[name="message"]').node().value);
-  param.mode = $(window).find('select[name="workMode"]').find('option:checked').node().value;
-  sid = $(window).find('select[name="sid"]').find('option:checked').node();
-  param.sid = Number(sid.value); sid = sid.textContent;
-
-  if(param.mode != "mail"){
-    if(param.sid == 0){
-      alert("Не выбран синдикат!");
-      return;
-    }
-    if(param.mode == "invite") queue.unshift("getInvitesId");
-    if(param.mode == "goAway") queue.unshift("getGoAwayId");
-  }
-
-  if(param.mode == "mail"){
-    if(!confirm(`Режим: ${tm[param.mode]}\n\n Все правильно?`)) return;
-  }else{
-    if(!confirm(`Режим:       ${tm[param.mode]}\nСиндикат:  ${sid}\n\n Все правильно?`)) return;
-  }
-
-  next(0);
-  /////////////////////////////
-
-  function stop(){
-    $(window).find('select')
-      .find('option[value]')
-      .nodeArr()
-      .forEach(getList);
-
-    count = param.list.length;
-
-    openStatusWindow();
-    displayProgress('start', 'Рассылка сообщений выбранным игрокам', 0, count);
-    displayProgressTime((count * 39500) + 500);
-    doActions(0, count, param);
-  }
-
-  /////////////////////////////
-
-  function getList(option){
-    var name, id;
-
-    id = option.value.split("|");
-    name = id[0];
-    id = id[1];
-
-    if(invites[name] == null){
-      param.list.push({
-        id: id,
-        name: name,
-        encode: encodeURIComponent(name)
-      });
-    }
-  }
-  /////////////////////////////
-
-  function getLopata(){
-    try{
-      REQ('http://www.ganjawars.ru/sms-create.php', 'GET', null, true,
-        function (req){
-          $answer.innerHTML = req.responseText;
-          param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
-          param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
-
-          next();
-        },
-        function (){
-          errorLog('Получении лопаты', 0, 0);
-        }
-      );
-    }catch(e){
-      errorLog('получении лопаты', 1, e);
-    }
-  }
-  /////////////////////////////
-
-  function getGoAwayId (){
-    try{
-      REQ('http://www.ganjawars.ru/syndicate.edit.php?key=users&id=' + param.sid, 'GET', null, true,
-        function (req){
-          $answer.innerHTML = req.responseText;
-          param.awayList = {};
-
-          $($answer)
-            .find('select[name="cid"]')
-            .find("option")
-            .nodeArr()
-            .forEach(parse);
-
-          next();
-        },
-        function (){
-          errorLog(`Получении списка id на изгнание персонажей`, 0, 0);
-        }
-      );
-    }catch (e){
-      errorLog(`получении списка id на изгнание персонажей`, 1, e);
-    }
-    /////////////////////////////
-
-    function parse(option){
-      var id, name;
-
-      id = Number(option.value);
-      name = option.textContent;
-      name = name.match(/(\d+)\. (.+) \/ \$(\d+)/);
-      name = name[2];
-
-      param.awayList[name] = id;
-    }
-  }
-  /////////////////////////////
-
-  function getInvitesId(){
-    try{
-      REQ('http://www.ganjawars.ru/syndicate.edit.php?key=invites&id=' + param.sid, 'GET', null, true,
-        function (req){
-          $answer.innerHTML = req.responseText;
-          param.awayList = {};
-
-          $($answer)
-            .find('b:contains("Приглашенные персоны:")')
-            .up('td')
-            .find('a[href*="info.php"]')
-            .nodeArr()
-            .forEach(parse);
-
-          next();
-        },
-        function (){
-          errorLog(`Получении списка id на изгнание персонажей`, 0, 0);
-        }
-      );
-    }catch (e){
-      errorLog(`получении списка id на изгнание персонажей`, 1, e);
-    }
-
-    function parse(node){
-      invites[node.textContent] = node.href.split('=')[1];
-    }
-  }
-  /////////////////////////////
-
-  function next(type){
-    if(type != null){
-      f[queue.shift()]();
-      return;
-    }
-
-    f[queue.shift()].gkDelay(750, this, []);
-  }
+  new Promise(f);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1668,7 +1608,7 @@ function doActions(index, count, param){
     index++;
 
     displayProgress('work');
-    doActions.gkDelay(random(360, 380) * 100, this, [index, count, param]);
+    doActions.gkDelay($c.randomNumber(360, 380) * 100, this, [index, count, param]);
   }else{
     displayProgress('done');
   }
@@ -2204,32 +2144,5 @@ function loadFromLocalStorage(type){
     }else{
       saveToLocalStorage('settings');
     }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// АПИ запроса
-
-function REQ(url, method, param, async, onsuccess, onfailure) {
-  var request = new XMLHttpRequest();
-
-  getTimeRequest();
-
-  request.open(method, url, async);
-  if (method == 'POST') request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  request.send(param);
-
-  if (async == true) {
-    request.onreadystatechange = function(){
-      if (request.readyState == 4 && request.status == 200 && typeof onsuccess != 'undefined'){
-        getTimeRequest(1);
-        onsuccess(request);
-      }else if (request.readyState == 4 && request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
-    }
-  }
-
-  if (async == false) {
-    if (request.status == 200 && typeof onsuccess != 'undefined') onsuccess(request);
-    else if (request.status != 200 && typeof onfailure != 'undefined') onfailure(request);
   }
 }
