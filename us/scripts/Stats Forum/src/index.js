@@ -7,9 +7,11 @@ var createTable = require('./../../../lib/table');
 
 
 const $c = require('./../../../lib/common')();
+const $calendar = require('./../../../lib/calendar')();
 const Create = require('./../src/creator')();
 const Pack = require('./../src/packer')();
 const $ico = require('./../src/icons');
+
 
 
 var $nameScript = "Stats forums [GW]";
@@ -275,35 +277,8 @@ function createGUI(){
 
   //bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
 
-  calendar = $('span[type="calendarCall"]').node();
-  bindEvent(calendar, 'onclick', function(){renderCalendar(calendar)});
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function renderCalendar(nodeTextDate){
-  var size, left, top, calendar, date;
-
-  calendar = $('#sf_calendar').node();
-
-  if(calendar.style.display == "block"){
-    calendar.style.display = 'none';
-    return;
-  }
-  if(nodeTextDate.nextElementSibling.disabled){
-    return;
-  }
-
-  size = nodeTextDate.getBoundingClientRect();
-  left = size.left + size.width + 10;
-  top = size.top - 5;
-
-  calendar.style.left = left + 'px';
-  calendar.style.top = top + 'px';
-  calendar.style.display = 'block';
-
-  date = Number(nodeTextDate.nextElementSibling.value);
-
-  createCalendar(date, nodeTextDate);
+  $calendar.setContainer("#sf_calendar");
+  $calendar.bind($('span[type="calendarCall"]').node());
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -337,141 +312,6 @@ function createControlPanel(){
 
 function createMessageWindow(){
   return '@include: ./html/messageWindow.html';
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function createCalendar(cDate, nodeTextDate){
-  var months, days, date, year, month, day, code, row, coll, dayNumber, firstDayWeek, exit, tMonth, tDay, color;
-
-  months  = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентрябрь','Октябрь','Ноябрь','Декабрь'];
-  days    = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  exit    = false;
-
-  date = cDate == null ? $date : cDate;
-  date = $c.getNormalDate(date, true);
-  date = date.d.split('.');
-
-  day = Number(date[0]);
-  tMonth = date[1];
-  month = Number(date[1]);
-  year = Number(date[2]);
-
-  if(year % 4 == 0) days[1] = 29;
-
-  code =
-    `<table class="wb" style="margin: 20px 25px;">
-                <tr type="header">
-                    <td type="control">«</td>
-                    <td type="control" title="Выбрать год" colspan="5">${months[month-1]} ${year}</td>
-                    <td type="control">»</td>
-                </tr>
-                <tr type="header">
-                    <td>П</td>
-                    <td>В</td>
-                    <td>С</td>
-                    <td>Ч</td>
-                    <td>П</td>
-                    <td>С</td>
-                    <td>В</td>
-                </tr>`;
-
-  dayNumber = 1;
-  firstDayWeek = Date.parse(`${month}/1/${year}`);
-  firstDayWeek = new Date(firstDayWeek).getDay(); firstDayWeek--;
-  if(firstDayWeek == -1) firstDayWeek = 6;
-
-  for(row = 0; row < 6; row++){
-    if(exit) break;
-    code += `<tr>`;
-    for(coll = 0; coll < 7; coll++){
-      if(row == 0 && coll < firstDayWeek){
-        code += `<td colspan="${firstDayWeek}"></td>`;
-        coll = firstDayWeek;
-      }
-      if(dayNumber <= days[month-1]){
-        if(dayNumber == days[month-1] && coll == 6) exit = true;
-        tDay = dayNumber < 10 ? '0' + dayNumber : dayNumber;
-        color = dayNumber == day ? 'style="background-color: #d0eed0;"' : '';
-        code += `<td type="day" ${color} name="${tDay}.${tMonth}.${year}" title="${tMonth}/${tDay}/${year} 00:00">${dayNumber}</td>`;
-        dayNumber++;
-      }else{
-        code += `<td colspan="${7-coll}"></td>`;
-        exit = true;
-        break;
-      }
-    }
-    code += `</tr>`;
-  }
-
-  code +=
-    `<tr type="header">
-                <td colspan="7">${$c.getNormalDate($date, true).d}</td>
-             </tr>
-        </table>`;
-
-  /////////////////////////////
-
-  $('#sf_calendar')
-    .html(code)
-    .find('td[type="control"],[type="day"]')
-    .nodeArr()
-    .forEach(
-      function(button){
-        if(button.getAttribute("type") == "control"){
-          if(button.title == "Выбрать год"){
-            bindEvent(button, 'onclick', function(){setYear(month, year)});
-          }else {
-            bindEvent(button, 'onclick', function(){moveMonth(button, month, year)});
-          }
-        }else{
-          bindEvent(button, 'onclick', function(){calendarSetDate(button, nodeTextDate)});
-        }
-      }
-    );
-  /////////////////////////////
-
-  function moveMonth(button, month, year){
-    if(button.textContent == "«"){
-      month--;
-      if(month == 0){
-        year--;
-        month = 12;
-      }
-    }else{
-      month++;
-      if(month == 13){
-        year++;
-        month = 1;
-      }
-    }
-    month = month < 10 ? '0' + month : month;
-
-    createCalendar(Date.parse(`${month}/01/${year}`) / 1000, nodeTextDate);
-  }
-  /////////////////////////////
-
-  function setYear(month, year){
-    var nYear;
-
-    nYear = prompt("Введите поный год");
-
-    if(nYear == ""){
-      nYear = 1970;
-      month = "01";
-    }else{
-      nYear = parseInt(nYear, 10);
-      if(isNaN(nYear)) nYear = year;
-    }
-
-    createCalendar(Date.parse(`${month}/01/${nYear}`) / 1000, nodeTextDate);
-  }
-  /////////////////////////////
-
-  function calendarSetDate(button, nodeTextDate){
-    nodeTextDate.nextElementSibling.value = Date.parse(button.title) / 1000;
-    $(nodeTextDate).html(button.getAttribute('name'));
-    $("#sf_calendar").node().style.display = "none";
-  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
