@@ -221,7 +221,6 @@ Calendar.prototype = {
     date = $c.getNormalDate(date, true);
     date = date.d.split('.');
 
-
     this.day = Number(date[0]);
     this.month = Number(date[1]);
     this.year = Number(date[2]);
