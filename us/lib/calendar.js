@@ -2,8 +2,8 @@ const bindEvent = require('./events');
 const $c = require('./common')();
 var $ = require('./dom');
 
-function Calendar(id){
-  this.node = $(id).node();
+function Calendar(){
+  this.node     = null;
   this.months   = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентрябрь','Октябрь','Ноябрь','Декабрь'];
   this.days     = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   this.date     = parseInt(new Date().getTime() / 1000, 10);
@@ -13,6 +13,7 @@ function Calendar(id){
   this.textDay  = "";
   this.textMonth= "";
   this.textYear = "";
+  this.callDate = {};
 
   this.codeHeader =
     `<table class="wb" style="margin: 20px 25px;">
@@ -40,7 +41,7 @@ function Calendar(id){
 
 Calendar.prototype = {
 
-  createContent: function(cDate){
+  createContent: function(){
     var code, row, coll, day, fdw, exit, color;
 
     code = "";
@@ -63,10 +64,10 @@ Calendar.prototype = {
           }
 
           this.textDay = day < 10 ? "0" + day : "" + day;
-          color = day == day ? 'style="background-color: #d0eed0;"' : '';
+          color = day == this.day ? 'style="background-color: #d0eed0;"' : '';
+          code += `<td type="day" ${color}>${day}</td>`;
 
-          code += `<td type="day" ${color} name="${this.textDay}.${this.textMonth}.${this.textYear}" title="${this.textMonth}/${this.textDay}/${this.textYear} 00:00">${day}</td>`;
-          day++;
+          day = this.setCallDate(day);
         }else{
           code += `<td colspan="${7 - coll}"></td>`;
           exit = true;
@@ -80,17 +81,27 @@ Calendar.prototype = {
     this.codeContent = code;
   },
 
+  /**
+   * @param {string} id
+   */
+  setContainer: function(id){
+    this.node = $(id).node();
+  },
+
+  /**
+   * @param node
+   */
   bind: function(node){
     var calendar = this;
 
-    bindEvent(button, 'onclick', ()=>{calendar.render(node)});
+    bindEvent(node, 'onclick', ()=>{calendar.render(node)});
   },
 
   render: function(node){
     var size, left, top, date;
 
     if(this.node.style.display == "block"){
-      this.node.display = 'none';
+      this.node.style.display = 'none';
       return;
     }
     if(node.nextElementSibling.disabled){
@@ -143,6 +154,14 @@ Calendar.prototype = {
       );
   },
 
+  setCallDate: function(day){
+    this.callDate[day] = {
+      span: `${this.textDay}.${this.textMonth}.${this.textYear}`,
+      input: `${this.textMonth}/${this.textDay}/${this.textYear} 00:00`
+    };
+    return ++day;
+  },
+
   setMonth: function(button, node){
     if(button.textContent == "«"){
       this.month--;
@@ -165,7 +184,7 @@ Calendar.prototype = {
   },
 
   setYear: function(node){
-    var year = prompt("Введите поный год");
+    var year = prompt("Введите полный год");
 
     if(year == ""){
       this.year = 1970;
@@ -183,15 +202,14 @@ Calendar.prototype = {
     this.show(node);
   },
 
-  setDate: function(button, node){
-    var input, date, _date;
+  setDate: function(button, span){
+    var input, day;
 
-    input = node.nextElementSibling;
-    date = button.getAttribute('name');
-    _date = Date.parse(button.title) / 1000;
+    day = button.textContent;
+    input = span.nextElementSibling;
 
-    node.innerHTML = date;
-    input.value = _date;
+    span.innerHTML = this.callDate[day].span;
+    input.value = Date.parse(this.callDate[day].input) / 1000;
 
     this.node.style.display = "none";
   },
@@ -236,9 +254,5 @@ Calendar.prototype = {
  * @returns {Calendar}
  */
 module.exports = function (){
-  var calendar;
-
-  calendar = new Calendar();
-
-  return calendar;
+  return new Calendar();
 };
