@@ -124,13 +124,23 @@ function addStyle(){
   code = '@include: ./html/index.css';
   code +=
     `
-    td[sort="member"]{
+    td[sort="sNumber"]{
       background-image: url(${$ico.memberIco});
-      background-position: 10px center;
+      background-position: 12px center;
       background-repeat:no-repeat;
     }
     td[sort="kick"]{
       background-image: url(${$ico.kickIco});
+      background-position: 10px center;
+      background-repeat:no-repeat;
+    }
+    td[sort="bl"]{
+      background-image: url(${$ico.blIco});
+      background-position: 10px center;
+      background-repeat:no-repeat;
+    }
+    td[sort="invite"]{
+      background-image: url(${$ico.inviteIco});
       background-position: 10px center;
       background-repeat:no-repeat;
     }
@@ -246,7 +256,7 @@ function addToDB(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var table, td, gui, calendar;
+  var table, td, gui;
 
   table = $('td[style="color: #990000"]:contains("Тема")').up('table').up('table').node();
   td = table.rows[0].cells[0];
@@ -652,11 +662,12 @@ function getMembersList(){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getCharacter(value){
+function getCharacter(value, tid){
   var player, member, index, id, result;
   var g, f;
 
   index = typeof value == "string" ? "name" : "id";
+  tid = tid ? tid : $forum.id;
 
   /////////////////////////////
 
@@ -687,13 +698,13 @@ function getCharacter(value){
         }
       }
 
-      member = yield $idb.getOne.gkWait(g, $idb, [`members_${$forum.id}`, "id", player.id]);
+      member = yield $idb.getOne.gkWait(g, $idb, [`members_${tid}`, "id", player.id]);
       member = Pack.member(member);
 
       if(member == null) member = Create.member(player.id);
 
-      if(player.forums[`f${$forum.id}`] == null){
-        player.forums[`f${$forum.id}`] = 1;
+      if(player.forums[`f${tid}`] == null){
+        player.forums[`f${tid}`] = 1;
         player._ch = true;
       }
 
@@ -1470,7 +1481,7 @@ function getStatusPlayer(answer){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function prepareSendMails(){
-  var param, window, sid, tm, members, count, invites = {};
+  var param, window, sid, tm, count;
   var g, f;
 
   f = (resolve) => {
@@ -1487,12 +1498,13 @@ function prepareSendMails(){
       param = {
         list: [],
         awayList: {},
-        lopata: '',
+        lopata: "",
         out: 0,
-        subject: '',
-        message: '',
+        subject: "",
+        message: "",
         sid: 0,
-        mode: ''
+        mode: "",
+        id: ""
       };
 
       window = $("#sf_messageWindow").node();
@@ -1501,7 +1513,7 @@ function prepareSendMails(){
       param.mode = $(window).find('select[name="workMode"]').find('option:checked').node().value;
       sid = $(window).find('select[name="sid"]').find('option:checked').node();
       param.sid = Number(sid.value); sid = sid.textContent;
-
+      param.id = "1" + param.sid;
 
       if(param.mode == "mail"){
         if(!confirm(`Режим: ${tm[param.mode]}\n\n Все правильно?`)) return;
@@ -1513,68 +1525,19 @@ function prepareSendMails(){
         if(!confirm(`Режим:       ${tm[param.mode]}\nСиндикат:  ${sid}\n\n Все правильно?`)) return;
       }
 
-      if(param.mode == "invite"){
-        $answer.innerHTML = yield ajax.gkWait(g, this, ['http://www.ganjawars.ru/syndicate.edit.php?key=invites&id=' + param.sid, 'GET', null]);
-        $($answer)
-          .find('b:contains("Приглашенные персоны:")')
-          .up('td')
-          .find('a[href*="info.php"]')
-          .nodeArr()
-          .forEach((node)=>{
-            invites[node.textContent] = node.href.split('=')[1];
-          });
-
-        yield setTimeout(()=>{g.next()}, 750);
-      }
+      //if(param.mode == "invite"){
+      //  yield getDataInvite.gkWait(g, this, []);
+      //  yield setTimeout(()=>{g.next()}, 750);
+      //}
 
       if(param.mode == "goAway"){
-        $answer.innerHTML = yield ajax.gkWait(g, this, ['http://www.ganjawars.ru/syndicate.edit.php?key=users&id=' + param.sid, 'GET', null]);
-        param.awayList = {};
-        $($answer)
-          .find('select[name="cid"]')
-          .find("option")
-          .nodeArr()
-          .forEach((option)=>{
-            var id, name;
-
-            id = Number(option.value);
-            name = option.textContent;
-            name = name.match(/(\d+)\. (.+) \/ \$(\d+)/);
-            name = name[2];
-
-            param.awayList[name] = id;
-          });
-
+        yield getDataIdKick.gkWait(g, this, []);
         yield setTimeout(()=>{g.next()}, 750);
       }
 
-      $answer.innerHTML = yield ajax.gkWait(g, this, ['http://www.ganjawars.ru/sms-create.php', 'GET', null]);
-      param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
-      param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
+      yield getDataSend.gkWait(g, this, []);
 
-      members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`, "{}"]);
-
-      $(window).find('select')
-        .find('option[value]')
-        .nodeArr()
-        .forEach((option)=>{
-          var name, id;
-
-          id = Number(option.value);
-          name = option.textContent.match(/(\d+)\. (.+)/)[2];
-
-          //// проверка на черный список надо.
-
-          if(invites[name] == null){
-            param.list.push({
-              id: id,
-              name: name,
-              encode: $c.encodeHeader(name),
-              member: Pack.member(members[id])
-            });
-          }
-        });
-
+      getSendingList();
       count = param.list.length;
 
       yield setTimeout(()=>{g.next()}, 750);
@@ -1582,14 +1545,94 @@ function prepareSendMails(){
       openStatusWindow();
       displayProgress('start', 'Рассылка сообщений выбранным игрокам', 0, count);
       displayProgressTime((count * 39500) + 500);
-      //doActions(0, count, param);
 
-      console.log(param);
+      doActions(0, count, param);
       resolve();
     }
   };
 
   new Promise(f);
+  /////////////////////////////
+
+  function getDataSend(){
+    var url = 'http://www.ganjawars.ru/sms-create.php';
+
+    return ajax(url, "GET", null).then((res)=>{
+      $answer.innerHTML = res;
+
+      param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
+      param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
+    }, (e)=>{
+      errorLog('Получении лопаты', 0, e);
+    });
+  }
+  /////////////////////////////
+
+  //function getDataInvite(){
+  //  var url = 'http://www.ganjawars.ru/syndicate.edit.php?key=invites&id=' + param.sid;
+  //
+  //  return ajax(url, 'GET', null).then((res)=>{
+  //    //invites = {};
+  //
+  //    $answer.innerHTML = res;
+  //    $($answer)
+  //      .find('b:contains("Приглашенные персоны:")')
+  //      .up('td')
+  //      .find('a[href*="info.php"]')
+  //      .nodeArr()
+  //      .forEach((node)=>{
+  //        invites[node.textContent] = node.href.split('=')[1];
+  //      });
+  //  }, (e)=>{
+  //    errorLog('Получении списка приглашений', 0, e);
+  //  });
+  //}
+  /////////////////////////////
+
+  function getDataIdKick(){
+    var url = "http://www.ganjawars.ru/syndicate.edit.php?key=users&id=" + param.sid;
+
+    return ajax(url, "GET", null).then((res)=>{
+      param.awayList = {};
+
+      $answer.innerHTML = res;
+      $($answer)
+        .find('select[name="cid"]')
+        .find("option")
+        .nodeArr()
+        .forEach((option)=>{
+          var id, name;
+
+          id = Number(option.value);
+          name = option.textContent;
+          name = name.match(/(\d+)\. (.+) \/ \$(\d+)/);
+          name = name[2];
+
+          param.awayList[name] = id;
+        });
+    }, (e)=>{
+      errorLog('Получении списка id на исключения', 0, e);
+    });
+  }
+  /////////////////////////////
+
+  function getSendingList(){
+    $(window).find('select')
+      .find('option[value]')
+      .nodeArr()
+      .forEach((option)=>{
+        var name, id;
+
+        id = Number(option.value);
+        name = option.textContent.match(/(\d+)\. (.+)/)[2];
+
+        param.list.push({
+          id: id,
+          name: name,
+          encode: $c.encodeHeader(name)
+        });
+      });
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1599,7 +1642,9 @@ function doActions(index, count, param){
       sendInvite(index, param);
     }
     if(param.mode == "goAway"){
-      if(param.awayList[param.list[index].name] != null) doGoAway(param.sid, param.awayList[param.list[index].name]);
+      if(param.awayList[param.list[index].name] != null){
+        doKicking(index, param);
+      }
     }
 
     sendMail.gkDelay(1250, this, [index, param]);
@@ -1616,65 +1661,74 @@ function doActions(index, count, param){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function sendMail(index, param){
-  var data;
+  var url, data;
 
+  url = "http://www.ganjawars.ru/sms-create.php";
   data = `postform=1&outmail=${param.out}&lopata=${param.lopata}&mailto=${param.list[index].encode}&subject=${param.subject}&msg=${param.message}`;
 
-  try{
-    REQ('http://www.ganjawars.ru/sms-create.php', 'POST', data, true,
-      function (){
-        correctionTime();
-      },
-      function (){
-        errorLog(`Отправке письма ${param.list[index].name}`, 0, 0);
-      }
-    );
-  }catch (e){
-    errorLog(`отправке письма ${param.list[index].name}`, 1, e);
-  }
+  ajax(url, "POST", data).then(()=>{
+
+  }, (e)=>{
+    errorLog(`Отправке письма ${param.list[index].name}`, 0, e);
+  });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function sendInvite(index, param){
-  var data, invite;
+  var url, data, men;
+  var invite, invited;
 
-  data = `key=invites&id=${param.sid}&invite=${param.list[index].encode}`;
-  invite = $mode ? $sd : $tsd;
-  invite = invite.players[param.list[index].id].forums[("1" + param.sid)].invite;
+  men = param.list[index];
+  url = "http://www.ganjawars.ru/syndicate.edit.php";
+  data = `key=invites&id=${param.sid}&invite=${men.encode}`;
 
-  try{
-    REQ('http://www.ganjawars.ru/syndicate.edit.php', 'POST', data, true,
-      function (){
-        correctionTime();
-        invite = 1;        //// Пееределать
-        saveToLocalStorage('data');
-      },
-      function (){
-        errorLog(`Отправке приглашения ${param.list[index].name}`, 0, 0);
+  ajax(url, "POST", data).then((res)=>{
+    $answer.innerHTML = res;
+
+    invite = $($answer).find('b:contains("Приглашенные персоны:")');
+    if(invite.length){
+      invited = invite.up('td').find(`a[href*="info.php?id=${men.id}"]`);
+
+      if(invited.length){
+        getCharacter(men.id, param.id).then((character)=>{
+          character.m.invite = new Date().getTime() / 1000;
+          character.m._ch = true;
+
+          $idb.add(`players`, Pack.player(character.p));
+          $idb.add(`members_${param.id}`, Pack.member(character.m));
+        });
+      }else{
+        console.log(`Не найден приглашенный. ${men.name}`);
       }
-    );
-  }catch (e){
-    errorLog(`отправке приглашения ${param.list[index].name}`, 1, e);
-  }
+    }else{
+      console.log(`Не найдена таблица приглашений. ${men.name}`);
+    }
+  }, (e)=>{
+    errorLog(`Отправке приглашения ${men.name}`, 0, e);
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function doGoAway(sid, id){
-  var data = `id=${sid}&key=users&remove=${id}`;
+function doKicking(index, param){
+  var url, men, data, kickId;
 
-  try{
-    REQ('http://www.ganjawars.ru/syndicate.edit.php', 'POST', data, true,
-      function (){
-        correctionTime();
-      },
-      function (){
-        errorLog(`Изгнанние ${id}`, 0, 0);
-      }
-    );
-  }catch (e){
-    errorLog(`изгнании ${id}`, 1, e);
-  }
+  url = "http://www.ganjawars.ru/syndicate.edit.php";
+  men = param.list[index];
+  kickId = param.awayList[men.name];
+  data = `id=${param.sid}&key=users&remove=${kickId}`;
+
+  ajax(url, "POST", data).then(()=>{
+    getCharacter(men.id, param.id).then((character)=>{
+      character.m.kick = new Date().getTime() / 1000;
+      character._ch = true;
+
+      $idb.add(`players`, Pack.player(character.p));
+      $idb.add(`members_${param.id}`, Pack.member(character.m));
+    });
+  }, (e)=>{
+    errorLog(`Изгнанние ${param.name}, ID Kick:${kickId}`, 0, e);
+  });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
