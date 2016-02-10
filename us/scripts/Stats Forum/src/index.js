@@ -597,6 +597,7 @@ function getMembersList(){
 
     ajax(url, "GET", null).then((r)=>{
       $answer.innerHTML = r.text;
+      correctionTime(r.time);
 
       prepareMembers().then(()=>{
         $($answer)
@@ -730,6 +731,8 @@ function getCharacter(value, tid){
         var r;
         r = yield ajax.gkWait(g, this, [url, 'GET', null]);
         answer.innerHTML = r.text;
+        correctionTime(500 + r.time);
+
         id = $(answer).find(`a:contains("~форму нападения")`).node();
         id = id.href.match(/(\d+)/);
         id = Number(id[0]);
@@ -755,6 +758,7 @@ function getMaxPageSindicateLog(){
 
   ajax(url, 'GET', null).then((r)=>{
     $answer.innerHTML = r.text;
+    correctionTime(r.time);
 
     page = $($answer).find(`b:contains("~Протокол синдиката #${$forum.sid}")`).up('div').next('center').find('a');
     page = page.node(-1).href.split('page_id=')[1];
@@ -785,6 +789,8 @@ function parseSindicateLog(index){
 
     ajax(url, 'GET', null).then((r)=>{
       $answer.innerHTML = r.text;
+      correctionTime(r.time);
+
       $($answer)
         .find('font[color="green"]')
         .nodeArr()
@@ -904,6 +910,7 @@ function getMaxPageForum(){
 
   ajax(url, "GET", null).then((r)=>{
     $answer.innerHTML = r.text;
+    correctionTime(r.time);
 
     $forum.page[1] = parse();
     page = $forum.page[1] - $forum.page[0];
@@ -940,6 +947,7 @@ function parseForum(index, mode, stopDate){
       var rows;
 
       $answer.innerHTML = r.text;
+      correctionTime(r.time);
       displayProgress('work');
 
       rows = $($answer)
@@ -1117,19 +1125,6 @@ function parseForum(index, mode, stopDate){
 
     parseForum.gkDelay(750, this, [index, mode, stopDate]);
   }
-
-  //function calcNewThemes(){
-  //  var themes;
-  //
-  //  themes = $cd.f.themes;
-  //  $cd.f.threads.new = $cd.f.threads.all;
-  //
-  //  Object.keys(themes).forEach(function(tid){
-  //    if(themes[tid].posts[0] == themes[tid].posts[1]){
-  //      $cd.f.threads.new--;
-  //    }
-  //  });
-  //}
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1148,7 +1143,7 @@ function prepareParseThemes(max, data){
       for(i = 0, length = max ? max : themes.length; i < length; i++) push(themes, i);
     }
 
-    countPages = list.length * 750 + countPages * 1250 + 500;
+    countPages = list.length * 1250 + countPages * 1250 + 500;
 
     displayProgress('start', `Обработка тем`, 0, list.length);
     displayProgressTime(countPages);
@@ -1197,6 +1192,7 @@ function parseThemes(index, max, list){
 
       ajax(url, "GET", null).then((r)=>{
         $answer.innerHTML = r.text;
+        correctionTime(r.time);
 
         table = $($answer).find('td[style="color: #990000"]:contains("Автор")').up('table').node();
         tr = table.rows;
@@ -1374,7 +1370,7 @@ function prepareParseMembers(max, data){
     count = list.length;
 
     displayProgress('start', `Обработка персонажей`, 0, count);
-    displayProgressTime(count * 750);
+    displayProgressTime(count * 1250);
     parseMembers(0, count, list);
   });
 
@@ -1396,6 +1392,7 @@ function parseMembers(id, count, list){
 
     ajax(url, 'GET', null).then((r)=>{
       $answer.innerHTML = r.text;
+      correctionTime(r.time);
 
       displayProgress("extra", `<br><b>Получение статуса персонажа:</b> <i>${player.name}</i>`);
       parseMember(player);
@@ -1561,6 +1558,7 @@ function prepareSendMails(){
 
     return ajax(url, "GET", null).then((r)=>{
       $answer.innerHTML = r.text;
+      correctionTime(r.time);
 
       param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
       param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
@@ -1577,6 +1575,8 @@ function prepareSendMails(){
   //    //invites = {};
   //
   //    $answer.innerHTML = r.text;
+  //    correctionTime(r.time);
+  //
   //    $($answer)
   //      .find('b:contains("Приглашенные персоны:")')
   //      .up('td')
@@ -1598,6 +1598,8 @@ function prepareSendMails(){
       param.awayList = {};
 
       $answer.innerHTML = r.text;
+      correctionTime(r.time);
+
       $($answer)
         .find('select[name="cid"]')
         .find("option")
@@ -1669,7 +1671,7 @@ function sendMail(index, param){
   data = `postform=1&outmail=${param.out}&lopata=${param.lopata}&mailto=${param.list[index].encode}&subject=${param.subject}&msg=${param.message}`;
 
   ajax(url, "POST", data).then((r)=>{
-
+    correctionTime(r.time);
   }, (e)=>{
     errorLog(`Отправке письма ${param.list[index].name}`, 0, e);
   });
@@ -1686,6 +1688,7 @@ function sendInvite(index, param){
 
   ajax(url, "POST", data).then((r)=>{
     $answer.innerHTML = r.text;
+    correctionTime(r.time);
 
     invite = $($answer).find('b:contains("Приглашенные персоны:")');
     if(invite.length){
@@ -1721,6 +1724,8 @@ function doKicking(index, param){
   data = `id=${param.sid}&key=users&remove=${kickId}`;
 
   ajax(url, "POST", data).then((r)=>{
+    correctionTime(r.time);
+
     getCharacter(men.id, param.id).then((character)=>{
       character.m.kick = new Date().getTime() / 1000;
       character._ch = true;
@@ -2026,12 +2031,6 @@ function showStats(t){
       </tr>
       `;
   }
-
-  //<img src="${$ico[tr.member]}" />
-  //<img src="${$ico[(tr.kick != 0) + '']}" />
-  //<img src="${$ico[(tr.invite != 0) + '']}" />
-  //<img src="${$ico[tr.bl]}" />
-
   /////////////////////////////
 
   function hz(value, key){
@@ -2061,14 +2060,14 @@ function showStats(t){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function showThemeList(table, count){
+function showThemeList(t){
   var code, light, check, box;
 
   code =
     `<div style="max-height: 495px; overflow-y: scroll;">
                 <table align="center" style="width: 100%;" type="padding">`;
 
-  table.getContent().forEach(function(tr){
+  t.getContent().forEach(function(tr){
     code += row(tr);
   });
 
@@ -2090,15 +2089,15 @@ function showThemeList(table, count){
     }
 
     return `<tr height="28" type="${light}">
-      <td ${table.getWidth(0)} align="right">${$c.convertID(tr.id)} </td>
-      <td ${table.getWidth(1)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$forum.id}&tid=${tr.id}">${tr.name}</a></td>
-      <td ${table.getWidth(2)} style="text-indent: 5px;" width="250"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
-      <td ${table.getWidth(3)} align="center">${$c.getNormalDate(tr.start).d}</td>
-      <td ${table.getWidth(4)} align="center">${tr.postsDone}</td>
-      <td ${table.getWidth(5)} align="center">${tr.postsAll}</td>
-      <td ${table.getWidth(6)} align="center">${tr.pageDone}</td>
-      <td ${table.getWidth(7)} align="center">${tr.pageAll}</td>
-      <td ${table.getWidth(8, true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
+      <td ${t.getWidth(0)} align="right">${$c.convertID(tr.id)} </td>
+      <td ${t.getWidth(1)} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$forum.id}&tid=${tr.id}">${tr.name}</a></td>
+      <td ${t.getWidth(2)} style="text-indent: 5px;" width="250"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
+      <td ${t.getWidth(3)} align="center">${$c.getNormalDate(tr.start).d}</td>
+      <td ${t.getWidth(4)} align="center">${tr.postsDone}</td>
+      <td ${t.getWidth(5)} align="center">${tr.postsAll}</td>
+      <td ${t.getWidth(6)} align="center">${tr.pageDone}</td>
+      <td ${t.getWidth(7)} align="center">${tr.pageAll}</td>
+      <td ${t.getWidth(8, true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
     </tr>
     `;
   }
@@ -2132,10 +2131,9 @@ function getTimeRequest(type){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function correctionTime(){
-  var node, time, t;
+function correctionTime(t){
+  var node, time;
 
-  t = $cd.timeRequest;
   node = $('#sf_progressTime');
   time = Number(node.text());
 
