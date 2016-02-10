@@ -980,7 +980,7 @@ function parseForum(index, mode, stopDate){
         .find('td[style="color: #990000"]:contains("Тема")')
         .up('table')
         .find('tr[bgcolor="#e0eee0"],[bgcolor="#d0f5d0"]')
-        .nodes();
+        .nodeArr();
 
       if(!mode && rows.length == 0){
         endParseForum();
