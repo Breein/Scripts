@@ -595,8 +595,8 @@ function getMembersList(){
     url = `http://www.ganjawars.ru/syndicate.php?id=${$forum.sid}&page=members`;
     displayProgress('start', 'Сбор и обработка информации о составе синдиката', 0, 1);
 
-    ajax(url, "GET", null).then((res)=>{
-      $answer.innerHTML = res;
+    ajax(url, "GET", null).then((r)=>{
+      $answer.innerHTML = r.text;
 
       prepareMembers().then(()=>{
         $($answer)
@@ -727,7 +727,9 @@ function getCharacter(value, tid){
       g.next();
 
       function* getHim(){
-        answer.innerHTML = yield ajax.gkWait(g, this, [url, 'GET', null]);
+        var r;
+        r = yield ajax.gkWait(g, this, [url, 'GET', null]);
+        answer.innerHTML = r.text;
         id = $(answer).find(`a:contains("~форму нападения")`).node();
         id = id.href.match(/(\d+)/);
         id = Number(id[0]);
@@ -751,8 +753,8 @@ function getMaxPageSindicateLog(){
 
   url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=10000000`;
 
-  ajax(url, 'GET', null).then((res)=>{
-    $answer.innerHTML = res;
+  ajax(url, 'GET', null).then((r)=>{
+    $answer.innerHTML = r.text;
 
     page = $($answer).find(`b:contains("~Протокол синдиката #${$forum.sid}")`).up('div').next('center').find('a');
     page = page.node(-1).href.split('page_id=')[1];
@@ -781,8 +783,8 @@ function parseSindicateLog(index){
   if(index != -1){
     url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=${$forum.log[0]}`;
 
-    ajax(url, 'GET', null).then((res)=>{
-      $answer.innerHTML = res;
+    ajax(url, 'GET', null).then((r)=>{
+      $answer.innerHTML = r.text;
       $($answer)
         .find('font[color="green"]')
         .nodeArr()
@@ -900,8 +902,8 @@ function getMaxPageForum(){
 
   url = "http://www.ganjawars.ru/threads.php?fid=" + $forum.id + "&page_id=10000000";
 
-  ajax(url, "GET", null).then((res)=>{
-    $answer.innerHTML = res;
+  ajax(url, "GET", null).then((r)=>{
+    $answer.innerHTML = r.text;
 
     $forum.page[1] = parse();
     page = $forum.page[1] - $forum.page[0];
@@ -934,10 +936,10 @@ function parseForum(index, mode, stopDate){
   count = 0;
 
   if(index != -1){
-    ajax(url, "GET", null).then((res)=>{
+    ajax(url, "GET", null).then((r)=>{
       var rows;
 
-      $answer.innerHTML = res;
+      $answer.innerHTML = r.text;
       displayProgress('work');
 
       rows = $($answer)
@@ -1193,8 +1195,8 @@ function parseThemes(index, max, list){
 
     if(theme.pages[0] < theme.pages[1]){
 
-      ajax(url, "GET", null).then((res)=>{
-        $answer.innerHTML = res;
+      ajax(url, "GET", null).then((r)=>{
+        $answer.innerHTML = r.text;
 
         table = $($answer).find('td[style="color: #990000"]:contains("Автор")').up('table').node();
         tr = table.rows;
@@ -1392,8 +1394,8 @@ function parseMembers(id, count, list){
     player = list[id];
     url = `http://www.ganjawars.ru/info.php?id=${player.id}`;
 
-    ajax(url, 'GET', null).then((res)=>{
-      $answer.innerHTML = res;
+    ajax(url, 'GET', null).then((r)=>{
+      $answer.innerHTML = r.text;
 
       displayProgress("extra", `<br><b>Получение статуса персонажа:</b> <i>${player.name}</i>`);
       parseMember(player);
@@ -1557,8 +1559,8 @@ function prepareSendMails(){
   function getDataSend(){
     var url = 'http://www.ganjawars.ru/sms-create.php';
 
-    return ajax(url, "GET", null).then((res)=>{
-      $answer.innerHTML = res;
+    return ajax(url, "GET", null).then((r)=>{
+      $answer.innerHTML = r.text;
 
       param.out = Number($($answer).find('input[type="hidden"][name="outmail"]').node().value);
       param.lopata = $($answer).find('input[type="hidden"][name="lopata"]').node().value;
@@ -1571,10 +1573,10 @@ function prepareSendMails(){
   //function getDataInvite(){
   //  var url = 'http://www.ganjawars.ru/syndicate.edit.php?key=invites&id=' + param.sid;
   //
-  //  return ajax(url, 'GET', null).then((res)=>{
+  //  return ajax(url, 'GET', null).then((r)=>{
   //    //invites = {};
   //
-  //    $answer.innerHTML = res;
+  //    $answer.innerHTML = r.text;
   //    $($answer)
   //      .find('b:contains("Приглашенные персоны:")')
   //      .up('td')
@@ -1592,10 +1594,10 @@ function prepareSendMails(){
   function getDataIdKick(){
     var url = "http://www.ganjawars.ru/syndicate.edit.php?key=users&id=" + param.sid;
 
-    return ajax(url, "GET", null).then((res)=>{
+    return ajax(url, "GET", null).then((r)=>{
       param.awayList = {};
 
-      $answer.innerHTML = res;
+      $answer.innerHTML = r.text;
       $($answer)
         .find('select[name="cid"]')
         .find("option")
@@ -1666,7 +1668,7 @@ function sendMail(index, param){
   url = "http://www.ganjawars.ru/sms-create.php";
   data = `postform=1&outmail=${param.out}&lopata=${param.lopata}&mailto=${param.list[index].encode}&subject=${param.subject}&msg=${param.message}`;
 
-  ajax(url, "POST", data).then(()=>{
+  ajax(url, "POST", data).then((r)=>{
 
   }, (e)=>{
     errorLog(`Отправке письма ${param.list[index].name}`, 0, e);
@@ -1682,8 +1684,8 @@ function sendInvite(index, param){
   url = "http://www.ganjawars.ru/syndicate.edit.php";
   data = `key=invites&id=${param.sid}&invite=${men.encode}`;
 
-  ajax(url, "POST", data).then((res)=>{
-    $answer.innerHTML = res;
+  ajax(url, "POST", data).then((r)=>{
+    $answer.innerHTML = r.text;
 
     invite = $($answer).find('b:contains("Приглашенные персоны:")');
     if(invite.length){
@@ -1718,7 +1720,7 @@ function doKicking(index, param){
   kickId = param.awayList[men.name];
   data = `id=${param.sid}&key=users&remove=${kickId}`;
 
-  ajax(url, "POST", data).then(()=>{
+  ajax(url, "POST", data).then((r)=>{
     getCharacter(men.id, param.id).then((character)=>{
       character.m.kick = new Date().getTime() / 1000;
       character._ch = true;

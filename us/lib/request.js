@@ -1,6 +1,7 @@
 module.exports = function (url, method, param) {
   return new Promise((onsuccess, onfailure) => {
     var request = new XMLHttpRequest();
+    var time = new Date().getTime();
 
     request.open(method, url, true);
     if (method == 'POST') request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -8,7 +9,8 @@ module.exports = function (url, method, param) {
 
     request.onreadystatechange = function () {
       if (request.readyState == 4 && request.status == 200) {
-        onsuccess(request.responseText);
+        time = new Date().getTime() - time;
+        onsuccess({text: request.responseText, time: time});
       } else if (request.readyState == 4 && request.status != 200) {
         onfailure(request);
       }
