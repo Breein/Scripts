@@ -3,20 +3,36 @@
 □ <span id="sf_gui_filters" style="cursor: pointer; font-weight: bold;">Фильтры</span>
 □ <span id="sf_gui_message" style="cursor: pointer; font-weight: bold;">Рассылка почты</span>
 <br>
-<table width="97%" cellspacing="0" cellpadding="0" style="border-style: none; border-collapse: collapse;" align="center">
-    <tr><td class="sf_left" id="sf_header_SI" valign="top"></td></tr>
+<table class="mainTable" cellspacing="0" cellpadding="0" align="center">
     <tr>
-        <td class="sf_left" valign="top">
-            <div style="max-height: 600px; overflow-y: scroll;">
+        <td class="tabTop tabTopActive"></td>
+        <td class="tabTop"></td>
+    </tr>
+    <tr>
+        <td class="tab tabActive">Данные по игрокам</td>
+        <td class="tab">Данные по темам</td>
+        <td class="tabLast" width="80%"> </td>
+    </tr>
+    <tr style="display: table-row;">
+        <td colspan="3" class="tabContent">
+            <div class="tab header" id="sf_header_SI"></div>
+            <div class="tab content">
                 <table align="center" style="width: 100%;" type="padding" id="sf_content_SI"></table>
             </div>
+            <div class="tab" id="sf_footer_SI"></div>
         </td>
     </tr>
-    <tr><td class="sf_left" id="sf_footer_SI" valign="top"></td></tr>
-    <tr><td class="sf_left" align="center" id="sf_header_TL" width="1250"></td></tr>
-    <tr><td class="sf_left" align="center" id="sf_content_TL" width="1250"></td></tr>
-    <tr><td class="sf_left" align="center" id="sf_footer_TL"></td></tr>
+    <tr style="display: none;">
+        <td colspan="3" class="tabContent">
+            <div class="tab header" id="sf_header_TL"></div>
+            <div class="tab content">
+                <table align="center" style="width: 100%;" type="padding" id="sf_content_TL"></table>
+            </div>
+            <div class="tab" id="sf_footer_TL"></div>
+        </td>
+    </tr>
 </table>
+<br>
 <div id="sf_shadowLayer" title="Клик закроет окно"></div>
 <div type="window" id="sf_statusWindow">${createStatusWindow()}</div>
 <div type="window" id="sf_controlPanelWindow">${createControlPanel()}</div>

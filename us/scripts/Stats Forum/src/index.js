@@ -192,6 +192,8 @@ function createStatGUIButton(){
   bindEvent(button, 'onclick', function(){
     makeConnect("gk_StatsForum", true)
   });
+
+  makeConnect("gk_StatsForum", true);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -266,6 +268,11 @@ function createGUI(){
   td.parentNode.removeChild(td);
   table.rows[0].appendChild(gui);
 
+
+  $('td[class="tab"],[class="tab tabActive"]').nodeArr().forEach((tab)=>{
+    bindEvent(tab, 'onclick', ()=>{selectTabTable(tab)});
+  });
+
   renderBaseHTML();
   renderTables();
   createShadowLayer();
@@ -321,6 +328,25 @@ function createControlPanel(){
 
 function createMessageWindow(){
   return '@include: ./html/messageWindow.html';
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function selectTabTable(tab){
+  var active, table;
+
+  if(tab.className == "tab tabActive") return;
+
+  active = $('td[class="tab tabActive"]').node();
+  table = $(active).up('table').node();
+
+  table.rows[0].cells[active.cellIndex].className = "tabTop";
+  active.className = "tab";
+
+  table.rows[0].cells[tab.cellIndex].className = "tabTop tabTopActive";
+  tab.className = "tab tabActive";
+
+  table.rows[2 + tab.cellIndex].style.display = "table-row";
+  table.rows[2 + active.cellIndex].style.display = "none";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2063,16 +2089,11 @@ function showStats(t){
 function showThemeList(t){
   var code, light, check, box;
 
-  code =
-    `<div style="max-height: 495px; overflow-y: scroll;">
-                <table align="center" style="width: 100%;" type="padding">`;
+  code = '';
 
   t.getContent().forEach(function(tr){
     code += row(tr);
   });
-
-  code += `</table>
-            </div>`;
 
   $('#sf_content_TL').html(code);
 

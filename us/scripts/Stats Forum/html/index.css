@@ -1,3 +1,55 @@
+table.mainTable {
+    width: 98%;
+    border-style: none;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+td.tabTop {
+    height: 5px;
+}
+td.tabTopActive{
+    border: solid #339933 1px;
+    border-bottom-style: none;
+    background-color: #f0fff0;
+}
+td.tab{
+    font-weight: bold;
+    height: 25px;
+    border: solid #339933 1px;
+    text-align: center;
+    background-color: #d0efd0;
+    cursor: pointer;
+}
+td.tab:hover{
+    background-color: #defadc;
+}
+td.tab.tabActive{
+    border-top-style: none;
+    border-bottom-style: none;
+    background-color: #f0fff0;
+}
+td.tabLast{
+    border-bottom: solid #339933 1px;
+}
+td.tabContent{
+    border: solid #339933 1px;
+    border-top-style: none;
+    background-color: #f0fff0;
+}
+div.tab{
+    margin: auto;
+    width: 99%;
+    height: 100%;
+    background-color: #FFFFFF;
+}
+div.header{
+    margin-top: 10px;
+}
+div.content{
+    height: 540px;
+    overflow-y: scroll;
+}
+
 table[type="padding"] td {
     padding: 2px 5px 2px 5px;
 }
@@ -146,7 +198,8 @@ div[type^="option"]:hover{
 }
 span[id^="sf_bCheckAll"]{
     float: right;
-    margin-right: 5px;
     font-size: 9px;
     cursor: pointer;
+    margin-bottom: 10px;
+    margin-right: 5px;
 }
