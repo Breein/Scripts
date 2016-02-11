@@ -24,14 +24,13 @@ $checked = {
   players: {}
 };
 
-
 const $status = {
   "1": {t: "Ok", s: ""},
-  "2": { t: "Торговый", s: "font-weight: bold;"},
-  "3": { t: "Арестован", s: "color: blue;"},
-  "4": { t: "Форумный", s: "color: red;"},
-  "5": { t: "Общий бан", s: "color: green; font-weight: bold;"},
-  "6": { t: "Заблокирован", s: "color: red; font-weight: bold;"}
+  "2": {t: "Торговый", s: "font-weight: bold;"},
+  "3": {t: "Арестован", s: "color: blue;"},
+  "4": {t: "Форумный", s: "color: red;"},
+  "5": {t: "Общий бан", s: "color: green; font-weight: bold;"},
+  "6": {t: "Заблокирован", s: "color: red; font-weight: bold;"}
 };
 
 $screenWidth = document.body.clientWidth;
@@ -39,13 +38,6 @@ $screenHeight = document.body.clientHeight;
 
 $answer = $('<span>').node();
 $date = parseInt(new Date().getTime() / 1000, 10);
-
-$sd = {
-  forums: {},
-  players: {},
-  kicked: {},
-  invite: {}
-};
 
 $ss = {
   sort: {
@@ -65,51 +57,11 @@ $ss = {
 };
 
 $cd = {
-  fid: 0,
-  fName: "",
-  tid: 0,
-  tName: "",
-  fPage: 27,
-  tPage: 0,
-  lPage: 0,
-  f: null,
-  sid: null,
-  nameToId: {},
-  members: [],
-  countMembers: 0,
-  values:{
-    stats:{
-      id: ['ID', -1, -1],
-      start: ['Тем начато', -1, -1],
-      write: ['Участвовал', -1, -1],
-      date: ['Последнее сообщение', -1, -1],
-      posts: ['Сообщений', -1, -1],
-      averageWords: ['Среднее количество слов', -1, -1],
-      words: ['Количество слов', -1, -1],
-      pStart: ['Процент начатых тем', -1, -1],
-      pWrite: ['Процент участия', -1, -1],
-      pPosts: ['Процент сообщений', -1, -1],
-      pWords: ['Процент слов', -1, -1],
-      status: ['Статус', -1, -1],
-      enter: ['Принят', -1, -1],
-      exit: ['Покинул', -1, -1],
-      goAway: ['Изгнан', -1, -1],
-      member: ['В составе', -1, -1]
-    },
-    themes:{
-      id: '',
-      date: '',
-      posts: '',
-      postsAll: ''
-    }
-  },
   showProgressTime: false,
-  timeRequest: 0,
   statsCount: 0,
-  themesCount: 0
+  themesCount: 0,
+  filterNode: null
 };
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -151,10 +103,6 @@ function addStyle(){
     #sf_controlPanelWindow{
         left: ${$screenWidth / 2 - 175};
         top: ${$screenHeight / 2 - 260};
-    }
-    #sf_filtersWindow{
-        left: ${$screenWidth / 2 - 250};
-        top: ${$screenHeight / 2 - 363};
     }
     #sf_messageWindow{
         left: ${$screenWidth / 2 - 370};
@@ -345,8 +293,10 @@ function selectTabTable(tab){
   table.rows[0].cells[tab.cellIndex].className = "tabTop tabTopActive";
   tab.className = "tab tabActive";
 
-  table.rows[2 + tab.cellIndex].style.display = "table-row";
-  table.rows[2 + active.cellIndex].style.display = "none";
+  table.rows[1 + tab.cellIndex].className = "tabRow";
+  table.rows[1 + active.cellIndex].className = "tabRowHide";
+
+  closeWindows();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1795,13 +1745,14 @@ function renderBaseHTML(){
   $('#sf_header_SI').html('@include: ./html/statsTableHeader.html');
   $('#sf_footer_SI').html('@include: ./html/statsTableFooter.html');
 
-  $t.stats.setControl($ico, ()=>{renderStatsTable(true)});
+  $t.stats.setSorts($ico, renderStatsTable);
+  $t.stats.setFilters($ico, openFilters);
 
   b1 = $('#sf_bCheckAllMembers').node();
   bindEvent(b1, 'onclick', function(){checkAllMembers(b1, '#sf_content_SI')});
 
   t = $t.themes;
-  t.setWidth([70, -1, 300, 80, 100, 100, 100, 100, 43]);
+  t.setWidth([70, -1, 300, 80, 100, 100, 100, 100, 45]);
   t.setStructure([
     ["id", "number", "ID"],
     ["name", "check", "Названии темы"],
@@ -1817,7 +1768,8 @@ function renderBaseHTML(){
   $('#sf_header_TL').html('@include: ./html/themesTableHeader.html');
   $('#sf_footer_TL').html('@include: ./html/themesTableFooter.html');
 
-  $t.themes.setControl($ico, ()=>{renderThemesTable(true)});
+  $t.themes.setSorts($ico, renderThemesTable);
+  $t.themes.setFilters($ico, openFilters);
 
   b2 = $('#sf_bCheckAllThemes').node();
   bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});
@@ -1859,6 +1811,127 @@ function renderBaseHTML(){
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function openFilters(key, td, settings, type, text){
+  var div, box, input, data, value, min, max;
+  var w, code;
+  var size, _size;
+  var left, start, end;
+
+  //console.log(key);
+  //console.log(td);
+  //console.log(settings);
+  //console.log(type);
+  //console.log(text);
+
+  if(type[0] == "number"){
+    type[1] = "boolean";
+  }
+
+  value = settings[key];
+  div = value == null ? 'disabled' : 'enabled';
+  box = value == null ? '' : 'checked';
+  input = value == null ? 'disabled' : '';
+  min = 0;
+  max = 0;
+
+  div = "enabled";
+
+  size = td.getBoundingClientRect();
+
+  code =
+    `<div>
+       <div>
+        <table>
+          <tr height="30" style="font-weight: bold; text-align: center;"><td>${text}</td></tr>
+     `;
+
+  type.forEach((value)=>{
+    switch(value){
+      case "number":
+        code += numberRow();
+        break;
+      case "date":
+        code += dateRow();
+        break;
+      case "multiple":
+        code += multipleRow();
+        break;
+      case "boolean":
+        code += booleanRow();
+        break;
+    }
+  });
+
+  code +=
+      `   <tr height="30"><td>Применить этот фильтр: <input name="modeFilter" type="checkbox" style="vertical-align: -2px;" /></td></tr>
+          <tr height="30"><td align="center"><input type="button" value="Сохранить" /></td></tr>
+          <tr height="3"><td></td></tr>
+        </table>
+      </div>
+    </div>
+    <div type="buttonLine" style="width: ${size.width - 2}px;"></div>
+    `;
+
+  w = $('#sf_filtersWindow').html(code).node();
+
+  _size = w.getBoundingClientRect();
+
+  var s;
+
+  s = (_size.width - size.width) / 2;
+
+  left = size.left - s - 2;
+  if(left < 0){
+    w.style.left = 15 + "px";
+  }else{
+    w.style.left = left + "px";
+  }
+
+  w.style.top = size.top - _size.height - 7 + document.body.scrollTop;
+
+  var button =  $('div[type="buttonLine"]').node();
+
+  _size = w.getBoundingClientRect();
+
+  $(td).attr("style", "background-color: #defadc");
+
+  button.style.left = size.left - _size.left - 1 + "px";
+  button.style.top = _size.height - 3 + "px";
+
+  if($cd.filterNode != td){
+    if($cd.filterNode) $cd.filterNode.removeAttribute("style");
+    $cd.filterNode = td;
+  }
+
+  w.style.display = "block";
+
+
+  function numberRow(){
+    return '@include: ./html/numberRow.html';
+  }
+
+  function booleanRow(){
+    return '@include: ./html/booleanRow.html';
+  }
+
+  function dateRow(){
+    if(min == 0) min = 1;
+    if(max == 0) max = 1;
+
+    return '@include: ./html/dateRow.html';
+  }
+
+  function multipleRow(){
+    min = min != null && min != '' ? min.join(', ') : '';
+
+    return '@include: ./html/multipleRow.html';
+  }
+
+  function checkRow(){
+
+  }
+}
 
 function renderStatsTable(sorted){
   var g, table, players, cMembers, members, row;

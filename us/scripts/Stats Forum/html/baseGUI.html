@@ -1,20 +1,25 @@
 <b><a style="color: #990000" href="http://www.ganjawars.ru/forum.php">Форумы</a> » ${$cd.fName}</b>
 :: <span id="sf_gui_settings" style="cursor: pointer; font-weight: bold;">Панель управления</span>
-□ <span id="sf_gui_filters" style="cursor: pointer; font-weight: bold;">Фильтры</span>
 □ <span id="sf_gui_message" style="cursor: pointer; font-weight: bold;">Рассылка почты</span>
 <br>
 <table class="mainTable" cellspacing="0" cellpadding="0" align="center">
     <tr>
+        <td class="tabTop"></td>
         <td class="tabTop tabTopActive"></td>
+        <td class="tabTop"></td>
+        <td class="tabTop"></td>
         <td class="tabTop"></td>
     </tr>
     <tr>
+        <td class="tabFirst"></td>
         <td class="tab tabActive">Данные по игрокам</td>
         <td class="tab">Данные по темам</td>
-        <td class="tabLast" width="80%"> </td>
+        <td class="tab">Графики</td>
+        <td class="tab">Черный список</td>
+        <td class="tabLast"></td>
     </tr>
-    <tr style="display: table-row;">
-        <td colspan="3" class="tabContent">
+    <tr class="tabRow">
+        <td colspan="6" class="tabContent">
             <div class="tab header" id="sf_header_SI"></div>
             <div class="tab content">
                 <table align="center" style="width: 100%;" type="padding" id="sf_content_SI"></table>
@@ -22,8 +27,8 @@
             <div class="tab" id="sf_footer_SI"></div>
         </td>
     </tr>
-    <tr style="display: none;">
-        <td colspan="3" class="tabContent">
+    <tr class="tabRowHide">
+        <td colspan="6" class="tabContent">
             <div class="tab header" id="sf_header_TL"></div>
             <div class="tab content">
                 <table align="center" style="width: 100%;" type="padding" id="sf_content_TL"></table>
@@ -31,11 +36,29 @@
             <div class="tab" id="sf_footer_TL"></div>
         </td>
     </tr>
+    <tr class="tabRowHide">
+        <td colspan="6" class="tabContent">
+            <div class="tab header" id="sf_header_GL"></div>
+            <div class="tab content">
+                <table align="center" style="width: 100%;" type="padding" id="sf_content_GL"></table>
+            </div>
+            <div class="tab" id="sf_footer_GL"></div>
+        </td>
+    </tr>
+    <tr class="tabRowHide">
+        <td colspan="6" class="tabContent">
+            <div class="tab header" id="sf_header_BL"></div>
+            <div class="tab content">
+                <table align="center" style="width: 100%;" type="padding" id="sf_content_BL"></table>
+            </div>
+            <div class="tab" id="sf_footer_BL"></div>
+        </td>
+    </tr>
 </table>
 <br>
 <div id="sf_shadowLayer" title="Клик закроет окно"></div>
 <div type="window" id="sf_statusWindow">${createStatusWindow()}</div>
 <div type="window" id="sf_controlPanelWindow">${createControlPanel()}</div>
-<div type="window" id="sf_filtersWindow"></div>
+<div id="sf_filtersWindow"></div>
 <div type="window" id="sf_messageWindow">${createMessageWindow()}</div>
 <div type="window" id="sf_calendar"></div>

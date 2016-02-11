@@ -57,15 +57,6 @@ Table.prototype = {
   },
 
   /**
-   * @param {object} icons
-   * @param {Function} callback
-   */
-  setControl: function(icons, callback){
-    this.setSorts(icons, callback);
-    this.setFilters(icons);
-  },
-
-  /**
    * @returns {object}
    */
   getStructure: function(){
@@ -239,7 +230,7 @@ Table.prototype = {
 
         //saveToLocalStorage('settings');
 
-        callback();
+        callback(true);
       });
     });
   },
@@ -260,9 +251,10 @@ Table.prototype = {
 
   /**
    * @param {object} icons
+   * @param {Function} callback
    */
-  setFilters: function(icons){
-    var table = this;
+  setFilters: function(icons, callback){
+    var table = this, name = this.getName();
 
     $(table.footer).find('td[filter]').nodeArr().forEach(function(td){
       var value, ico;
@@ -270,14 +262,14 @@ Table.prototype = {
       value = $(td).attr("filter");
 
       if(table.structure[value].filterType){
-        ico = table.settings.show.themes[value] ? icons.boxOn : icons.boxOff;
+        ico = table.settings.show[name][value] ? icons.boxOn : icons.boxOff;
         ico = `<img src="${icons.filter}"><img style="margin-left: 1px;" src="${ico}"/>`;
 
         $(td).html(ico);
 
-        //bindEvent(td, 'onclick', function(){
-        //  doFilter(td, table.settings, table.structure[value].filterType, table.structure[value].filterName);
-        //});
+        bindEvent(td, 'onclick', function(){
+          callback(value, td, table.settings.show[name], [table.structure[value].filterType], table.structure[value].filterName);
+        });
       }
     });
   },
