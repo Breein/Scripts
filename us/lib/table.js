@@ -64,26 +64,15 @@ Table.prototype = {
   },
 
   /**
-   * @param {number[]} array
-   */
-  setWidth: function(array){
-    var table = this;
-
-    array.forEach(function(element, id){
-      table.size[id] = element;
-    });
-  },
-
-  /**
-   * @param {number} index
+   * @param {string} key
    * @param {boolean|null} check
    * @returns {string}
    */
-  getWidth: function(index, check){
+  getWidth: function(key, check){
     var width;
 
-    if(this.size[index]){
-      width = check ? this.size[index] - 17 : this.size[index];
+    if(this.structure[key]){
+      width = check ? this.structure[key].width - 17 : this.structure[key].width;
       return width != -1 ? `width="${width}"` : "";
     }
   },
@@ -95,32 +84,6 @@ Table.prototype = {
    */
   setContentValue: function(index, key, value){
     this.content[index][key] = value;
-  },
-
-  /**
-   * @param {number} id
-   * @returns {object[]}
-   */
-  setContent: function(id){
-    var table, o;
-
-    table = this;
-    o = {};
-
-    Object.keys(table.getStructure()).forEach(function(value){
-      if(table.structure[value].path.length == 2){
-        o[value] = eval(table.structure[value].path[0] + "['" + id + "']" + table.structure[value].path[1]);
-      }else{
-        if(table.structure[value].path[0] == "Number(id)"){
-          o[value] = Number(id);
-        }
-      }
-    });
-
-    if(!table.filtering(o)) return null;
-
-    table.pushContent(o);
-    return table.content[table.getLastRowContent()];
   },
 
   /**
@@ -236,17 +199,54 @@ Table.prototype = {
   },
 
   /**
-   * @param {*[]} values
+   * @param {{key:[width, type, text]}, ...} v
    */
-  setStructure: function(values){
-    var table= this;
+  setStructure: function(v){
+    var table = this;
 
-    values.forEach(function(elem){
-      table.structure[elem[0]] = {
-        filterType: elem[1],
-        filterName: elem[2]
+    Object.keys(v).forEach(function(key){
+      var value, type = null, text = null;
+
+      value = v[key];
+      if(value[1]) type = /\|/.test(value[1]) ? value[1].split(/\|/) : [value[1]];
+      if(value[2]) text = /\|/.test(value[2]) ? value[2].split(/\|/) : [value[2]];
+
+      table.structure[key] = {
+        width: value[0],
+        filterType: type,
+        filterName: text
       };
     });
+  },
+
+  /**
+   *
+   */
+  setSizes: function(){
+    var table = this;
+
+    $(this.header).find('td[sort]').nodeArr().forEach((cell)=>{
+      table.setWidth(cell, "sort");
+    });
+
+    $(this.footer).find('td[filter]').nodeArr().forEach((cell)=>{
+      table.setWidth(cell, "filter");
+    });
+  },
+
+  /**
+   * @param cell
+   * @param {string} type
+   */
+  setWidth: function(cell, type){
+    var width, key;
+
+    key = $(cell).attr(type);
+    width = this.structure[key].width;
+
+    if(width > 0){
+      cell.width = width;
+    }
   },
 
   /**
@@ -268,7 +268,7 @@ Table.prototype = {
         $(td).html(ico);
 
         bindEvent(td, 'onclick', function(){
-          callback(value, td, table.settings.show[name], [table.structure[value].filterType], table.structure[value].filterName);
+          callback(value, td, table.settings.show[name], table.structure[value].filterType, table.structure[value].filterName);
         });
       }
     });
@@ -298,18 +298,18 @@ Table.prototype = {
           break;
 
         case "check":
-          if(!$c.exist(row[value][0], filter[value].value)) return false;
+          if(!$c.exist(row[value][1], filter[value].value)) return false;
           break;
 
         default:
-          if (compare(filter[value].value , row[value])) return false;
+          if(compare(filter[value], row[value])) return false;
       }
     }
     return true;
 
     function compare(k, n){
       if(isNaN(n)) n = parseInt(n, 10);
-      return !(k[0] <= n && n <= k[1]);
+      return !(k.min <= n && n <= k.max);
     }
   }
 };

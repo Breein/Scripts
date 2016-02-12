@@ -100,8 +100,8 @@ Calendar.prototype = {
   render: function(node){
     var size, left, top, date;
 
-    if(this.node.style.display == "block"){
-      this.node.style.display = 'none';
+    if(this.node.style.visibility == "visible"){
+      this.node.style.visibility = 'hidden';
       return;
     }
     if(node.nextElementSibling.disabled){
@@ -113,8 +113,8 @@ Calendar.prototype = {
     top = size.top - 5;
 
     this.node.style.left = left + 'px';
-    this.node.style.top = top + 'px';
-    this.node.style.display = 'block';
+    this.node.style.top = top + document.body.scrollTop + 'px';
+    this.node.style.visibility = 'visible';
 
     date = Number(node.nextElementSibling.value);
 
@@ -211,7 +211,7 @@ Calendar.prototype = {
     span.innerHTML = this.callDate[day].span;
     input.value = Date.parse(this.callDate[day].input) / 1000;
 
-    this.node.style.display = "none";
+    this.node.style.visibility = "hidden";
   },
 
   getDate: function(date){

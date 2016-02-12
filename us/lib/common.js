@@ -145,6 +145,7 @@ Common.prototype = {
    * @returns {boolean}
    */
   exist: function(value, array){
+    if(!array) return false;
     var length;
 
     length = array.length;

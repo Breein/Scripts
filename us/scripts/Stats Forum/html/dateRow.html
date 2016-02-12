@@ -1,17 +1,17 @@
 <tr>
     <td>
-        <input type="radio" name="${type}" style="float: left; margin-top: 6px;"/>
-        <div class="sf_space" style="width: 5px;"></div>
-        <div class="sf_count ${div}">
+        <input type="radio" name="${type}" ${state.input}/>
+        <div class="space"></div>
+        <div class="count">
             &nbsp;с
             <span type="calendarCall">${$c.getNormalDate(min, true).d}</span>
-            <input type="text" style="display: none;" value="${min}" ${input} class="sf_count ${div}" />
+            <input type="text" value="${min}" ${state.input} class="count hide" />
         </div>
-        <div class="sf_space" style="width: 10px;"></div>
-        <div class="sf_count ${div}">
+        <div class="space wide"></div>
+        <div class="count">
             &nbsp;по
             <span type="calendarCall">${$c.getNormalDate(max, true).d}</span>
-            <input type="text" style="display: none;" value="${max}" ${input} class="sf_count ${div}" />
+            <input type="text" value="${max}" ${state.input} class="count hide" />
         </div>
     </td>
 </tr>
