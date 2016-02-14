@@ -25,7 +25,10 @@ var userScriptHeader =
 var userScriptFooter = `})();`;
 
 gulp.task('wrap', function(){
-  return gulp.src('./out/bundle.js')
+
+  includeHTML();
+
+  return gulp.src('./out/bundle_full.js')
     .pipe(concat.header(userScriptHeader))
     .pipe(concat.footer(userScriptFooter))
     .pipe(rename('Stats_forums_[GW].user.js'))
@@ -33,18 +36,7 @@ gulp.task('wrap', function(){
 });
 
 gulp.task('bundle', function(){
-  var textFile;
-
-  textFile = fs.readFileSync('./src/index.js', 'utf8');
-  textFile = textFile.replace(/'@include: (.+)'/g, include);
-  fs.writeFileSync('./tmp_src/index.js', textFile);
-
-  function include(str){
-    str = str.match(/'@include: (.+)'/);
-    return '`' + fs.readFileSync(str[1], 'utf8') + '`';
-  }
-
-  return browserify('./tmp_src/index.js')
+  return browserify('./src/index.js')
     .bundle()
     .pipe(source('bundle.js'))
     .pipe(buffer())
@@ -76,9 +68,25 @@ var watchFiles = [
 
 gulp.task('dev', function(){
   chokidar.watch(watchFiles, {ignored: /[\/\\]\./}).on('all', (event, path) =>{
-    console.log(event, path);
+    //console.log(event, path);
     gulp.start('build');
   });
 });
 
 gulp.task('default', ['dev']);
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function includeHTML(){
+  var textFile;
+
+  textFile = fs.readFileSync('./out/bundle.js', 'utf8');
+  textFile = textFile.replace(/'@include: (.+)'/g, include);
+  fs.writeFileSync('./out/bundle_full.js', textFile);
+
+  function include(str){
+    str = str.match(/'@include: (.+)'/);
+    return '`' + fs.readFileSync(str[1], 'utf8') + '`';
+  }
+}

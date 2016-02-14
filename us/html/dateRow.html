@@ -1,0 +1,17 @@
+<tr>
+    <td>
+        <input type="radio" value="min-max" name="${key}" ${state.input}/>
+        <div class="space"></div>
+        <div class="count">
+            &nbsp;с
+            <span type="calendarCall">${$c.getNormalDate(min, true).d}</span>
+            <input type="text" value="${min}" ${state.input} class="count hide" />
+        </div>
+        <div class="space wide"></div>
+        <div class="count">
+            &nbsp;по
+            <span type="calendarCall">${$c.getNormalDate(max, true).d}</span>
+            <input type="text" value="${max}" ${state.input} class="count hide" />
+        </div>
+    </td>
+</tr>

@@ -1,12 +1,12 @@
-require('./../../../lib/prototypes')();
-var $ = require('./../../../lib/dom');
-var db = require('./../../../lib/idb');
-var bindEvent = require('./../../../lib/events');
-var ajax = require('./../../../lib/request');
-var createTable = require('./../../../lib/table');
+require('./../../../js/prototypes')();
+var $ = require('./../../../js/dom');
+var db = require('./../../../js/idb');
+var bindEvent = require('./../../../js/events');
+var ajax = require('./../../../js/request');
+var createTable = require('./../../../js/table');
 
-const $c = require('./../../../lib/common')();
-const $calendar = require('./../../../lib/calendar')();
+const $c = require('./../../../js/common')();
+const $calendar = require('./../../../js/calendar')();
 const Create = require('./../src/creator')();
 const Pack = require('./../src/packer')();
 const $ico = require('./../src/icons');
@@ -74,6 +74,8 @@ function addStyle(){
   var css, code;
 
   code = '@include: ./html/index.css';
+  code += '@include: ./../../css/filter.css';
+
   code +=
     `
     td[sort="sNumber"]{
@@ -1745,7 +1747,7 @@ function renderBaseHTML(){
 
   t.setSizes();
   t.setSorts($ico, renderStatsTable);
-  t.setFilters($ico, openFilters);
+  t.setFilters($ico, null);
 
   b1 = $('#sf_bCheckAllMembers').node();
   bindEvent(b1, 'onclick', function(){checkAllMembers(b1, '#sf_content_SI')});
@@ -1768,7 +1770,7 @@ function renderBaseHTML(){
 
   t.setSizes();
   t.setSorts($ico, renderThemesTable);
-  t.setFilters($ico, openFilters);
+  t.setFilters($ico, null);
 
   b2 = $('#sf_bCheckAllThemes').node();
   bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});
@@ -1807,166 +1809,6 @@ function renderBaseHTML(){
       if(id == "#sf_content_SI") $checked.players[box.value] = check;
       if(id == "#sf_content_TL") $checked.themes[box.value] = check;
     }
-  }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function openFilters(key, td, settings, type, text){
-  var state, window, code, row, tds;
-
-  type = typeof type == "object" ? type : [type];
-
-  window = $('#sf_filtersWindow').node();
-  window.style.left = 0;
-  window.style.top = 0;
-
-  state = {
-    element: settings[key] == null ? 'disabled' : 'enabled',
-    filter: settings[key] == null ? '' : 'checked',
-    input: settings[key] == null ? 'disabled' : '',
-    min: 0,
-    max: 0
-  };
-
-  tds = td.getBoundingClientRect();
-
-  row = createRow(type, text, state);
-  code = '@include: ./html/filterWindow.html';
-  $(window).html(code);
-
-  setPositionWindow(window);
-  setPositionSpace(window);
-  bindEvents(window, type[0]);
-
-  $(td).attr("style", "background-color: #defadc");
-
-  if($cd.filterNode != td){
-    if($cd.filterNode) $cd.filterNode.removeAttribute("style");
-    $cd.filterNode = td;
-
-    window.style.visibility = "visible";
-  }else{
-    if(window.style.visibility == "visible"){
-      td.removeAttribute("style");
-      window.style.visibility = "hidden";
-    }else{
-      window.style.visibility = "visible";
-    }
-  }
-  /////////////////////////////
-
-  function setPositionWindow(w){
-    var halfWidth, offsetLeft, offsetRight, ws;
-
-    ws = w.getBoundingClientRect();
-
-    halfWidth = (ws.width - tds.width) / 2;
-    offsetLeft = tds.left - halfWidth - 2;
-
-    offsetRight = ws.width + offsetLeft;
-    if(offsetRight > 1890) offsetLeft = 1890 - ws.width;
-
-    w.style.left = offsetLeft < 0 ? 15 + "px" : offsetLeft + "px";
-    w.style.top = tds.top - ws.height - 7 + document.body.scrollTop;
-  }
-  /////////////////////////////
-
-  function setPositionSpace(w){
-    var space, ss, ws, offset, width;
-
-    space =  $(w).find('div').node(-1);
-    ss = space.getBoundingClientRect();
-    ws = w.getBoundingClientRect();
-
-    width = tds.width - 2;
-
-    if(width > ws.width) width = ws.width - 50;
-    if(ws.left == 15 || ws.left + ws.width == 1890){
-      offset = tds.left - ss.left - 1;
-    }else{
-      offset = ws.width / 2 - width / 2;
-    }
-
-    space.style.width = width + "px";
-    space.style.left = offset + "px";
-    space.style.top = ws.height - 2 + "px";
-  }
-  /////////////////////////////
-
-  function createRow(type, text, state){
-    var code = "", min, max, value;
-
-    min = state.min;
-    max = state.max;
-    value = state.value;
-
-    type.forEach((type)=>{
-      switch(type){
-        case "number":
-          code += '@include: ./html/numberRow.html';
-          break;
-        case "date":
-          if(min == 0) min = 1;
-          if(max == 0) max = 1;
-          code += '@include: ./html/dateRow.html';
-          break;
-        case "multiple":
-          code += '@include: ./html/multipleRow.html';
-          break;
-        case "boolean":
-          code += '@include: ./html/booleanRow.html';
-          break;
-        case "check":
-          code += '';
-          break;
-      }
-    });
-
-    return code;
-  }
-  /////////////////////////////
-
-  function bindEvents(w, type){
-    var filter;
-
-    if(type == "date"){
-      $(w)
-        .find('span[type="calendarCall"]')
-        .nodeArr()
-        .forEach(
-          function(node){
-            $calendar.bind(node);
-          }
-        );
-    }
-
-    if(type == "multiple"){
-      $(w)
-        .find('div[type^="option"]')
-        .nodeArr()
-        .forEach((node)=>{
-          var n = $(node);
-
-          if($c.exist(n.attr("name"), $ss.show.stats.status)){
-            n.attr("type", "option selected");
-          }
-          bindEvent(node, 'onclick', ()=>{
-            n.attr("type", /selected/.test(n.attr("type")) ? "option" : "option selected");
-          });
-        });
-    }
-
-    filter = $(w).find('input[type="checkbox"][name="modeFilter"]').node();
-    bindEvent(filter, 'onclick', ()=>{
-      var table, input, status;
-
-      status = filter.checked ? "enabled" : "disabled";
-      table = $(filter).up('table').attr("type", `filter ${status}`);
-
-      table.find('input[type="text"],input[type="radio"]').nodeArr().forEach((input)=>{
-        input.disabled = !filter.checked;
-      });
-    });
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
