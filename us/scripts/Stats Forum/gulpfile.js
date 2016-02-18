@@ -61,7 +61,9 @@ gulp.task('release', function(){
 });
 
 var watchFiles = [
-  'W:/Scripts/us/lib/*.js',
+  'W:/Scripts/us/js/*.js',
+  'W:/Scripts/us/html/*.html',
+  'W:/Scripts/us/css/*.css',
   './html/**/*.*',
   './src/**/*.js'
 ];

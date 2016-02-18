@@ -1,4 +1,6 @@
 var $ = require('./dom');
+var filter = require('./filters');
+
 const bindEvent = require('./events');
 const $c = require('./common')();
 
@@ -10,8 +12,7 @@ function Table(nodesID, settingsKey, settings){
   this.structure = {};
   this.content = [];
   this.size = [];
-  //this.themes = $sd.forums[$cd.fid].themes;
-  //this.players = $sd.players;
+  this.filters = {};
   this.sort = {
     cell: null,
     type: null
@@ -213,8 +214,12 @@ Table.prototype = {
 
       table.structure[key] = {
         width: value[0],
-        filterType: type,
-        filterName: text
+        filter: type ? {
+          type: type,
+          header: text[0],
+          rTrue: text[1],
+          rFalse: text[2]
+        } : null
       };
     });
   },
@@ -257,20 +262,30 @@ Table.prototype = {
     var table = this, name = this.getName();
 
     $(table.footer).find('td[filter]').nodeArr().forEach(function(td){
-      var value, ico;
+      var value, ft, ico;
 
       value = $(td).attr("filter");
+      ft = table.structure[value].filter;
 
-      if(table.structure[value].filterType){
-        ico = table.settings.show[name][value] ? icons.boxOn : icons.boxOff;
-        ico = `<img src="${icons.filter}"><img style="margin-left: 1px;" src="${ico}"/>`;
+      ico = table.settings.show[name][value] ? icons.boxOn : icons.boxOff;
+      ico = `<img src="${icons.filter}"><img style="margin-left: 1px;" src="${ico}"/>`;
 
-        $(td).html(ico);
+      $(td).html(ico);
 
-        //bindEvent(td, 'onclick', function(){
-        //  callback(value, td, table.settings.show[name], table.structure[value].filterType, table.structure[value].filterName);
-        //});
-      }
+      bindEvent(td, 'onclick', function(){
+        var f;
+
+        if(table.filters[value] == null){
+          table.filters[value] = filter("#sf_filtersWindow", table, td, ft, value);
+        }
+
+        f = table.filters[value];
+        f.prepare();
+
+        //console.log(f);
+        //callback(value, td, table.settings.show[name], table.structure[value].filterType, table.structure[value].filterName);
+      });
+
     });
   },
 

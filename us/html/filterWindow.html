@@ -1,11 +1,11 @@
 <div>
     <div>
-        <table type="filter ${state.element}">
-            <tr height="30" style="font-weight: bold; text-align: center;"><td>${text[0]}:</td></tr>
+        <table>
+            <tr height="30" style="font-weight: bold; text-align: center;"><td>${this.text.header}:</td></tr>
             ${row}
             <tr height="30">
                 <td align="center">
-                    Использовать этот фильтр: <input name="modeFilter" ${state.filter} type="checkbox" style="vertical-align: -2px;" />
+                    Использовать этот фильтр: <input name="stateButton" type="checkbox" style="vertical-align: -2px;" />
                 </td>
             </tr>
             <tr height="30">

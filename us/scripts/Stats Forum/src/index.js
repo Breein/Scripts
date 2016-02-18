@@ -12,7 +12,6 @@ const Pack = require('./../src/packer')();
 const $ico = require('./../src/icons');
 
 
-
 var $nameScript = "Stats forums [GW]";
 var $mode = true;
 var $sd, $cd, $ss, $tsd, $answer, $screenWidth, $screenHeight, $date, $checked, $t;

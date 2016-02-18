@@ -33,6 +33,9 @@ table[type*="filter"] input[type="text"].count{
 table[type*="filter"] input[type="text"].hide{
     display: none;
 }
+table[type*="filter"] input[type="text"].def{
+    color: #c0c0c0;
+}
 table[type*="filter"] div.multipleCount{
     float: left;
     background: #f0fff0;

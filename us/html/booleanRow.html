@@ -1,14 +1,14 @@
 <tr height="30">
     <td>
-        <input type="radio" value="only true" name="${key}" ${state.input}/>
+        <input type="radio" value="only true" name="${this.cellKey}" />
         <div class="space"></div>
-        <div class="text">Все, ${text[1]}</div>
+        <div class="text">Все, ${this.text.rt}</div>
     </td>
 </tr>
 <tr height="30">
     <td>
-        <input type="radio" value="only false" name="${key}" ${state.input}/>
+        <input type="radio" value="only false" name="${this.cellKey}" />
         <div class="space"></div>
-        <div class="text">Кроме, ${text[2]}</div>
+        <div class="text">Кроме, ${this.text.rf}</div>
     </td>
 </tr>

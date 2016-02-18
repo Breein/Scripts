@@ -1,57 +1,199 @@
-var $ = require('./dom');
-const bindEvent = require('./events');
-const $c = require('./common')();
-const $calendar = require('./calendar')();
+var $ = require('./dom.js');
+const bindEvent = require('./events.js');
+const $c = require('./common.js')();
+const $calendar = require('./calendar.js')();
 
-function Filter(id, table, settings){
+function Filter(id, table, td, f, key){
   this.fw = $(id).node();
   this.table = table;
-  this.settings = settings;
-  this.min = 0;
-  this.max = 0;
-  this.value = null;
-  this.type = null;
-  this.key = null;
-  this.element = null;
-  this.filter = null;
-  this.input = null;
+  this.settings = table.settings.show[table.getName()];
+  this.cell = td;
+  this.cp = td.getBoundingClientRect();
+  this.cellKey = key;
+  this.types = this.getTypes(f);
+  this.text = this.getText(f);
+
+  this.min = null;
+  this.max = null;
+  this.html = "";
 }
 
 Filter.prototype = {
-  setPositionWindow: function(w){
-    var halfWidth, offsetLeft, offsetRight, ws;
-
-    ws = w.getBoundingClientRect();
-
-    halfWidth = (ws.width - tds.width) / 2;
-    offsetLeft = tds.left - halfWidth - 2;
-
-    offsetRight = ws.width + offsetLeft;
-    if(offsetRight > 1890) offsetLeft = 1890 - ws.width;
-
-    w.style.left = offsetLeft < 0 ? 15 + "px" : offsetLeft + "px";
-    w.style.top = tds.top - ws.height - 7 + document.body.scrollTop;
+  getTypes: function(f){
+    return f.type;
   },
 
-  setPositionSpace: function(){
-    var space, ss, ws, offset, width;
+  getText: function(type){
+    return {
+      header: type.header,
+      rt: type.rTrue,
+      rf: type.rFalse
+    }
+  },
 
-    space =  $(this.fw).find('div').node(-1);
-    ss = space.getBoundingClientRect();
-    ws = this.fw.getBoundingClientRect();
+  /**
+   */
+  prepare: function(){
+    var row;
 
-    width = tds.width - 2;
+    if(this.hide()) return;
+    this.getMaxMin();
 
-    if(width > ws.width) width = ws.width - 50;
-    if(ws.left == 15 || ws.left + ws.width == 1890){
-      offset = tds.left - ss.left - 1;
+    if(this.html == ""){
+      row = this.createRow();
+      this.html = '@include: ./../../html/filterWindow.html';
+    }
+    this.fw.style.left = 0;
+    this.fw.style.top = 0;
+    this.fw.innerHTML = this.html;
+
+    this.setDataFilter();
+    this.bindStateFilterButton();
+    this.show();
+  },
+
+  setDataFilter: function(){
+    var state, fs, min, max, value, radio;
+
+    state = this.settings[this.cellKey] != null;
+
+    console.log(state);
+
+    if(state){
+      fs = "filter";
+      min = this.settings[this.cellKey].min;
+      max = this.settings[this.cellKey].max;
+      value = this.settings[this.cellKey].value;
     }else{
-      offset = ws.width / 2 - width / 2;
+      fs = "filter disabled";
+      min = this.min;
+      max = this.max;
+      value = null;
+    }
+
+    $(this.fw).find('input').nodeArr().forEach((i)=>{
+      if(/text|radio/.test(i.type)) i.disabled = !state;
+      if(i.name == "min"){
+        i.value = min;
+        if(this.min == min){
+          i.className = i.className + " def";
+        }
+        if(this.types[0] == "date") i.previousElementSibling.innerHTML = $c.getNormalDate(min, true).d;
+      }
+      if(i.name == "max"){
+        i.value = max;
+        if(this.types[0] == "date") i.previousElementSibling.innerHTML = $c.getNormalDate(max, true).d;
+      }
+      if(i.type == "checkbox") i.checked = state;
+    });
+
+    $(this.fw).find('input[type="radio"]').node().checked = true;
+    $(this.fw).find('table').attr('type', fs);
+  },
+
+  show: function(){
+    var w, wp, cp;
+
+    w = this.fw;
+    wp = w.getBoundingClientRect();
+    cp = this.cp;
+
+    this.setPositionWindow(w, wp, cp);
+    this.setPositionSpace(w, wp, cp);
+    $(this.cell).attr("style", "background-color: #defadc");
+    this.fw.style.visibility = "visible";
+  },
+
+  hide: function(){
+    var close, cell;
+
+    cell = $(this.table.footer).find('td[filter][style]').node();
+    close = cell == this.cell;
+
+    if(cell) cell.removeAttribute("style");
+    this.fw.style.visibility = "hidden";
+
+    return close;
+  },
+
+  createRow: function(){
+    var code = "";
+
+    this.types.forEach((type)=>{
+      switch(type){
+        case "number":
+          code += '@include: ./../../html/numberRow.html';
+          break;
+        case "date":
+          code += '@include: ./../../html/dateRow.html';
+          break;
+        case "multiple":
+          code += '@include: ./../../html/multipleRow.html';
+          break;
+        case "boolean":
+          code += '@include: ./../../html/booleanRow.html';
+          break;
+        case "check":
+          code += '';
+          break;
+      }
+    });
+
+    return code;
+  },
+
+  getMaxMin: function(){
+    var content, type, length, value;
+
+    content = this.table.getContent();
+    length = content.length;
+    type = this.types[0];
+
+    while(length--){
+      value = content[length][this.cellKey];
+
+      if(/boolean|multiple|check/.test(type)) return;
+      if(type == "date") if(content[this.cellKey] == 0) continue;
+
+      if(this.min == null) this.min = value;
+      if(this.max == null) this.max = value;
+      if(this.min > value) this.min = value;
+      if(this.max < value) this.max = value;
+    }
+  },
+
+  setPositionWindow: function(w, wp, cp){
+    var halfWidth, offsetLeft, offsetRight;
+
+    halfWidth = (wp.width - cp.width) / 2;
+    offsetLeft = cp.left - halfWidth - 2;
+
+    offsetRight = wp.width + offsetLeft;
+    if(offsetRight > 1890) offsetLeft = 1890 - wp.width;
+
+    w.style.left = offsetLeft < 0 ? 15 + "px" : offsetLeft + "px";
+    w.style.top = cp.top - wp.height - 7 + document.body.scrollTop;
+  },
+
+  setPositionSpace: function(w, wp, cp){
+    var space, sp, offset, width;
+
+    space =  $(w).find('div').node(-1);
+    sp = space.getBoundingClientRect();
+    wp = this.fw.getBoundingClientRect();
+
+    width = cp.width - 2;
+
+    if(width > wp.width) width = wp.width - 50;
+    if(wp.left == 15 || wp.left + wp.width == 1890){
+      offset = cp.left - sp.left - 1;
+    }else{
+      offset = wp.width / 2 - width / 2;
     }
 
     space.style.width = width + "px";
     space.style.left = offset + "px";
-    space.style.top = ws.height - 2 + "px";
+    space.style.top = wp.height - 2 + "px";
   },
 
   setRadioState: function(value){
@@ -75,151 +217,28 @@ Filter.prototype = {
           $calendar.bind(node);
         }
       );
-  }
+  },
 
+  bindRowMultipleSelect: function(){
+    $(this.fw)
+      .find('div[type^="option"]')
+      .nodeArr()
+      .forEach((node)=>{
+        var n = $(node);
 
-};
-
-
-/**
- * @param id
- * @param table
- * @param settings
- * @returns {Filter}
- */
-module.exports = function (id, table, settings){
-  return new Filter(id, table, settings);
-};
-
-
-function openFilters(key, td, settings, type, text){
-  var state, window, code, row, tds;
-
-  type = typeof type == "object" ? type : [type];
-
-  window = $('#sf_filtersWindow').node();
-  window.style.left = 0;
-  window.style.top = 0;
-
-  state = {
-    element: settings[key] == null ? 'disabled' : 'enabled',
-    filter: settings[key] == null ? '' : 'checked',
-    input: settings[key] == null ? 'disabled' : '',
-    min: settings[key].min,
-    max: settings[key].max,
-    value: settings[key].value
-  };
-
-  tds = td.getBoundingClientRect();
-
-  row = createRow(type, text, state);
-  code = '@include: ./html/filterWindow.html';
-  $(window).html(code);
-
-  setPositionWindow(window);
-  setPositionSpace(window);
-  setRadioState(window, state.value);
-  bindEvents(window, type[0]);
-
-  $(td).attr("style", "background-color: #defadc");
-
-  if($cd.filterNode != td){
-    if($cd.filterNode) $cd.filterNode.removeAttribute("style");
-    $cd.filterNode = td;
-
-    window.style.visibility = "visible";
-  }else{
-    if(window.style.visibility == "visible"){
-      td.removeAttribute("style");
-      window.style.visibility = "hidden";
-    }else{
-      window.style.visibility = "visible";
-    }
-  }
-  /////////////////////////////
-
-  function getMaxMin(list){
-    var key, values = $cd.values.stats;
-    var keys, length;
-
-    keys = Object.keys(list);
-    length = keys.length;
-
-    while(length--){
-      key = keys[length];
-
-      if(key == 'date' || key == 'enter' || key == 'exit' || key == 'goAway') {
-        if(list[key] == 0) continue;
-      }
-
-      if (values[key][1] == -1) values[key][1] = list[key];
-      if (values[key][2] == -1) values[key][2] = list[key];
-      if (values[key][1] > list[key]) values[key][1] = list[key];
-      if (values[key][2] < list[key]) values[key][2] = list[key];
-    }
-  }
-
-
-
-  /////////////////////////////
-
-  function createRow(type, text, state){
-    var code = "", min, max, value;
-
-    min = state.min;
-    max = state.max;
-    value = state.value;
-
-    type.forEach((type)=>{
-      switch(type){
-        case "number":
-          code += '@include: ./html/numberRow.html';
-          break;
-        case "date":
-          if(min == 0) min = 1;
-          if(max == 0) max = 1;
-          code += '@include: ./html/dateRow.html';
-          break;
-        case "multiple":
-          code += '@include: ./html/multipleRow.html';
-          break;
-        case "boolean":
-          code += '@include: ./html/booleanRow.html';
-          break;
-        case "check":
-          code += '';
-          break;
-      }
-    });
-
-    return code;
-  }
-  /////////////////////////////
-
-  function bindEvents(w, type){
-    var filter, save;
-
-    if(type == "date"){
-
-    }
-
-    if(type == "multiple"){
-      $(w)
-        .find('div[type^="option"]')
-        .nodeArr()
-        .forEach((node)=>{
-          var n = $(node);
-
-          if($c.exist(n.attr("name"), $ss.show.stats.status)){
-            n.attr("type", "option selected");
-          }
-          bindEvent(node, 'onclick', ()=>{
-            n.attr("type", /selected/.test(n.attr("type")) ? "option" : "option selected");
-          });
+        if($c.exist(n.attr("name"), $ss.show.stats.status)){
+          n.attr("type", "option selected");
+        }
+        bindEvent(node, 'onclick', ()=>{
+          n.attr("type", /selected/.test(n.attr("type")) ? "option" : "option selected");
         });
-    }
+      });
+  },
 
-    filter = $(w).find('input[type="checkbox"][name="modeFilter"]').node();
+  bindStateFilterButton: function(){
+    var filter;
+
+    filter = $(this.fw).find('input[name="stateButton"]').node();
     bindEvent(filter, 'onclick', ()=>{
       var table, input, status;
 
@@ -230,8 +249,12 @@ function openFilters(key, td, settings, type, text){
         input.disabled = !filter.checked;
       });
     });
+  },
 
-    save = $(w).find('input[type="button"]').node();
+  bindSaveFilterButton: function(){
+    var save;
+
+    save = $(this.fw).find('input[type="button"]').node();
     bindEvent(save, 'onclick', ()=>{
       var mode, radio, values, min, max;
 
@@ -270,4 +293,17 @@ function openFilters(key, td, settings, type, text){
       console.log($ss);
     });
   }
-}
+};
+
+
+/**
+ * @param id
+ * @param table
+ * @param td
+ * @param f
+ * @param key
+ * @returns {Filter}
+ */
+module.exports = function (id, table, td, f, key){
+  return new Filter(id, table, td, f, key);
+};
