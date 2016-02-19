@@ -91,6 +91,32 @@ Api.prototype = {
   },
 
   /**
+   * @param {string} action
+   * @param {string=} param
+   * @returns {Api}
+   */
+  class: function(action, param){
+    this.selector += " > class-" + action + " [" + param + "]";
+
+    if(action == "set"){
+      this.nodeList[0].className = param;
+      return this;
+    }
+    if(action == "add"){
+      this.nodeList[0].className = this.nodeList[0].className + " " + param;
+      return this;
+    }
+    if(action == "remove"){
+      this.nodeList[0].className = this.nodeList[0].className.replace(new RegExp(" " + param), '');
+      return this;
+    }
+    if(action == "delete"){
+      this.nodeList[0].removeAttribute("class");
+      return this;
+    }
+  },
+
+  /**
    * @param {string} param
    * @returns {Api}
    */
@@ -174,13 +200,42 @@ Api.prototype = {
 
     this.selector += " > next[" + param + "]";
     param = param.toUpperCase();
-    node = this.nodeList[0].nextSibling;
+    node = this.nodeList[0].nextElementSibling;
     lastNode = node.parentNode.lastChild;
     this.nodeList = [];
 
     while (node.nodeName != param) {
-      node = node.nextSibling;
+      node = node.nextElementSibling;
       if (node == lastNode) {
+        this.nodeList[0] = null;
+        this.length = 0;
+
+        return this;
+      }
+    }
+    this.nodeList[0] = node;
+    this.length = 1;
+
+    return this;
+  },
+
+  /**
+   *
+   * @param {string} param
+   * @returns {Api}
+   */
+  prev: function (param){
+    var node, firstNode;
+
+    this.selector += " > prev[" + param + "]";
+    param = param.toUpperCase();
+    node = this.nodeList[0].previousElementSibling;
+    firstNode = node.parentNode.firstChild;
+    this.nodeList = [];
+
+    while(node.nodeName != param){
+      node = node.previousElementSibling;
+      if(node == firstNode){
         this.nodeList[0] = null;
         this.length = 0;
 
