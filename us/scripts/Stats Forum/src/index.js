@@ -193,8 +193,8 @@ function addToDB(){
     loadFromLocalStorage('settings');
 
     $t = {
-      stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI"], "stats", $ss),
-      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL"], "themes", $ss)
+      stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI"], "stats", $ss, $ico),
+      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL"], "themes", $ss, $ico)
     };
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
@@ -534,7 +534,7 @@ function openMessageWindow(){
 
     code = '<option>Посмотреть список...</option>';
 
-    $('#sf_content_SI').find('input[type="checkbox"][name="sf_membersList"]:checked')
+    $('#sf_content_SI').find('input[type="checkbox"]:checked')
       .nodeArr()
       .forEach(
         function(box){
@@ -1745,8 +1745,8 @@ function renderBaseHTML(){
   $('#sf_footer_SI').html('@include: ./html/statsTableFooter.html');
 
   t.setSizes();
-  t.setSorts($ico, renderStatsTable);
-  t.setFilters($ico, null);
+  t.setSorts(renderStatsTable);
+  t.setFilters(renderStatsTable);
 
   b1 = $('#sf_bCheckAllMembers').node();
   bindEvent(b1, 'onclick', function(){checkAllMembers(b1, '#sf_content_SI')});
@@ -1768,8 +1768,8 @@ function renderBaseHTML(){
   $('#sf_footer_TL').html('@include: ./html/themesTableFooter.html');
 
   t.setSizes();
-  t.setSorts($ico, renderThemesTable);
-  t.setFilters($ico, null);
+  t.setSorts(renderThemesTable);
+  t.setFilters(renderThemesTable);
 
   b2 = $('#sf_bCheckAllThemes').node();
   bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});

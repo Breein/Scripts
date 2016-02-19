@@ -36,17 +36,22 @@ table[type*="filter"] input[type="text"].hide{
 table[type*="filter"] input[type="text"].def{
     color: #c0c0c0;
 }
+
+table[type*="filter"] div.multipleShell{
+    float: left;
+    min-width: 217px;
+    height: 24px;
+}
 table[type*="filter"] div.multipleCount{
     float: left;
     background: #f0fff0;
-    height: 24px;
-    width: 217px;
+    min-width: 217px;
+    max-height: 24px;
     border: solid 1px #000000;
     z-index: 2;
     overflow-y: hidden;
-    position: absolute;
+    position: relative;
 }
-
 table[type="filter disabled"] div.text{
     color: #c0c0c0;
 }
@@ -63,7 +68,7 @@ table[type="filter disabled"] div.multipleCount{
 }
 table[type="filter enabled"] div.multipleCount:hover{
     overflow-y: visible;
-    height: 199px;
+    max-height: none;
 }
 
 div[type^="option"]{
@@ -71,6 +76,7 @@ div[type^="option"]{
     padding: 0 10px;
     text-align: left;
     border-top: dotted 1px #c0c0c0;
+    display: flex;
 }
 div[type="option selected"]{
     background: #c3e5c3;
@@ -78,4 +84,8 @@ div[type="option selected"]{
 div[type^="option"]:hover{
     background: #d9ecd9;
     cursor: pointer;
+}
+div[type^="option"].noSelect:hover{
+    background: #d9ecd9;
+    cursor: auto;
 }

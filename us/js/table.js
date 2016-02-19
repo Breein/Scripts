@@ -4,11 +4,12 @@ var filter = require('./filters');
 const bindEvent = require('./events');
 const $c = require('./common')();
 
-function Table(nodesID, settingsKey, settings){
+function Table(nodesID, settingsKey, settings, icons){
   this.header = nodesID[0];
   this.body = nodesID[1];
   this.footer = nodesID[2];
   this.name = settingsKey;
+  this.icons = icons;
   this.structure = {};
   this.content = [];
   this.size = [];
@@ -88,9 +89,8 @@ Table.prototype = {
   },
 
   /**
-   * @param {object} icons
    */
-  changeSortImage: function(icons){
+  changeSortImage: function(){
     var value, type, oldImg, newImg;
 
     value = this.settings.sort[this.name].cell;
@@ -98,25 +98,24 @@ Table.prototype = {
 
     if(value != this.sort.cell){
       oldImg = $(this.header).find(`td[sort="${this.sort.cell}"]`).node().lastChild;
-      oldImg.src = icons.sortNull;
+      oldImg.src = this.icons.sortNull;
     }
 
     newImg = $(this.header).find(`td[sort="${value}"]`).node().lastChild;
-    newImg.src = type ? icons.sortDown : icons.sortUp;
+    newImg.src = type ? this.icons.sortDown : this.icons.sortUp;
   },
 
   /**
    * @param {string} td
    * @param {string} cell
-   * @param {object} icons
    */
-  setSortImage: function(td, cell, icons){
+  setSortImage: function(td, cell){
     var img = $(td).find('img').node();
 
     if(this.settings.sort[this.name].cell != cell){
-      img.src = icons.sortNull;
+      img.src = this.icons.sortNull;
     }else{
-      img.src = this.settings.sort[this.name].type ? icons.sortDown : icons.sortUp;
+      img.src = this.settings.sort[this.name].type ? this.icons.sortDown : this.icons.sortUp;
     }
   },
 
@@ -165,21 +164,20 @@ Table.prototype = {
   },
 
   /**
-   * @param {object} icons
    * @param {Function} callback
    */
-  setSorts: function(icons, callback){
+  setSorts: function(callback){
     var table = this;
 
     $(table.header).find('td[sort]').nodeArr().forEach(function(td){
       var value;
 
       value = td.getAttribute("sort");
-      table.setSortImage(td, value, icons);
+      table.setSortImage(td, value);
       bindEvent(td, 'onclick', ()=>{
         var cell, name = table.getName();
 
-        table.setSort(icons);
+        table.setSort();
 
         cell = td.getAttribute("sort");
         if(cell == table.settings.sort[name].cell){
@@ -189,7 +187,7 @@ Table.prototype = {
           table.settings.sort[name].type = 1;
         }
 
-        table.changeSortImage(icons);
+        table.changeSortImage();
         table.sorting();
 
         //saveToLocalStorage('settings');
@@ -255,10 +253,9 @@ Table.prototype = {
   },
 
   /**
-   * @param {object} icons
-   * @param {Function} callback
+   * @param {Function=} callback
    */
-  setFilters: function(icons, callback){
+  setFilters: function(callback){
     var table = this, name = this.getName();
 
     $(table.footer).find('td[filter]').nodeArr().forEach(function(td){
@@ -267,25 +264,20 @@ Table.prototype = {
       value = $(td).attr("filter");
       ft = table.structure[value].filter;
 
-      ico = table.settings.show[name][value] ? icons.boxOn : icons.boxOff;
-      ico = `<img src="${icons.filter}"><img style="margin-left: 1px;" src="${ico}"/>`;
+      ico = table.settings.show[name][value] ? table.icons.boxOn : table.icons.boxOff;
+      ico = `<img style="margin-left: 1px;" src="${ico}"/>`;
 
+      //<img src="${table.icons.filter}">
       $(td).html(ico);
 
-      bindEvent(td, 'onclick', function(){
-        var f;
-
-        if(table.filters[value] == null){
-          table.filters[value] = filter("#sf_filtersWindow", table, td, ft, value);
-        }
-
-        f = table.filters[value];
-        f.prepare();
-
-        //console.log(f);
-        //callback(value, td, table.settings.show[name], table.structure[value].filterType, table.structure[value].filterName);
-      });
-
+      if(callback){
+        bindEvent(td, 'onclick', function(){
+          if(table.filters[value] == null){
+            table.filters[value] = filter("#sf_filtersWindow", table, td, ft, value);
+          }
+          table.filters[value].prepare(callback);
+        });
+      }
     });
   },
 
@@ -294,7 +286,7 @@ Table.prototype = {
    * @returns {boolean}
    */
   filtering: function(row){
-    var filter, value, length, list;
+    var filter, value, fv, rv, length, list;
 
     filter = this.settings.show[this.name];
     list = Object.keys(filter);
@@ -302,22 +294,26 @@ Table.prototype = {
 
     while(length--){
       value = list[length];
+      fv = filter[value];
+      rv = row[value];
 
-      switch (filter[value].type){
+      switch (fv.type){
         case "boolean":
-          if (filter[value].value != row[value]) return false;
+          rv = rv != 0;
+          if (fv.value != rv) return false;
           break;
 
         case "multiple":
-          if(!$c.exist(row[value], filter[value].value)) return false;
+          if(!$c.exist(rv, fv.value)) return false;
           break;
 
         case "check":
-          if(!$c.exist(row[value][1], filter[value].value)) return false;
+          if(typeof rv == "object") rv = rv[1];
+          if(!$c.exist(rv, fv.value)) return false;
           break;
 
         default:
-          if(compare(filter[value], row[value])) return false;
+          if(compare(fv, row[value])) return false;
       }
     }
     return true;
@@ -333,8 +329,9 @@ Table.prototype = {
  * @param {string[]} nodesID
  * @param {string} settingsKey
  * @param {object} settings
+ * @param {object} icons
  * @returns {Table}
  */
-module.exports = function (nodesID, settingsKey, settings){
-  return new Table(nodesID, settingsKey, settings);
+module.exports = function (nodesID, settingsKey, settings, icons){
+  return new Table(nodesID, settingsKey, settings, icons);
 };

@@ -9,13 +9,16 @@ function Filter(id, table, td, f, key){
   this.settings = table.settings.show[table.getName()];
   this.cell = td;
   this.cp = td.getBoundingClientRect();
-  this.cellKey = key;
+  this.column = key;
   this.types = this.getTypes(f);
   this.text = this.getText(f);
 
+  this.button = null;
   this.min = null;
   this.max = null;
   this.html = "";
+
+  $calendar.setContainer("#sf_calendar");
 }
 
 Filter.prototype = {
@@ -33,37 +36,39 @@ Filter.prototype = {
 
   /**
    */
-  prepare: function(){
+  prepare: function(callback){
     var row;
 
     if(this.hide()) return;
-    this.getMaxMin();
+    this.getDefaults();
 
-    if(this.html == ""){
+    if(this.html == "" || this.types[0] == "check"){
       row = this.createRow();
       this.html = '@include: ./../../html/filterWindow.html';
     }
+
     this.fw.style.left = 0;
     this.fw.style.top = 0;
     this.fw.innerHTML = this.html;
 
     this.setDataFilter();
+    if(this.types[0] == "multiple") this.bindRowMultipleSelect();
+    if(this.types[0] == "date") this.bindRowDateCall();
     this.bindStateFilterButton();
+    this.bindSaveFilterButton(callback);
     this.show();
   },
 
   setDataFilter: function(){
     var state, fs, min, max, value, radio;
 
-    state = this.settings[this.cellKey] != null;
-
-    console.log(state);
+    state = this.settings[this.column] != null;
 
     if(state){
-      fs = "filter";
-      min = this.settings[this.cellKey].min;
-      max = this.settings[this.cellKey].max;
-      value = this.settings[this.cellKey].value;
+      fs = "filter enabled";
+      min = this.settings[this.column].min; min = !min ? this.min : min;
+      max = this.settings[this.column].max; max = !max ? this.max : max;
+      value = this.settings[this.column].value;
     }else{
       fs = "filter disabled";
       min = this.min;
@@ -71,24 +76,39 @@ Filter.prototype = {
       value = null;
     }
 
+    if(/date|number/.test(this.types[0])){
+      this.setDataInput("min", min);
+      this.setDataInput("max", max);
+    }
+
     $(this.fw).find('input').nodeArr().forEach((i)=>{
       if(/text|radio/.test(i.type)) i.disabled = !state;
-      if(i.name == "min"){
-        i.value = min;
-        if(this.min == min){
-          i.className = i.className + " def";
-        }
-        if(this.types[0] == "date") i.previousElementSibling.innerHTML = $c.getNormalDate(min, true).d;
-      }
-      if(i.name == "max"){
-        i.value = max;
-        if(this.types[0] == "date") i.previousElementSibling.innerHTML = $c.getNormalDate(max, true).d;
-      }
       if(i.type == "checkbox") i.checked = state;
     });
 
-    $(this.fw).find('input[type="radio"]').node().checked = true;
+    if(typeof value == "boolean"){
+      $(this.fw).find(`input[type="radio"][value="only ${value}"]`).node().checked = true;
+    }else{
+      $(this.fw).find('input[type="radio"]').node().checked = true;
+    }
     $(this.fw).find('table').attr('type', fs);
+  },
+
+  setDataInput: function(name, value){
+    var input;
+
+    input = $(this.fw).find(`input[name="${name}"]`);
+    input.node().value = value;
+    if(value == this[name]) input.class("add", "def");
+
+    if(this.types[0] == "date"){
+      if(value == 0) value = 1;
+      input.node().value = value;
+      input.prev('span').html($c.getNormalDate(value, true).d);
+    }
+
+    this.bindOnFocus(input.node());
+    this.bindOnBlur(input.node());
   },
 
   show: function(){
@@ -134,7 +154,7 @@ Filter.prototype = {
           code += '@include: ./../../html/booleanRow.html';
           break;
         case "check":
-          code += '';
+          code += '@include: ./../../html/checkRow.html';
           break;
       }
     });
@@ -142,7 +162,28 @@ Filter.prototype = {
     return code;
   },
 
-  getMaxMin: function(){
+  createOptionList: function(){
+    var code = "";
+
+    if(this.column == "status"){
+      [ "Необработан", "В порядке", "Торговый", "Арестован",
+        "Форумный", "Общий бан", "Заблокирован"
+      ].forEach((text, index)=>{
+        code += `<div type="option" name="${index}">${text}</div>`;
+      });
+    }else{
+      $(this.table.body).find('input[type="checkbox"]:checked').nodeArr().forEach((box)=>{
+        var name;
+
+        name = $(box).up('tr').node().cells[this.cell.cellIndex].textContent;
+        code += `<div type="option" class="noSelect" name="${name}">${name}</div>`;
+      });
+    }
+
+    return code;
+  },
+
+  getDefaults: function(){
     var content, type, length, value;
 
     content = this.table.getContent();
@@ -150,10 +191,10 @@ Filter.prototype = {
     type = this.types[0];
 
     while(length--){
-      value = content[length][this.cellKey];
+      value = content[length][this.column];
 
       if(/boolean|multiple|check/.test(type)) return;
-      if(type == "date") if(content[this.cellKey] == 0) continue;
+      if(type == "date") if(content[this.column] == 0) continue;
 
       if(this.min == null) this.min = value;
       if(this.max == null) this.max = value;
@@ -208,6 +249,32 @@ Filter.prototype = {
     if(radio) radio.checked = true;
   },
 
+  bindOnFocus: function(node){
+    var value;
+
+    bindEvent(node, "onfocus", ()=>{
+      value = parseInt(node.value, 10);
+
+      if(value == this[node.name]){
+        node.value = "";
+        $(node).class("remove", "def");
+      }
+    });
+  },
+
+  bindOnBlur: function(node){
+    var value;
+
+    bindEvent(node, "onblur", ()=>{
+      value = parseInt(node.value, 10);
+
+      if(isNaN(value) || value == this[node.name]){
+        node.value = this[node.name];
+        $(node).class("add", "def");
+      }
+    });
+  },
+
   bindRowDateCall: function(){
     $(this.fw)
       .find('span[type="calendarCall"]')
@@ -224,9 +291,13 @@ Filter.prototype = {
       .find('div[type^="option"]')
       .nodeArr()
       .forEach((node)=>{
-        var n = $(node);
+        var n, array;
 
-        if($c.exist(n.attr("name"), $ss.show.stats.status)){
+        n = $(node);
+        array = this.settings[this.column];
+        array = array ? array.value : [];
+
+        if($c.exist(n.attr("name"), array)){
           n.attr("type", "option selected");
         }
         bindEvent(node, 'onclick', ()=>{
@@ -236,62 +307,83 @@ Filter.prototype = {
   },
 
   bindStateFilterButton: function(){
-    var filter;
+    this.button = $(this.fw).find('input[name="stateButton"]').node();
 
-    filter = $(this.fw).find('input[name="stateButton"]').node();
-    bindEvent(filter, 'onclick', ()=>{
+    bindEvent(this.button, 'onclick', ()=>{
       var table, input, status;
 
-      status = filter.checked ? "enabled" : "disabled";
-      table = $(filter).up('table').attr("type", `filter ${status}`);
+      status = this.button.checked ? "enabled" : "disabled";
+      table = $(this.button).up('table').attr("type", `filter ${status}`);
 
       table.find('input[type="text"],input[type="radio"]').nodeArr().forEach((input)=>{
-        input.disabled = !filter.checked;
+        input.disabled = !this.button.checked;
       });
     });
   },
 
-  bindSaveFilterButton: function(){
+  bindSaveFilterButton: function(callback){
     var save;
 
     save = $(this.fw).find('input[type="button"]').node();
     bindEvent(save, 'onclick', ()=>{
-      var mode, radio, values, min, max;
+      var settings, column, mm, v, b, result;
 
-      mode = $(w).find('input[name="modeFilter"]:checked').node();
-      if(mode){
-        radio = $(w).find('input[type="radio"]:checked').node();
-        if(!radio) return;
+      settings = this.settings;
+      column = this.column;
 
-        if(radio.value == "min-max"){
-          if(radio.name == "status"){
-            values = [];
-            $(w).find('div[type="option selected"]').nodeArr().forEach((option)=>{
-              values.push(Number($(option).attr('name')));
-            });
-            if(values.length){
-              settings[key] = {value: values};
-            }
-          }else{
-            values = $(w).find('input[type="text"]').nodes();
-            min = Number(values[0].value);
-            max = Number(values[1].value);
+      mm = this.getMinMax();  if(mm) result = mm;
+      v = this.getMultiple(); if(v) result = v;
+      b = this.getBoolean();  if(b) result = b;
 
-            if(min > max){
-              min = max;
-              max = Number(values[0].value);
-            }
-
-            settings[key] = {min: min, max: max};
-          }
-        }else{
-          settings[key] = {value: /true/.test(radio.value)};
-        }
+      if(this.button.checked && result){
+        settings[column] = result;
       }else{
-        delete settings[key];
+        delete settings[column];
       }
-      console.log($ss);
+      this.hide();
+      this.table.setFilters();
+      callback(false);
     });
+  },
+
+  getMinMax: function(){
+    var min, max;
+
+    min = $(this.fw).find('input[name="min"]').node();
+    max = $(this.fw).find('input[name="max"]').node();
+
+    if(min && max){
+      min = Number(min.value);
+      max = Number(max.value);
+
+      return min > max ? {type: this.types[0], min: max, max: min} : {type: this.types[0], min: min, max: max};
+    }
+  },
+
+  getMultiple: function(){
+    var result, selector, c;
+
+    result = [];
+    c = this.types[0] == "check";
+    selector = c ? 'div[type="option"]' : 'div[type="option selected"]';
+
+    $(this.fw).find(selector).nodeArr().forEach((option)=>{
+      var v = c ? $(option).attr('name') : Number($(option).attr('name'));
+      result.push(v);
+    });
+
+    if(result.length){
+      return {type: this.types[0], value: result};
+    }
+  },
+
+  getBoolean: function(){
+    var radio;
+
+    radio = $(this.fw).find('input[type="radio"]:checked').node();
+    if(/true|false/.test(radio.value)){
+      return {type: "boolean", value: /true/.test(radio.value)};
+    }
   }
 };
 
