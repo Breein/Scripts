@@ -2,7 +2,7 @@ var $ = require('./dom.js');
 var filter = require('./filters.js');
 
 const bindEvent = require('./events.js');
-const $ls = require('./ls.js')();
+const $ls = require('./ls.js');
 const $c = require('./common.js')();
 
 function Table(nodesID, settingsKey, settings, icons){

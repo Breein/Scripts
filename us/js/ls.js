@@ -31,6 +31,4 @@ LocalStorage.prototype = {
   }
 };
 
-module.exports = function(){
-  return new LocalStorage();
-};
+module.exports = new LocalStorage();
