@@ -579,81 +579,6 @@ function closeWindows(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getMembersList(){
-  var url;
-
-  if($forum.sid){
-    url = `http://www.ganjawars.ru/syndicate.php?id=${$forum.sid}&page=members`;
-    displayProgress('start', 'Сбор и обработка информации о составе синдиката', 0, 1);
-
-    ajax(url, "GET", null).then((r)=>{
-      $answer.innerHTML = r.text;
-      correctionTime(r.time);
-
-      prepareMembers().then(()=>{
-        $($answer)
-          .find('b:contains("Состав синдиката")')
-          .up('table')
-          .find('a[href*="info.php"]')
-          .nodeArr()
-          .reduce((sequence, a) => {
-          return sequence.then(()=>{
-            return parseNodes(a);
-          });
-        }, Promise.resolve()).then(()=>{
-          renderStatsTable();
-          displayProgress('done');
-        });
-      });
-    }, (e)=>{
-      errorLog("Сбор информации о составе синдиката", 0, e);
-    });
-  }
-  /////////////////////////////
-
-  function prepareMembers(){
-    return $idb.getFew(`members_${$forum.id}`).then((members)=>{
-      members.forEach((member)=>{
-        member.i = 0;
-        $idb.add(`members_${$forum.id}`, member);
-      });
-    });
-  }
-  /////////////////////////////
-
-  function parseNodes(node){
-    var id, name, sn, character, player, member;
-    var g, f;
-
-    f = (resolve) => {
-      g = parse();
-      g.next();
-
-      function* parse(){
-        id = Number(node.href.match(/(\d+)/)[1]);
-        name = node.textContent;
-        sn = $(node).up('tr').node().cells[0].textContent;
-        sn = parseInt(sn, 10);
-
-        character = yield getCharacter.gkWait(g, this, [id]);
-        player = character.p; member = character.m;
-
-        if(player._ch) player.name = name;
-        member.sn = sn;
-        member._ch = true;
-
-        $idb.add(`players`, Pack.player(player));
-        $idb.add(`members_${$forum.id}`, Pack.member(member));
-        resolve();
-      }
-    };
-
-    return new Promise(f);
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function getCharacter(value, tid){
   var player, member, index, id, result;
   var g, f;
@@ -739,6 +664,80 @@ function getCharacter(value, tid){
   }
 
   return new Promise(f);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getMembersList(){
+  var url;
+
+  if($forum.sid){
+    url = `http://www.ganjawars.ru/syndicate.php?id=${$forum.sid}&page=members`;
+    displayProgress('start', 'Сбор и обработка информации о составе синдиката', 0, 1);
+
+    ajax(url, "GET", null).then((r)=>{
+      $answer.innerHTML = r.text;
+      correctionTime(r.time);
+
+      prepareMembers().then(()=>{
+        $($answer)
+          .find('b:contains("Состав синдиката")')
+          .up('table')
+          .find('a[href*="info.php"]')
+          .nodeArr()
+          .reduce((sequence, a) => {
+          return sequence.then(()=>{
+            return parseNodes(a);
+          });
+        }, Promise.resolve()).then(()=>{
+          renderStatsTable();
+          displayProgress('done');
+        });
+      });
+    }, (e)=>{
+      errorLog("Сбор информации о составе синдиката", 0, e);
+    });
+  }
+  /////////////////////////////
+
+  function prepareMembers(){
+    return $idb.getFew(`members_${$forum.id}`).then((members)=>{
+      members.forEach((member)=>{
+        member.i = 0;
+        $idb.add(`members_${$forum.id}`, member);
+      });
+    });
+  }
+  /////////////////////////////
+
+  function parseNodes(node){
+    var id, name, sn, character, player, member;
+    var g, f;
+
+    f = (resolve) => {
+      g = parse();
+      g.next();
+
+      function* parse(){
+        id = Number(node.href.match(/(\d+)/)[1]);
+        name = node.textContent;
+        sn = $(node).up('tr').node().cells[0].textContent;
+        sn = parseInt(sn, 10);
+
+        character = yield getCharacter.gkWait(g, this, [id]);
+        player = character.p; member = character.m;
+
+        if(player._ch) player.name = name;
+        member.sn = sn;
+        member._ch = true;
+
+        $idb.add(`players`, Pack.player(player));
+        $idb.add(`members_${$forum.id}`, Pack.member(member));
+        resolve();
+      }
+    };
+
+    return new Promise(f);
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
