@@ -25,7 +25,7 @@ DB.prototype = {
     var idb = this;
 
     return new Promise((onsuccess) =>{
-      console.log("Run connect, version " + idb.version);
+      //console.log("Run connect, version " + idb.version);
 
       idb.r = idb.o.open(this.name, idb.version);
 
@@ -35,7 +35,7 @@ DB.prototype = {
 
       idb.r.onsuccess = function(){
         idb.db = idb.r.result;
-        console.log("Success connect!");
+        //console.log("Success connect!");
         onsuccess(idb);
       };
 
@@ -44,10 +44,10 @@ DB.prototype = {
 
         if(idb.version == 2){
           idb.upgrade(true);
-          console.log("Create: defaults");
+          //console.log("Create: defaults");
         }
         idb.upgrade(false);
-        console.log("Upgraded!");
+        //console.log("Upgraded!");
       };
     });
   },
@@ -86,13 +86,13 @@ DB.prototype = {
           table = idb.r.transaction.objectStore(t.name);
         }else{
           table = idb.db.createObjectStore(t.name, {keyPath: t.key});
-          console.log("Success created: " + t.name);
+          //console.log("Success created: " + t.name);
         }
 
         if(t.index){
           t.index.forEach(function(index){
             table.createIndex(index[0], index[1], {unique: index[2]});
-            console.log("Success created index: " + index.toString());
+            //console.log("Success created index: " + index.toString());
           });
         }
       });
@@ -101,7 +101,7 @@ DB.prototype = {
     if(idb.removeTable){
       idb.removeTable.forEach(function(t){
         idb.db.deleteObjectStore(t);
-        console.log("Success removed: " + t);
+        //console.log("Success removed: " + t);
       });
       idb.removeTable = null;
     }
@@ -202,7 +202,7 @@ DB.prototype = {
           }
           cursor.continue();
         }else{
-          console.log("Got all results: ");
+          //console.log("Got all results: ");
           onsuccess(results);
         }
       };
@@ -224,7 +224,7 @@ DB.prototype = {
         if(data._ch){
           delete data._ch;
           this.store.put(data);
-          console.log(`Success added to "${table}", id[${data.id}]!`);
+          //console.log(`Success added to "${table}", id[${data.id}]!`);
         }
       }
     }catch(e){
@@ -242,10 +242,9 @@ DB.prototype = {
       this.tx = this.db.transaction([table], "readwrite");
       this.store = this.tx.objectStore(table);
       this.store.clear();
-      console.log(`Success clear table "${table}"`);
+      //console.log(`Success clear table "${table}"`);
     }catch(e){
       console.log(`Failed clear table "${table}"`);
-      console.log(data);
       console.log(e);
     }
   }
