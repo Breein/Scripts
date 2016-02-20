@@ -15,6 +15,7 @@ GeneratorData.prototype = {
       date: 0,
       forums: {},
       bl: 0,
+      desc: 0,
       _ch: true
     }
   },

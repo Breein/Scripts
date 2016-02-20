@@ -18,8 +18,8 @@ PackerData.prototype = {
   player: function(o){
     if(!o) return o;
     return this.isPacked(o) ?
-    {id: o.id, name: o.a, status: o.b, date: o.c, forums: o.d, bl: o.e, _ch: false} :
-    {id: o.id, a: o.name, b: o.status, c: o.date, d: o.forums, e: o.bl, _ch: o._ch};
+    {id: o.id, name: o.a, status: o.b, date: o.c, forums: o.d, bl: o.e, desc: o.f, _ch: false} :
+    {id: o.id, a: o.name, b: o.status, c: o.date, d: o.forums, e: o.bl, f: o.desc, _ch: o._ch};
   },
 
   /**

@@ -164,7 +164,7 @@ function makeConnect(name, first){
   var ini, g;
 
   ini = [
-    {name: "players", key: "id", index: [["name", "a", true], ["blackList", "e", false]]},
+    {name: "players", key: "id", index: [["NAME", "a", true], ["BL", "e", false]]},
     {name: "forums", key: "id"}
   ];
 
@@ -195,7 +195,7 @@ function addToDB(){
 
     $idb.add("forums", forum);
     $idb.setModifyingTableList([
-      {name: "players", index:[[`fid_${$cd.fid}`, `d.f${$cd.fid}`, false]]},
+      {name: "players", index:[[`FID_${$cd.fid}`, `d.f${$cd.fid}`, false]]},
       {name: `themes_${$cd.fid}`, key: "id"},
       {name: `members_${$cd.fid}`, key: "id"},
       {name: `timestamp_${$cd.fid}`, key: "id"}
@@ -205,8 +205,6 @@ function addToDB(){
     makeConnect("gk_StatsForum", false);
   }else{
     $ss = $ls.load("gk_SF_settings");
-
-    console.log($ss);
 
     $t = {
       stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI"], "stats", $ss, $ico),
@@ -660,7 +658,7 @@ function getCharacter(value, tid){
   var player, member, index, id, result;
   var g, f;
 
-  index = typeof value == "string" ? "name" : "id";
+  index = typeof value == "string" ? "NAME" : "id";
   tid = tid ? tid : $forum.id;
 
   /////////////////////////////
@@ -983,8 +981,6 @@ function parseForum(index, mode, stopDate){
         date = getDate();
 
         if(stopDate != null && !(stopDate < date)) count++;
-
-        console.log(count);
 
         if(count > 5){
           index = -2;
@@ -1842,7 +1838,7 @@ function renderStatsTable(sorted){
       table.clearContent();
 
       members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
-      players = yield $idb.getFew.gkWait(g, $idb, ["players", "{}", `fid_${$cd.fid}`]);
+      players = yield $idb.getFew.gkWait(g, $idb, ["players", "{}", `FID_${$forum.id}`]);
 
       if($forum.sid == null && $idb.exist('members_17930'))
         cMembers = yield $idb.getFew.gkWait(g, $idb, ['members_17930', '{}']);
@@ -1957,7 +1953,7 @@ function showStats(t){
   code[n] = html;
 
 
-  getTimeRequest();
+  //getTimeRequest();
 
   return code.reduce((sequence, c) => {
     return sequence.then(()=>{
@@ -1965,7 +1961,7 @@ function showStats(t){
     });
   }, Promise.resolve()).then(()=>{
 
-    getTimeRequest(1);
+    //getTimeRequest(1);
 
     $cd.statsCount = length;
 
