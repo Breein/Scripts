@@ -1768,7 +1768,7 @@ function renderBaseHTML(){
     name: [-1, "check", "Имя персонажа"],
     start: [75, "number", "Начато тем"],
     write: [75, "number", "Учавствовал в темах"],
-    lastMessage: [95, "date", "Последнее сообщение"],
+    lastMessage: [95, "date|boolean", "Последнее сообщение|кто писал сообщения|кто писал сообщения"],
     posts: [80, "number", "Всего сообщений"],
     words: [75, "number", "Всего написанных слов"],
     wordsAverage: [95, "number", "Среднее количество написанных слов"],

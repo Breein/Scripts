@@ -200,7 +200,7 @@ Filter.prototype = {
       value = content[length][this.column];
 
       if(/boolean|multiple|check/.test(type)) return;
-      if(type == "date") if(content[this.column] == 0) continue;
+      if(type == "date" && value == 0) continue;
 
       if(this.min == null) this.min = value;
       if(this.max == null) this.max = value;
