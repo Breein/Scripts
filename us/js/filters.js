@@ -35,8 +35,9 @@ Filter.prototype = {
   },
 
   /**
+   * @param {Function} callback
    */
-  prepare: function(callback){
+  activate: function(callback){
     var row;
 
     if(this.hide()) return;
@@ -99,7 +100,12 @@ Filter.prototype = {
 
     input = $(this.fw).find(`input[name="${name}"]`);
     input.node().value = value;
-    if(value == this[name]) input.class("add", "def");
+
+    if(value == this[name]){
+      if(!this.settings[this.column] || value != this.settings[this.column][name]){
+        input.class("add", "def");
+      }
+    }
 
     if(this.types[0] == "date"){
       if(value == 0) value = 1;
@@ -337,11 +343,13 @@ Filter.prototype = {
 
       if(this.button.checked && result){
         settings[column] = result;
+        $(this.cell).class("set", "enable");
       }else{
         delete settings[column];
+        $(this.cell).class("set", "disable");
       }
       this.hide();
-      this.table.setFilters();
+      this.table.saveSettings();
       callback(false);
     });
   },

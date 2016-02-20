@@ -1,8 +1,9 @@
-var $ = require('./dom');
-var filter = require('./filters');
+var $ = require('./dom.js');
+var filter = require('./filters.js');
 
-const bindEvent = require('./events');
-const $c = require('./common')();
+const bindEvent = require('./events.js');
+const $ls = require('./ls.js')();
+const $c = require('./common.js')();
 
 function Table(nodesID, settingsKey, settings, icons){
   this.header = nodesID[0];
@@ -189,9 +190,7 @@ Table.prototype = {
 
         table.changeSortImage();
         table.sorting();
-
-        //saveToLocalStorage('settings');
-
+        table.saveSettings();
         callback(true);
       });
     });
@@ -253,31 +252,28 @@ Table.prototype = {
   },
 
   /**
-   * @param {Function=} callback
+   * @param {Function} callback
    */
   setFilters: function(callback){
-    var table = this, name = this.getName();
+    var table = this;
 
     $(table.footer).find('td[filter]').nodeArr().forEach(function(td){
-      var value, ft, ico;
+      var value, ft;
 
       value = $(td).attr("filter");
       ft = table.structure[value].filter;
 
-      ico = table.settings.show[name][value] ? table.icons.boxOn : table.icons.boxOff;
-      ico = `<img style="margin-left: 1px;" src="${ico}"/>`;
-
-      //<img src="${table.icons.filter}">
-      $(td).html(ico);
-
-      if(callback){
-        bindEvent(td, 'onclick', function(){
-          if(table.filters[value] == null){
-            table.filters[value] = filter("#sf_filtersWindow", table, td, ft, value);
-          }
-          table.filters[value].prepare(callback);
-        });
+      if(table.settings.show[table.name][value]){
+        $(td).class("set", "enable");
       }
+
+      bindEvent(td, 'onclick', function(){
+        if(table.filters[value] == null){
+          table.filters[value] = filter("#sf_filtersWindow", table, td, ft, value);
+        }
+        table.filters[value].activate(callback);
+      });
+
     });
   },
 
@@ -322,6 +318,10 @@ Table.prototype = {
       if(isNaN(n)) n = parseInt(n, 10);
       return !(k.min <= n && n <= k.max);
     }
+  },
+
+  saveSettings: function(){
+    $ls.save("gk_SF_settings", this.settings);
   }
 };
 

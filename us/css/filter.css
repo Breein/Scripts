@@ -1,3 +1,32 @@
+#sf_filtersWindow{
+    position: absolute;
+    z-index: 2
+}
+#sf_filtersWindow > div:first-child {
+    background: #defadc;
+    border: solid 2px white;
+    border-radius: 10px;
+}
+#sf_filtersWindow > div:first-child > div:first-child {
+    margin: 10px 10px;
+    border: dashed 1px #339933;
+}
+#sf_filtersWindow table{
+    border-collapse: collapse;
+    background-color: #f0fff0;
+}
+#sf_filtersWindow table td{
+    padding: 2px 10px 2px 10px;
+}
+#sf_filtersWindow > div:last-child {
+    position: absolute;
+    border: solid 2px white;
+    border-bottom-style: none;
+    border-top-style: none;
+    height: 10px;
+    background: #defadc;
+}
+
 table[type*="filter"] input[type="radio"]{
     float: left;
     margin-top: 6px;

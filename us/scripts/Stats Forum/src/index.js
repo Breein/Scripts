@@ -5,11 +5,12 @@ var bindEvent = require('./../../../js/events');
 var ajax = require('./../../../js/request');
 var createTable = require('./../../../js/table');
 
-const $c = require('./../../../js/common')();
-const $calendar = require('./../../../js/calendar')();
-const Create = require('./../src/creator')();
-const Pack = require('./../src/packer')();
-const $ico = require('./../src/icons');
+const $c = require('./../../../js/common.js')();
+const $ls = require('./../../../js/ls.js')();
+const $calendar = require('./../../../js/calendar.js')();
+const Create = require('./../src/creator.js')();
+const Pack = require('./../src/packer.js')();
+const $ico = require('./../src/icons.js');
 
 
 var $nameScript = "Stats forums [GW]";
@@ -72,10 +73,7 @@ createStatGUIButton();
 function addStyle(){
   var css, code;
 
-  code = '@include: ./html/index.css';
-  code += '@include: ./../../css/filter.css';
-
-  code +=
+  code =
     `
     td[sort="sNumber"]{
       background-image: url(${$ico.memberIco});
@@ -97,6 +95,18 @@ function addStyle(){
       background-position: 10px center;
       background-repeat:no-repeat;
     }
+    td[filter]{
+      background-position: center center;
+      background-repeat:no-repeat;
+    }
+    td[filter].disable{
+      background-image: url(${$ico.boxOff});
+    }
+    td[filter].enable{
+      background-image: url(${$ico.boxOn});
+      background-color: #cfe5cf;
+    }
+
     #sf_statusWindow{
       left: ${$screenWidth / 2 - 325};
       top: ${$screenHeight / 2 - 120};
@@ -109,6 +119,10 @@ function addStyle(){
         left: ${$screenWidth / 2 - 370};
         top: ${$screenHeight / 2 - 222};
     }`;
+
+  code += '@include: ./html/index.css';
+  code += '@include: ./../../css/filter.css';
+
   css = $("style").html(code).node();
   css.setAttribute("type", "text/css");
   css.setAttribute("script", "true");
@@ -190,7 +204,9 @@ function addToDB(){
     $idb.nextVersion();
     makeConnect("gk_StatsForum", false);
   }else{
-    loadFromLocalStorage('settings');
+    $ss = $ls.load("gk_SF_settings");
+
+    console.log($ss);
 
     $t = {
       stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI"], "stats", $ss, $ico),
@@ -2131,45 +2147,3 @@ function errorLog(text, full, e){
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// АПИ для работы с LS
-
-function saveToLocalStorage(type){
-  var string;
-
-  if(type == 'data' && $mode){
-    string = JSON.stringify($sd);
-    localStorage.setItem("gk_SF_data", string);
-  }
-  if(type == 'settings'){
-    string = JSON.stringify($ss);
-    localStorage.setItem("gk_SF_settings", string);
-  }
-}
-
-function loadFromLocalStorage(type){
-  var string;
-
-  if(type == 'data'){
-    string = localStorage.getItem("gk_SF_data");
-
-    if(string){
-      if($mode) {
-        $sd = JSON.parse(string);
-      }else{
-        $tsd = JSON.parse(string);
-      }
-    }else{
-      saveToLocalStorage('data');
-    }
-  }
-  if(type == 'settings'){
-    string = localStorage.getItem("gk_SF_settings");
-
-    if(string){
-      $ss = JSON.parse(string);
-    }else{
-      saveToLocalStorage('settings');
-    }
-  }
-}
