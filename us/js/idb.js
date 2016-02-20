@@ -180,7 +180,7 @@ DB.prototype = {
     results = type == "{}" ? {} : [];
 
     f = (onsuccess) => {
-      if(range){
+      if(range != null){
         krv = typeof range == 'object' ? this.kr.bound(range[0], range[1]) : this.kr.only(range);
       }
 

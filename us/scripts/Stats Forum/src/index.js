@@ -209,7 +209,8 @@ function addToDB(){
 
     $t = {
       stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI"], "stats", $ss, $ico),
-      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL"], "themes", $ss, $ico)
+      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL"], "themes", $ss, $ico),
+      bl: createTable(["#sf_header_BL", "#sf_content_BL", "#sf_footer_BL"], "bl", $ss, $ico)
     };
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
@@ -1768,7 +1769,7 @@ function renderBaseHTML(){
     name: [-1, "check", "Имя персонажа"],
     start: [75, "number", "Начато тем"],
     write: [75, "number", "Учавствовал в темах"],
-    lastMessage: [95, "date|boolean", "Последнее сообщение|кто писал сообщения|кто писал сообщения"],
+    lastMessage: [95, "date|boolean", "Последнее сообщение|кто писал сообщения|тех кто писал сообщения"],
     posts: [80, "number", "Всего сообщений"],
     words: [75, "number", "Всего написанных слов"],
     wordsAverage: [95, "number", "Среднее количество написанных слов"],
@@ -1815,6 +1816,22 @@ function renderBaseHTML(){
 
   b2 = $('#sf_bCheckAllThemes').node();
   bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});
+
+  t = $t.bl;
+  t.setStructure({
+    id: [75, "number", "ID"],
+    name: [250, "check", "Имя игрока"],
+    date: [150, "date", "Дата добавления"],
+    desc: [-1, "check|boolean", "Описание, причина|с описанием|тех кто с описанием"],
+    check: [45, null, null]
+  });
+
+  $('#sf_header_BL').html('@include: ./html/blTableHeader.html');
+  $('#sf_footer_BL').html('@include: ./html/blTableFooter.html');
+
+  t.setSizes();
+  t.setSorts(renderBLTable);
+  t.setFilters(renderBLTable);
 
   /////////////////////////////
 
@@ -1915,9 +1932,38 @@ function renderThemesTable(sorted){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function renderBLTable(sorted){
+  var g, table, players, row;
+
+  table = $t.bl;
+  g = render();
+  g.next();
+
+  function* render(){
+    if(!sorted){
+      table.clearContent();
+
+      players = yield $idb.getFew.gkWait(g, $idb, [`players`, "[]", "BL", 0]);
+
+      players.forEach((player)=>{
+        row = Create.blackList(player);
+        if(table.filtering(row)) table.pushContent(row);
+      });
+
+      table.sorting();
+    }
+
+    $cd.blCount = 0;
+    showBLList(table);
+    bindCheckingOnRows('#sf_content_BL', table);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function renderTables(){
   renderStatsTable();
   renderThemesTable();
+  renderBLTable();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1943,7 +1989,7 @@ function bindCheckingOnRows(id, table){
     node = $(node).find('input[type="checkbox"]').node();
     node.nextSibling.style.background = node.checked ? `url("${$ico.boxOff}")` : `url("${$ico.boxOn}")`;
     node.checked = !node.checked;
-    table.setContentValue(index, "checked", node.checked);
+    table.setContentValue(index, "check", node.checked);
 
     //  changeCount('#sf_SI_ListChecked', node.checked);
   }
@@ -2019,7 +2065,7 @@ function showStats(t){
   function row(tr){
     var light, check, box;
 
-    if(tr.checked){
+    if(tr.check){
       light = "lightChecked";
       check = "checked";
       box = $ico.boxOn;
@@ -2092,7 +2138,7 @@ function showThemeList(t){
   $('#sf_content_TL').html(code);
 
   function row(tr){
-    if(tr.checked){
+    if(tr.check){
       light = "lightChecked";
       check = "checked";
       box = $ico.boxOn;
@@ -2106,12 +2152,46 @@ function showThemeList(t){
     return `<tr height="28" type="${light}">
       <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)} </td>
       <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$forum.id}&tid=${tr.id}">${tr.name}</a></td>
-      <td ${t.getWidth("author")} style="text-indent: 5px;" width="250"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
+      <td ${t.getWidth("author")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
       <td ${t.getWidth("start")} align="center">${$c.getNormalDate(tr.start).d}</td>
       <td ${t.getWidth("postsDone")} align="center">${tr.postsDone}</td>
       <td ${t.getWidth("postsAll")} align="center">${tr.postsAll}</td>
       <td ${t.getWidth("pageDone")} align="center">${tr.pageDone}</td>
       <td ${t.getWidth("pageAll")} align="center">${tr.pageAll}</td>
+      <td ${t.getWidth("check", true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
+    </tr>
+    `;
+  }
+}
+
+function showBLList(t){
+  var code, light, check, box;
+
+  code = '';
+
+  t.getContent().forEach(function(tr){
+    code += row(tr);
+  });
+
+  $('#sf_content_BL').html(code);
+
+  function row(tr){
+    if(tr.check){
+      light = "lightChecked";
+      check = "checked";
+      box = $ico.boxOn;
+    }
+    else{
+      light = "light";
+      check = "";
+      box = $ico.boxOff;
+    }
+
+    return `<tr height="28" type="${light}">
+      <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)} </td>
+      <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
+      <td ${t.getWidth("date")} align="center">${$c.getNormalDate(tr.date).d}</td>
+      <td ${t.getWidth("desc")} align="center">${tr.desc}</td>
       <td ${t.getWidth("check", true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
     </tr>
     `;

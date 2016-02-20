@@ -87,7 +87,7 @@ tr[type="header"] {
     background-color: #d0eed0;
     font-weight: bold;
 }
-#sf_header_SI img, #sf_header_TL img{
+td[sort] > img{
     float: right;
 }
 td[sort], td[filter]{

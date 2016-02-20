@@ -21,9 +21,26 @@ function Table(nodesID, settingsKey, settings, icons){
   };
   this.settings = settings;
   this.rows = 0;
+
+  this.ini();
 }
 
 Table.prototype = {
+  ini: function(){
+    var key = false;
+    if(this.settings.sort[this.name] == null){
+      this.settings.sort[this.name] = {
+        type: 0,
+        cell: "id"
+      };
+      key = true;
+    }
+    if(this.settings.show[this.name] == null){
+      this.settings.show[this.name] = {};
+      key = true;
+    }
+    if(key) this.saveSettings();
+  },
   /**
    * @returns {string}
    */

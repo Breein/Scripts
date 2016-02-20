@@ -138,7 +138,7 @@ GeneratorData.prototype = {
       kick: kick,
       invite: invite,
       bl: p.e != 0,
-      checked: false
+      check: false
     };
   },
 
@@ -156,7 +156,21 @@ GeneratorData.prototype = {
       postsAll: t.c[1],
       pageDone: t.d[0],
       pageAll: t.d[1],
-      checked: false
+      check: false
+    };
+  },
+
+  /**
+   * @param {{}} t
+   * @returns {{id: number, name: string, date: number, desc: number|string, checked: boolean}}
+   */
+  blackList: function(t){
+    return {
+      id: t.id,
+      name: t.a,
+      date: t.e,
+      desc: t.f,
+      check: false
     };
   }
 };
