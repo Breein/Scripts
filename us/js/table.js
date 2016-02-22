@@ -66,6 +66,7 @@ Table.prototype = {
    */
   pushContent: function(element){
     this.content.push(element);
+    this.rows++;
   },
 
   /**
@@ -136,16 +137,24 @@ Table.prototype = {
     }
   },
 
-  /**
-   *
-   */
   setSort: function(){
     this.sort.cell = this.setups.sort.cell;
     this.sort.type = this.setups.sort.type;
   },
 
   /**
-   *
+   */
+  setCountRows: function(){
+    $(this.footer).find('b[type="countRows"]').html(this.rows);
+  },
+
+  setCountCheck: function(){
+    $(this.footer).find('b[type="countCheck"]').html(
+      $(this.body).find('input[type="checkbox"]:checked').length
+    );
+  },
+
+  /**
    */
   sorting: function(){
     var value, type, array;
@@ -333,6 +342,64 @@ Table.prototype = {
     function compare(k, n){
       if(isNaN(n)) n = parseInt(n, 10);
       return !(k.min <= n && n <= k.max);
+    }
+  },
+
+  /**
+   */
+  bindClickRow: function(){
+    var table = this;
+
+    $(this.body)
+      .find('tr')
+      .nodeArr()
+      .forEach((node)=>{
+        bindEvent(node, 'onclick',()=>{
+          var box, action;
+
+          box = $(node).find('input[type="checkbox"]').node();
+          box.checked = !box.checked;
+          action = box.checked ? "add" : "remove";
+          $(node).class(action, "checked");
+
+          table.setContentValue(node.rowIndex, "check", box.checked);
+          table.setCountCheck();
+        });
+      });
+  },
+
+  /**
+   */
+  bindCheckAll: function(){
+    var table = this;
+    var button = $(table.footer).find('span[type="checkAll"]').node();
+
+    bindEvent(button, 'onclick', ()=>{
+      var b = $(button), status;
+
+      status = b.text() == "[отметить всё]";
+      b.text(status ? "[снять всё]" : "[отметить всё]");
+
+      $(table.body)
+        .find('input[type="checkbox"]')
+        .nodeArr()
+        .forEach(
+          function(box, index){
+            if(status){
+              action(box, "light checked", status, index);
+            }else{
+              action(box, "light", status, index);
+            }
+          }
+        );
+
+      table.setCountCheck();
+    });
+
+    function action(box, name, check, index){
+      $(box).up('tr').class("set", name);
+      box.checked = check;
+      table.setContentValue(index, "check", check);
     }
   },
 

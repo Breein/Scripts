@@ -41,10 +41,10 @@ $answer = $('<span>').node();
 $date = parseInt(new Date().getTime() / 1000, 10);
 
 $cd = {
+  fid: 0,
   showProgressTime: false,
   statsCount: 0,
-  themesCount: 0,
-  filterNode: null
+  themesCount: 0
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,6 +59,13 @@ function addStyle(){
 
   code =
     `
+    tr.light div[type="checkbox"]{
+      background-image: url(${$ico.boxOff});
+    }
+    tr.checked div[type="checkbox"]{
+      background-image: url(${$ico.boxOn});
+    }
+
     td[sort="sNumber"]{
       background-image: url(${$ico.memberIco});
       background-position: 12px center;
@@ -113,6 +120,7 @@ function addStyle(){
 
   document.head.appendChild(css);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createStatGUIButton(){
   var fid, name, navigate, button;
@@ -198,7 +206,6 @@ function addToDB(){
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
       $forum = Pack.forum(res);
-      //$forum.log[0] = 0;
       createGUI();
     });
   }
@@ -785,6 +792,11 @@ function getMaxPageSindicateLog(){
 function parseSindicateLog(index){
   var url;
 
+  if($pause.isActive()){
+    $pause.freeze(parseThemes, arguments);
+    return;
+  }
+
   if(index != -1){
     url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=${$forum.log[0]}`;
 
@@ -940,6 +952,11 @@ function getMaxPageForum(){
 function parseForum(index, mode, stopDate){
   var url, count;
 
+  if($pause.isActive()){
+    $pause.freeze(parseForum, arguments);
+    return;
+  }
+
   url = `http://www.ganjawars.ru/threads.php?fid=${$cd.fid}&page_id=${index}`;
   count = 0;
 
@@ -1014,9 +1031,13 @@ function parseForum(index, mode, stopDate){
           posts = getPosts();
           pages = getPages();
 
+          if(pages[1] != theme.pages[1]){
+            theme.pages = pages;
+            theme._ch = true;
+          }
+
           if(posts[1] != theme.posts[1]){
             theme.posts = posts;
-            theme.pages = pages;
             theme._ch = true;
           }
         }
@@ -1159,7 +1180,7 @@ function prepareParseThemes(max, data){
       list.push(theme);
 
       if(theme.posts[0] != 0){
-        $forum.page[0]--;
+        $forum.themes[0]--;
       }
     }
   }
@@ -1167,14 +1188,19 @@ function prepareParseThemes(max, data){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function parseThemes(index, max, list){
-  var info, theme, startPost;
+  var theme, startPost;
+
+  if($pause.isActive()){
+    $pause.freeze(parseThemes, arguments);
+    return;
+  }
 
   if(index < max){
     theme = list[index];
     startPost = theme.posts[0] % 20;
     startPost = startPost ? startPost : 1;
 
-    parseTheme(theme, startPost, index);
+    parseTheme(theme, startPost, [index, max, list]);
   }else{
     renderTables();
     displayProgress('done');
@@ -1182,9 +1208,14 @@ function parseThemes(index, max, list){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseTheme(theme, startPost, index){
+function parseTheme(theme, startPost, args){
   var url, table, tr;
   var i, length, rows = [];
+
+  if($pause.isActive()){
+    $pause.freeze(parseTheme, arguments);
+    return;
+  }
 
   url = 'http://www.ganjawars.ru/messages.php?fid=' + $forum.id + '&tid='+ theme.id +'&page_id=' + theme.pages[0];
 
@@ -1325,19 +1356,18 @@ function parseTheme(theme, startPost, index){
 
   function nextPageTheme(){
     theme.pages[0]++;
-    startPost = 1;
     theme._ch = true;
 
     $idb.add("forums", Pack.forum($forum));
     $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
 
     displayProgress.gkDelay(750, this, ['extra', `<br><b>Тема:</b> <i>${theme.name}</i> [${theme.pages[0]}/${theme.pages[1]}]`]);
-    parseTheme.gkDelay(750, this, []);
+    parseTheme.gkDelay(750, this, [theme, 1, args]);
   }
   /////////////////////////////
 
   function nextTheme(){
-    index++;
+    args[0]++;
     $forum.themes[0]++;
     $forum._ch = true;
 
@@ -1345,7 +1375,7 @@ function parseTheme(theme, startPost, index){
     $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
 
     displayProgress('work');
-    parseThemes.gkDelay(750, this, [index, max, list]);
+    parseThemes.gkDelay(750, this, args);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1644,6 +1674,11 @@ function prepareSendMails(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function doActions(index, count, param){
+  if($pause.isActive()){
+    $pause.freeze(doActions, arguments);
+    return;
+  }
+
   if(index < count){
     if(param.mode == "invite"){
       sendInvite(index, param);
@@ -1743,7 +1778,7 @@ function doKicking(index, param){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderBaseHTML(){
-  var b1, b2, t;
+  var t;
 
   t = $t.stats;
   t.setStructure({
@@ -1773,9 +1808,7 @@ function renderBaseHTML(){
   t.setSizes();
   t.setSorts(renderStatsTable);
   t.setFilters(renderStatsTable);
-
-  b1 = $('#sf_bCheckAllMembers').node();
-  bindEvent(b1, 'onclick', function(){checkAllMembers(b1, '#sf_content_SI')});
+  t.bindCheckAll();
 
   t = $t.themes;
   t.setStructure({
@@ -1783,10 +1816,10 @@ function renderBaseHTML(){
     name: [-1, "check", "Названии темы"],
     author: [300, "check", "Имени автора"],
     start: [80, "date", "Дате создания"],
+    postsNew: [100, "number|boolean", "Новых сообщений|новые|новых"],
     postsDone: [100, "number", "Обработано сообщений"],
     postsAll: [100, "number", "Всего сообщений"],
-    pageDone: [100, "number", "Обработано страниц"],
-    pageAll: [100, "number", "Всего страниц"],
+    pageAll: [80, "number", "Всего страниц"],
     check: [45, null, null]
   });
 
@@ -1796,9 +1829,7 @@ function renderBaseHTML(){
   t.setSizes();
   t.setSorts(renderThemesTable);
   t.setFilters(renderThemesTable);
-
-  b2 = $('#sf_bCheckAllThemes').node();
-  bindEvent(b2, 'onclick', function(){checkAllMembers(b2, '#sf_content_TL')});
+  t.bindCheckAll();
 
   t = $t.bl;
   t.setStructure({
@@ -1815,42 +1846,7 @@ function renderBaseHTML(){
   t.setSizes();
   t.setSorts(renderBLTable);
   t.setFilters(renderBLTable);
-
-  /////////////////////////////
-
-  function checkAllMembers(button, id){
-    var cn = $('#sf_SI_ListChecked');
-
-    if(button.textContent == "[отметить всё]"){
-      button.textContent = "[снять всё]";
-      if(id == "#sf_content_SI") cn.html($cd.statsCount);
-    }else{
-      button.textContent = "[отметить всё]";
-      if(id == "#sf_content_SI") cn.html(0);
-    }
-
-    $(id)
-      .find('input[type="checkbox"]')
-      .nodeArr()
-      .forEach(
-        function(box){
-          if(button.textContent != "[отметить всё]"){
-            doThis(box, "lightChecked", true, $ico.boxOn, true);
-          }else{
-            doThis(box, "light", false, $ico.boxOff, false);
-          }
-        }
-      );
-    /////////////////////////////
-
-    function doThis(box, type, c, img, check){
-      $(box).up('tr').node().setAttribute("type", type);
-      box.checked = c;
-      box.nextElementSibling.style.background = `url("${img}")`;
-      if(id == "#sf_content_SI") $checked.players[box.value] = check;
-      if(id == "#sf_content_TL") $checked.themes[box.value] = check;
-    }
-  }
+  t.bindCheckAll();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1880,9 +1876,10 @@ function renderStatsTable(sorted){
 
       table.sorting();
     }
-    $cd.statsCount = 0;
+
+    table.setCountRows();
     yield showStats.gkWait(g, this, [table]);
-    bindCheckingOnRows('#sf_content_SI', table);
+    table.bindClickRow();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1908,9 +1905,9 @@ function renderThemesTable(sorted){
       table.sorting();
     }
 
-    $cd.themesCount = 0;
+    table.setCountRows();
     showThemeList(table);
-    bindCheckingOnRows('#sf_content_TL', table);
+    table.bindClickRow();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1926,7 +1923,7 @@ function renderBLTable(sorted){
     if(!sorted){
       table.clearContent();
 
-      players = yield $idb.getFew.gkWait(g, $idb, [`players`, "[]", "BL", 0]);
+      players = yield $idb.getFew.gkWait(g, $idb, [`players`, "[]", "BL", [">", 1]]);
 
       players.forEach((player)=>{
         row = Create.blackList(player);
@@ -1936,9 +1933,9 @@ function renderBLTable(sorted){
       table.sorting();
     }
 
-    $cd.blCount = 0;
+    table.setCountRows();
     showBLList(table);
-    bindCheckingOnRows('#sf_content_BL', table);
+    table.bindClickRow();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1947,43 +1944,6 @@ function renderTables(){
   renderStatsTable();
   renderThemesTable();
   renderBLTable();
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function bindCheckingOnRows(id, table){
-  $(id)
-    .find('tr')
-    .nodeArr()
-    .forEach(
-      function(node){
-        bindEvent(node, 'onclick',function(){checkedId(node)});
-      }
-    );
-
-  function checkedId(node){
-    var index = node.rowIndex;
-
-    if(node.getAttribute("type") == "light"){
-      node.setAttribute("type", "lightChecked");
-    }else{
-      node.setAttribute("type", "light");
-    }
-
-    node = $(node).find('input[type="checkbox"]').node();
-    node.nextSibling.style.background = node.checked ? `url("${$ico.boxOff}")` : `url("${$ico.boxOn}")`;
-    node.checked = !node.checked;
-    table.setContentValue(index, "check", node.checked);
-
-    //  changeCount('#sf_SI_ListChecked', node.checked);
-  }
-
-  function changeCount(id, state){
-    var count, cn;
-
-    cn = $(id);
-    count = Number(cn.text());
-    cn.html(state ? count + 1 : count - 1);
-  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2011,21 +1971,11 @@ function showStats(t){
   }
   code[n] = html;
 
-
-  //getTimeRequest();
-
   return code.reduce((sequence, c) => {
     return sequence.then(()=>{
       return insert(c);
     });
-  }, Promise.resolve()).then(()=>{
-
-    //getTimeRequest(1);
-
-    $cd.statsCount = length;
-
-    $('#sf_SI_ListCount').html($cd.statsCount);
-  });
+  }, Promise.resolve());
 
   /////////////////////////////
 
@@ -2046,60 +1996,45 @@ function showStats(t){
   /////////////////////////////
 
   function row(tr){
-    var light, check, box;
+    var light, check;
 
     if(tr.check){
-      light = "lightChecked";
+      light = "light checked";
       check = "checked";
-      box = $ico.boxOn;
     }else{
       light = "light";
       check = "";
-      box = $ico.boxOff;
     }
 
-    return `<tr height="28" type="${light}">
+    return `<tr height="28" class="${light}">
         <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)}</td>
-        <td ${t.getWidth("sNumber")} align="center">${hz(tr.sNumber)}</td>
+        <td ${t.getWidth("sNumber")} align="center">${$c.hz(tr.sNumber)}</td>
         <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
-        <td ${t.getWidth("start")} align="center">${hz(tr.start)}</td>
-        <td ${t.getWidth("write")} align="center">${hz(tr.write)}</td>
+        <td ${t.getWidth("start")} align="center">${$c.hz(tr.start)}</td>
+        <td ${t.getWidth("write")} align="center">${$c.hz(tr.write)}</td>
         <td ${t.getWidth("lastMessage")} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
-        <td ${t.getWidth("posts")} align="center">${hz(tr.posts)}</td>
-        <td ${t.getWidth("words")} align="center">${hz(tr.words)}</td>
-        <td ${t.getWidth("wordsAverage")} align="center">${hz(tr.wordsAverage)}</td>
-        <td ${t.getWidth("carma")} align="center">${hz(tr.carma, tr.posts)}</td>
-        <td ${t.getWidth("carmaAverage")} align="center">${hz(tr.carmaAverage, tr.posts)}</td>
+        <td ${t.getWidth("posts")} align="center">${$c.hz(tr.posts)}</td>
+        <td ${t.getWidth("words")} align="center">${$c.hz(tr.words)}</td>
+        <td ${t.getWidth("wordsAverage")} align="center">${$c.hz(tr.wordsAverage)}</td>
+        <td ${t.getWidth("carma")} align="center">${$c.hz(tr.carma, tr.posts)}</td>
+        <td ${t.getWidth("carmaAverage")} align="center">${$c.hz(tr.carmaAverage, tr.posts)}</td>
         <td ${t.getWidth("status")} align="center">${statusMember(tr)}</td>
         <td ${t.getWidth("enter")} align="center">${$c.getNormalDate(tr.enter).d}</td>
         <td ${t.getWidth("exit")} align="center">${$c.getNormalDate(tr.exit).d}</td>
         <td ${t.getWidth("kick")} align="center" title="${$c.getNormalDate(tr.kick).d}">${tr.kick ? '√' : ''}</td>
         <td ${t.getWidth("invite")} align="center" title="${$c.getNormalDate(tr.invite).d}">${tr.invite ? '√' : ''}</td>
         <td ${t.getWidth("bl")} align="center">${tr.bl ? '√' : ''}</td>
-        <td ${t.getWidth("check", true)}><input type="checkbox" ${check} name="sf_membersList" value="${tr.id}"/><div style="margin: auto; width: 13px; height: 13px; background: url('${box}')"></div></td>
+        <td ${t.getWidth("check", true)}><input type="checkbox" ${check} value="${tr.id}"/><div type="checkbox"></div></td>
       </tr>
       `;
   }
-  /////////////////////////////
 
-  function hz(value, key){
-    if(key){
-      if(key == "%"){
-        return value == 0 ? "" : value + '<span style="font-size: 9px;"> %</span>';
-      }else{
-        return key == 0 ? "" : value;
-      }
-    }else{
-      return value == 0 ? "" : value;
-    }
-  }
   /////////////////////////////
 
   function statusMember(tr){
     if(tr.status == 0)
       return "";
     if(tr.status == 1)
-      //return `<div style="width: 100%; height: 100%; background: url('${$ico.ok}') no-repeat 38px 0; line-height: 28px; text-indent: 25px;">[${$c.getNormalDate(tr.date).d}]</div>`;
       return `В порядке [${$c.getNormalDate(tr.date).d}]`;
     if(tr.date != 0)
       return $date > tr.date ? "?" : `<span style="${$status[tr.status].s}">${$status[tr.status].t}</span> [${$c.getNormalDate(tr.date).d}]`;
@@ -2110,7 +2045,7 @@ function showStats(t){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function showThemeList(t){
-  var code, light, check, box;
+  var code, light, check;
 
   code = '';
 
@@ -2122,33 +2057,31 @@ function showThemeList(t){
 
   function row(tr){
     if(tr.check){
-      light = "lightChecked";
+      light = "light checked";
       check = "checked";
-      box = $ico.boxOn;
     }
     else{
       light = "light";
       check = "";
-      box = $ico.boxOff;
     }
 
-    return `<tr height="28" type="${light}">
+    return `<tr height="28" class="${light}">
       <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)} </td>
       <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$forum.id}&tid=${tr.id}">${tr.name}</a></td>
       <td ${t.getWidth("author")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
       <td ${t.getWidth("start")} align="center">${$c.getNormalDate(tr.start).d}</td>
+      <td ${t.getWidth("postsNew")} align="center">${tr.postsNew}</td>
       <td ${t.getWidth("postsDone")} align="center">${tr.postsDone}</td>
       <td ${t.getWidth("postsAll")} align="center">${tr.postsAll}</td>
-      <td ${t.getWidth("pageDone")} align="center">${tr.pageDone}</td>
       <td ${t.getWidth("pageAll")} align="center">${tr.pageAll}</td>
-      <td ${t.getWidth("check", true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
+      <td ${t.getWidth("check", true)}><input type="checkbox" ${check} value="${tr.id}"/><div type="checkbox"></div></td>
     </tr>
     `;
   }
 }
 
 function showBLList(t){
-  var code, light, check, box;
+  var code, light, check;
 
   code = '';
 
@@ -2160,42 +2093,23 @@ function showBLList(t){
 
   function row(tr){
     if(tr.check){
-      light = "lightChecked";
+      light = "light checked";
       check = "checked";
-      box = $ico.boxOn;
     }
     else{
       light = "light";
       check = "";
-      box = $ico.boxOff;
     }
 
-    return `<tr height="28" type="${light}">
+    return `<tr height="28" class="${light}">
       <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)} </td>
       <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
       <td ${t.getWidth("date")} align="center">${$c.getNormalDate(tr.date).d}</td>
       <td ${t.getWidth("desc")} align="center">${tr.desc}</td>
-      <td ${t.getWidth("check", true)} align="center"><input type="checkbox" ${check} name="sf_themesList" value="${tr.id}" /><div style="width: 13px; height: 13px; background: url('${box}')"></div></td>
+      <td ${t.getWidth("check", true)}><input type="checkbox" ${check} value="${tr.id}"/><div type="checkbox"></div></td>
     </tr>
     `;
   }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function getCurrentFilters(){
-  var list, l, result;
-
-  list = Object.keys($ss.show.stats).reverse();
-  l = list.length;
-  result = [];
-
-  while(l--){
-    if($ss.show.stats[list[l]] != null){
-      result.push('[' + $cd.values.stats[list[l]][0] + ']');
-    }
-  }
-  result = result.length ? '<span style="font-weight: bold;">Активные фильтры:</span> ' + result.join(' ') : '';
-
-  $('#sf_currentFilters').html(result);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

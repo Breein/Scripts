@@ -144,7 +144,7 @@ GeneratorData.prototype = {
 
   /**
    * @param {{}} t - theme (упакованный)
-   * @returns {{id:number, name:string, author:[number,string], start:number, postsDone:number, postsAll:number, pageDone:number, pageAll:number}}
+   * @returns {{id:number, name:string, author:[number,string], start:number, postsNew:number, postsDone:number, postsAll:number, pageAll:number}}
    */
   thread: function(t){
     return {
@@ -152,9 +152,9 @@ GeneratorData.prototype = {
       name: t.a,
       author: [t.b[0], t.b[1]],
       start: t.e,
+      postsNew: t.c[1] - t.c[0],
       postsDone: t.c[0],
       postsAll: t.c[1],
-      pageDone: t.d[0],
       pageAll: t.d[1],
       check: false
     };

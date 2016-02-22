@@ -70,9 +70,14 @@ Api.prototype = {
   },
 
   /**
-   * @returns {string}
+   * @param {*=} param - Без параметра для получения, с параметром для вставки
+   * @returns {string|Api}
    */
-  text: function () {
+  text: function (param){
+    if(param){
+      this.html(param);
+      return this;
+    }
     return this.nodeList[0] ? this.nodeList[0].textContent : "This node is null. Selector: " + this.selector;
   },
 
@@ -91,11 +96,16 @@ Api.prototype = {
   },
 
   /**
-   * @param {string} action
+   * @param {string=} action
    * @param {string=} param
-   * @returns {Api}
+   * @returns {string|Api}
    */
   class: function(action, param){
+    if(action == null){
+      this.selector += " > get Class Name";
+      return this.nodeList[0].className;
+    }
+
     this.selector += " > class-" + action + " [" + param + "]";
 
     if(action == "set"){

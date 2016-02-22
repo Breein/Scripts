@@ -156,6 +156,18 @@ Common.prototype = {
       }
     }
     return false;
+  },
+
+  hz: function(value, key){
+    if(key){
+      if(key == "%"){
+        return value == 0 ? "" : value + '<span style="font-size: 9px;"> %</span>';
+      }else{
+        return key == 0 ? "" : value;
+      }
+    }else{
+      return value == 0 ? "" : value;
+    }
   }
 };
 
