@@ -20,6 +20,7 @@ function Table(nodesID, settingsKey, settings, icons){
     type: null
   };
   this.settings = settings;
+  this.setups = this.settings[this.name];
   this.rows = 0;
 
   this.ini();
@@ -27,19 +28,17 @@ function Table(nodesID, settingsKey, settings, icons){
 
 Table.prototype = {
   ini: function(){
-    var key = false;
-    if(this.settings.sort[this.name] == null){
-      this.settings.sort[this.name] = {
-        type: 0,
-        cell: "id"
+    if(this.setups == null){
+      this.settings[this.name] = {
+        sort: {
+          type: 1,
+          cell: "id"
+        },
+        filters: {}
       };
-      key = true;
+      this.setups = this.settings[this.name];
+      this.saveSettings();
     }
-    if(this.settings.show[this.name] == null){
-      this.settings.show[this.name] = {};
-      key = true;
-    }
-    if(key) this.saveSettings();
   },
   /**
    * @returns {string}
@@ -111,8 +110,8 @@ Table.prototype = {
   changeSortImage: function(){
     var value, type, oldImg, newImg;
 
-    value = this.settings.sort[this.name].cell;
-    type = this.settings.sort[this.name].type;
+    value = this.setups.sort.cell;
+    type = this.setups.sort.type;
 
     if(value != this.sort.cell){
       oldImg = $(this.header).find(`td[sort="${this.sort.cell}"]`).node().lastChild;
@@ -130,10 +129,10 @@ Table.prototype = {
   setSortImage: function(td, cell){
     var img = $(td).find('img').node();
 
-    if(this.settings.sort[this.name].cell != cell){
+    if(this.setups.sort.cell != cell){
       img.src = this.icons.sortNull;
     }else{
-      img.src = this.settings.sort[this.name].type ? this.icons.sortDown : this.icons.sortUp;
+      img.src = this.setups.sort.type ? this.icons.sortDown : this.icons.sortUp;
     }
   },
 
@@ -141,8 +140,8 @@ Table.prototype = {
    *
    */
   setSort: function(){
-    this.sort.cell = this.settings.sort[this.name].cell;
-    this.sort.type = this.settings.sort[this.name].type;
+    this.sort.cell = this.setups.sort.cell;
+    this.sort.type = this.setups.sort.type;
   },
 
   /**
@@ -152,8 +151,8 @@ Table.prototype = {
     var value, type, array;
 
     array = this.getContent();
-    value = this.settings.sort[this.name].cell;
-    type = this.settings.sort[this.name].type;
+    value = this.setups.sort.cell;
+    type = this.setups.sort.type;
 
     array.sort(
       function(e1, e2){
@@ -193,16 +192,16 @@ Table.prototype = {
       value = td.getAttribute("sort");
       table.setSortImage(td, value);
       bindEvent(td, 'onclick', ()=>{
-        var cell, name = table.getName();
+        var cell;
 
         table.setSort();
 
         cell = td.getAttribute("sort");
-        if(cell == table.settings.sort[name].cell){
-          table.settings.sort[name].type = table.settings.sort[name].type == 0 ? 1 : 0;
+        if(cell == table.setups.sort.cell){
+          table.setups.sort.type = table.setups.sort.type == 0 ? 1 : 0;
         }else{
-          table.settings.sort[name].cell = cell;
-          table.settings.sort[name].type = 1;
+          table.setups.sort.cell = cell;
+          table.setups.sort.type = 1;
         }
 
         table.changeSortImage();
@@ -280,7 +279,7 @@ Table.prototype = {
       value = $(td).attr("filter");
       ft = table.structure[value].filter;
 
-      if(table.settings.show[table.name][value]){
+      if(table.setups.filters[value]){
         $(td).class("set", "enable");
       }
 
@@ -301,7 +300,7 @@ Table.prototype = {
   filtering: function(row){
     var filter, value, fv, rv, length, list;
 
-    filter = this.settings.show[this.name];
+    filter = this.setups.filters;
     list = Object.keys(filter);
     length = list.length;
 

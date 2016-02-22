@@ -40,23 +40,6 @@ $screenHeight = document.body.clientHeight;
 $answer = $('<span>').node();
 $date = parseInt(new Date().getTime() / 1000, 10);
 
-$ss = {
-  sort: {
-    stats: {
-      type: 1,
-      cell: 'name'
-    },
-    themes: {
-      type: 1,
-      cell: 'id'
-    }
-  },
-  show:{
-    stats:{},
-    themes:{}
-  }
-};
-
 $cd = {
   showProgressTime: false,
   statsCount: 0,

@@ -6,7 +6,7 @@ const $calendar = require('./calendar.js')();
 function Filter(id, table, td, f, key){
   this.fw = $(id).node();
   this.table = table;
-  this.settings = table.settings.show[table.getName()];
+  this.settings = table.setups.filters;
   this.cell = td;
   this.cp = td.getBoundingClientRect();
   this.column = key;
