@@ -181,7 +181,15 @@ DB.prototype = {
 
     f = (onsuccess) => {
       if(range != null){
-        krv = typeof range == 'object' ? this.kr.bound(range[0], range[1]) : this.kr.only(range);
+        if(typeof range == 'object'){
+          switch(range[0]){
+            case "<": krv = this.kr.upperBound(range[1]); break;
+            case ">": krv = this.kr.lowerBound(range[1]); break;
+            default: this.kr.bound(range[0], range[1]);
+          }
+        }else{
+          krv = this.kr.only(range);
+        }
       }
 
       this.tx = this.db.transaction([table], "readonly");
