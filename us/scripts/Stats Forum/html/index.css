@@ -178,3 +178,36 @@ span[type="checkAll"]{
     margin-bottom: 10px;
     margin-right: 5px;
 }
+
+/* Конеткстное меню */
+
+#sf_contextMenu{
+    position: absolute;
+    border: solid 1px;
+    background-color: #f0fff0;
+    box-shadow: 3px 3px rgba(0, 0, 0, 0.3);
+}
+
+#sf_contextMenu div{
+    cursor: context-menu;
+    line-height: 24px;
+    padding: 0 15px;
+    text-align: left;
+    display: flex;
+}
+#sf_contextMenu div.menu{
+    background-color: #d0efd0;
+    line-height: 30px;
+    font-style: italic;
+    text-decoration: underline;
+}
+#sf_contextMenu div.menu-item{
+    background-color: transparent;
+    border-top: dotted 1px #c0c0c0;
+    padding: 0 10px 0 20px;
+    font-weight: normal;
+    cursor: pointer;
+}
+#sf_contextMenu div.menu-item:hover{
+    background-color: #e1f7e1;
+}

@@ -22,6 +22,7 @@ function Table(nodesID, settingsKey, settings, icons){
   this.settings = settings;
   this.setups = this.settings[this.name];
   this.rows = 0;
+  this.indexedKeys = [];
 
   this.ini();
 }
@@ -227,10 +228,12 @@ Table.prototype = {
   setStructure: function(v){
     var table = this;
 
-    Object.keys(v).forEach(function(key){
+    Object.keys(v).forEach(function(key, index){
       var value, type = null, text = null;
 
       value = v[key];
+      table.setStructureIndex(index, key);
+
       if(value[1]) type = /\|/.test(value[1]) ? value[1].split(/\|/) : [value[1]];
       if(value[2]) text = /\|/.test(value[2]) ? value[2].split(/\|/) : [value[2]];
 
@@ -244,6 +247,18 @@ Table.prototype = {
         } : null
       };
     });
+  },
+
+  setStructureIndex: function(index, key){
+    this.indexedKeys[index] = key;
+  },
+
+  /**
+   * @param td
+   * @returns {string}
+   */
+  getKeysOnCell: function(td){
+    return this.indexedKeys[td.cellIndex];
   },
 
   /**

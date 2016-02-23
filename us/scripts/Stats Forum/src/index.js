@@ -1880,6 +1880,36 @@ function renderStatsTable(sorted){
     table.setCountRows();
     yield showTable.gkWait(g, this, [table]);
     table.bindClickRow();
+
+    $(table.body).find('tr').nodeArr().forEach((tr)=>{
+      bindEvent(tr.cells[2], "contextmenu", (event)=>{
+        event.preventDefault();
+        var x, y, menu;
+        x = event.clientX;
+        y = event.clientY + + document.body.scrollTop;
+
+        menu = $('#sf_contextMenu').node();
+        menu.style.left = x;
+        menu.style.top = y;
+        menu.style.visibility = "visible";
+
+        menu.innerHTML = '@include: ./html/contextMenu.html';
+
+        $(menu).find('*[class="menu-item"]').nodeArr().forEach((item)=>{
+          bindEvent(item, "onclick", ()=>{
+            console.log($(item).attr("type"));
+          });
+        });
+
+      });
+    });
+
+    bindEvent(document.body, 'onclick', ()=>{
+      var menu = $('#sf_contextMenu').node();
+      if(menu.style.visibility == "visible"){
+        menu.style.visibility = "hidden";
+      }
+    });
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
