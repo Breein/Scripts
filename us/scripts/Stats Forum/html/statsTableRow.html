@@ -1,0 +1,20 @@
+<tr height="28" class="${getClass(tr)}">
+    <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)}</td>
+    <td ${t.getWidth("sNumber")} align="center">${$c.hz(tr.sNumber)}</td>
+    <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
+    <td ${t.getWidth("start")} align="center">${$c.hz(tr.start)}</td>
+    <td ${t.getWidth("write")} align="center">${$c.hz(tr.write)}</td>
+    <td ${t.getWidth("lastMessage")} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
+    <td ${t.getWidth("posts")} align="center">${$c.hz(tr.posts)}</td>
+    <td ${t.getWidth("words")} align="center">${$c.hz(tr.words)}</td>
+    <td ${t.getWidth("wordsAverage")} align="center">${$c.hz(tr.wordsAverage)}</td>
+    <td ${t.getWidth("carma")} align="center">${$c.hz(tr.carma, tr.posts)}</td>
+    <td ${t.getWidth("carmaAverage")} align="center">${$c.hz(tr.carmaAverage, tr.posts)}</td>
+    <td ${t.getWidth("status")} align="center">${statusMember(tr)}</td>
+    <td ${t.getWidth("enter")} align="center">${$c.getNormalDate(tr.enter).d}</td>
+    <td ${t.getWidth("exit")} align="center">${$c.getNormalDate(tr.exit).d}</td>
+    <td ${t.getWidth("kick")} align="center" title="${$c.getNormalDate(tr.kick).d}">${tr.kick ? '√' : ''}</td>
+    <td ${t.getWidth("invite")} align="center" title="${$c.getNormalDate(tr.invite).d}">${tr.invite ? '√' : ''}</td>
+    <td ${t.getWidth("bl")} align="center">${tr.bl ? '√' : ''}</td>
+    <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+</tr>

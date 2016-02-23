@@ -1,0 +1,11 @@
+<tr height="28" class="${getClass(tr)}">
+    <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)} </td>
+    <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$forum.id}&tid=${tr.id}">${tr.name}</a></td>
+    <td ${t.getWidth("author")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
+    <td ${t.getWidth("start")} align="center">${$c.getNormalDate(tr.start).d}</td>
+    <td ${t.getWidth("postsNew")} align="center">${tr.postsNew}</td>
+    <td ${t.getWidth("postsDone")} align="center">${tr.postsDone}</td>
+    <td ${t.getWidth("postsAll")} align="center">${tr.postsAll}</td>
+    <td ${t.getWidth("pageAll")} align="center">${tr.pageAll}</td>
+    <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+</tr>

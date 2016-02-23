@@ -403,6 +403,14 @@ Table.prototype = {
     }
   },
 
+  /**
+   * @param {string} html
+   * @param {boolean=} add
+   */
+  render: function(html, add){
+    $(this.body).html(html, add);
+  },
+
   saveSettings: function(){
     $ls.save("gk_SF_settings", this.settings);
   }

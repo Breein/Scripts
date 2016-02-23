@@ -1878,7 +1878,7 @@ function renderStatsTable(sorted){
     }
 
     table.setCountRows();
-    yield showStats.gkWait(g, this, [table]);
+    yield showTable.gkWait(g, this, [table]);
     table.bindClickRow();
   }
 }
@@ -1906,7 +1906,7 @@ function renderThemesTable(sorted){
     }
 
     table.setCountRows();
-    showThemeList(table);
+    yield showTable.gkWait(g, this, [table]);
     table.bindClickRow();
   }
 }
@@ -1934,7 +1934,7 @@ function renderBLTable(sorted){
     }
 
     table.setCountRows();
-    showBLList(table);
+    yield showTable.gkWait(g, this, [table]);
     table.bindClickRow();
   }
 }
@@ -1942,16 +1942,15 @@ function renderBLTable(sorted){
 
 function renderTables(){
   renderStatsTable();
-  renderThemesTable();
-  renderBLTable();
+  renderThemesTable.gkDelay(600);
+  renderBLTable.gkDelay(1200);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function showStats(t){
-  var code, rows, table, html, first = 1, n = 0;
+function showTable(t){
+  var code, rows, html, first = 1, n = 0;
   var i, length;
 
-  table = $('#sf_content_SI');
   rows = t.getContent();
   code = [];
   html = "";
@@ -1962,12 +1961,12 @@ function showStats(t){
       html = "";
       n++;
     }
-    //if(i && i % 1000 == 0){
-    //  code[n] = html;
-    //  html = "";
-    //  n++;
-    //}
-    html += row(rows[i]);
+    if(i && i % 1500 == 0){
+      code[n] = html;
+      html = "";
+      n++;
+    }
+    html += getRows(t, rows[i]);
   }
   code[n] = html;
 
@@ -1982,53 +1981,33 @@ function showStats(t){
   function insert(code){
     return new Promise((resolve)=>{
       if(first){
-        table.html(code);
+        t.render(code, false);
         first = 0;
       }else{
-        table.html(code, true);
+        t.render(code, true);
       }
       setTimeout(()=>{
         resolve();
       }, 100);
     })
   }
-
   /////////////////////////////
 
-  function row(tr){
-    var light, check;
+  function getRows(t, tr){
+    switch(t.getName()){
+      case "stats":
+        return '@include: ./html/statsTableRow.html';
+        break;
 
-    if(tr.check){
-      light = "light checked";
-      check = "checked";
-    }else{
-      light = "light";
-      check = "";
+      case "themes":
+        return '@include: ./html/themesTableRow.html';
+        break;
+
+      case "bl":
+        return '@include: ./html/blTableRow.html';
+        break;
     }
-
-    return `<tr height="28" class="${light}">
-        <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)}</td>
-        <td ${t.getWidth("sNumber")} align="center">${$c.hz(tr.sNumber)}</td>
-        <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
-        <td ${t.getWidth("start")} align="center">${$c.hz(tr.start)}</td>
-        <td ${t.getWidth("write")} align="center">${$c.hz(tr.write)}</td>
-        <td ${t.getWidth("lastMessage")} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
-        <td ${t.getWidth("posts")} align="center">${$c.hz(tr.posts)}</td>
-        <td ${t.getWidth("words")} align="center">${$c.hz(tr.words)}</td>
-        <td ${t.getWidth("wordsAverage")} align="center">${$c.hz(tr.wordsAverage)}</td>
-        <td ${t.getWidth("carma")} align="center">${$c.hz(tr.carma, tr.posts)}</td>
-        <td ${t.getWidth("carmaAverage")} align="center">${$c.hz(tr.carmaAverage, tr.posts)}</td>
-        <td ${t.getWidth("status")} align="center">${statusMember(tr)}</td>
-        <td ${t.getWidth("enter")} align="center">${$c.getNormalDate(tr.enter).d}</td>
-        <td ${t.getWidth("exit")} align="center">${$c.getNormalDate(tr.exit).d}</td>
-        <td ${t.getWidth("kick")} align="center" title="${$c.getNormalDate(tr.kick).d}">${tr.kick ? '√' : ''}</td>
-        <td ${t.getWidth("invite")} align="center" title="${$c.getNormalDate(tr.invite).d}">${tr.invite ? '√' : ''}</td>
-        <td ${t.getWidth("bl")} align="center">${tr.bl ? '√' : ''}</td>
-        <td ${t.getWidth("check", true)}><input type="checkbox" ${check} value="${tr.id}"/><div type="checkbox"></div></td>
-      </tr>
-      `;
   }
-
   /////////////////////////////
 
   function statusMember(tr){
@@ -2041,74 +2020,15 @@ function showStats(t){
 
     return`<span style="${$status[tr.status].s}">${$status[tr.status].t}</span>`;
   }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////
 
-function showThemeList(t){
-  var code, light, check;
-
-  code = '';
-
-  t.getContent().forEach(function(tr){
-    code += row(tr);
-  });
-
-  $('#sf_content_TL').html(code);
-
-  function row(tr){
-    if(tr.check){
-      light = "light checked";
-      check = "checked";
-    }
-    else{
-      light = "light";
-      check = "";
-    }
-
-    return `<tr height="28" class="${light}">
-      <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)} </td>
-      <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/messages.php?fid=${$forum.id}&tid=${tr.id}">${tr.name}</a></td>
-      <td ${t.getWidth("author")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" href="http://www.ganjawars.ru/info.php?id=${tr.author[0]}">${tr.author[1]}</a></td>
-      <td ${t.getWidth("start")} align="center">${$c.getNormalDate(tr.start).d}</td>
-      <td ${t.getWidth("postsNew")} align="center">${tr.postsNew}</td>
-      <td ${t.getWidth("postsDone")} align="center">${tr.postsDone}</td>
-      <td ${t.getWidth("postsAll")} align="center">${tr.postsAll}</td>
-      <td ${t.getWidth("pageAll")} align="center">${tr.pageAll}</td>
-      <td ${t.getWidth("check", true)}><input type="checkbox" ${check} value="${tr.id}"/><div type="checkbox"></div></td>
-    </tr>
-    `;
+  function getClass(row){
+    return row.check ? "light checked" : "light";
   }
-}
+  /////////////////////////////
 
-function showBLList(t){
-  var code, light, check;
-
-  code = '';
-
-  t.getContent().forEach(function(tr){
-    code += row(tr);
-  });
-
-  $('#sf_content_BL').html(code);
-
-  function row(tr){
-    if(tr.check){
-      light = "light checked";
-      check = "checked";
-    }
-    else{
-      light = "light";
-      check = "";
-    }
-
-    return `<tr height="28" class="${light}">
-      <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)} </td>
-      <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
-      <td ${t.getWidth("date")} align="center">${$c.getNormalDate(tr.date).d}</td>
-      <td ${t.getWidth("desc")} align="center">${tr.desc}</td>
-      <td ${t.getWidth("check", true)}><input type="checkbox" ${check} value="${tr.id}"/><div type="checkbox"></div></td>
-    </tr>
-    `;
+  function getChecked(row){
+    return row.check ? "checked" : "";
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
