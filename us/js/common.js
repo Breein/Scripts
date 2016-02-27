@@ -168,6 +168,13 @@ Common.prototype = {
     }else{
       return value == 0 ? "" : value;
     }
+  },
+
+  /**
+   * @returns {Number}
+   */
+  getTimeNow: function(){
+    return parseInt(new Date().getTime() / 1000, 10);
   }
 };
 
