@@ -9,6 +9,7 @@ function Table(nodesID, settingsKey, settings, icons){
   this.header = nodesID[0];
   this.body = nodesID[1];
   this.footer = nodesID[2];
+  this.ctxMenu = nodesID[3];
   this.name = settingsKey;
   this.icons = icons;
   this.structure = {};
@@ -56,6 +57,21 @@ Table.prototype = {
   },
 
   /**
+   * @returns {Array}
+   */
+  getCheckedContent: function(){
+    var result = [];
+
+    this.content.forEach((row)=>{
+      if(row.check){
+        result.push(row);
+      }
+    });
+
+    return result;
+  },
+
+  /**
    * @returns {number}
    */
   getLastRowContent: function(){
@@ -75,6 +91,8 @@ Table.prototype = {
   clearContent: function(){
     this.content = [];
     this.rows = 0;
+    $(this.footer).find('span[type="checkAll"]').html("[отметить всё]");
+    $(this.footer).find('b[type="countCheck"]').html(0);
   },
 
   /**
@@ -361,8 +379,9 @@ Table.prototype = {
   },
 
   /**
+   * @param {boolean=} contextMenu
    */
-  bindClickRow: function(){
+  bindClickRow: function(contextMenu){
     var table = this;
 
     $(this.body)
@@ -372,6 +391,9 @@ Table.prototype = {
         bindEvent(node, 'onclick',()=>{
           var box, action;
 
+          if($(table.ctxMenu).node().style.visibility == "visible")
+            return;
+
           box = $(node).find('input[type="checkbox"]').node();
           box.checked = !box.checked;
           action = box.checked ? "add" : "remove";
@@ -379,6 +401,22 @@ Table.prototype = {
 
           table.setContentValue(node.rowIndex, "check", box.checked);
           table.setCountCheck();
+        });
+
+        if(!contextMenu) return;
+
+        bindEvent(node, "contextmenu", (event)=>{
+          var menu, elem;
+
+          elem = event.target;
+          if(elem.nodeName != "TD") return;
+          //if(table.getKeysOnCell(elem) != "name") return;
+          event.preventDefault();
+
+          menu = $(table.ctxMenu).class("set", table.name).node();
+          menu.style.left = event.clientX;
+          menu.style.top = event.clientY + document.body.scrollTop;
+          menu.style.visibility = "visible";
         });
       });
   },

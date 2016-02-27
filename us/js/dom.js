@@ -74,11 +74,11 @@ Api.prototype = {
    * @returns {string|Api}
    */
   text: function (param){
-    if(param){
+    if(param != null){
       this.html(param);
-      return this;
+    }else{
+      return this.nodeList[0] ? this.nodeList[0].textContent : "This node is null. Selector: " + this.selector;
     }
-    return this.nodeList[0] ? this.nodeList[0].textContent : "This node is null. Selector: " + this.selector;
   },
 
   /**

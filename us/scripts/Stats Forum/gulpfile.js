@@ -88,7 +88,24 @@ function includeHTML(){
   fs.writeFileSync('./out/bundle_full.js', textFile);
 
   function include(str){
+    var url, key = false;
+
     str = str.match(/'@include: (.+)'/);
-    return '`' + fs.readFileSync(str[1], 'utf8') + '`';
+    url = str[1].split(', ');
+
+    if(url){
+      key = 'true' == url[1];
+      url = url[0];
+    }else{
+      url = str[1];
+    }
+    str = fs.readFileSync(url, 'utf8');
+    str = str.replace(/'@include: (.+)'/g, include);
+
+    if(key){
+      return '`' + str + '`';
+    }else{
+      return str;
+    }
   }
 }

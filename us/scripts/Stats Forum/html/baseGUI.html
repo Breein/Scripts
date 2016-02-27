@@ -1,6 +1,5 @@
 <b><a style="color: #990000" href="http://www.ganjawars.ru/forum.php">Форумы</a> » ${$cd.fName}</b>
 :: <span id="sf_gui_settings" style="cursor: pointer; font-weight: bold;">Панель управления</span>
-□ <span id="sf_gui_message" style="cursor: pointer; font-weight: bold;">Рассылка почты</span>
 <br>
 <table class="mainTable" cellspacing="0" cellpadding="0" align="center">
     <tr>
@@ -57,9 +56,10 @@
 </table>
 <br>
 <div style="visibility: hidden;" id="sf_shadowLayer" title="Клик закроет окно"></div>
-<div style="visibility: hidden;" type="window" id="sf_statusWindow">${createStatusWindow()}</div>
-<div style="visibility: hidden;" type="window" id="sf_controlPanelWindow">${createControlPanel()}</div>
 <div style="left: 0; top: 0; visibility: hidden;" id="sf_filtersWindow"></div>
-<div style="visibility: hidden;" type="window" id="sf_messageWindow">${createMessageWindow()}</div>
+'@include: ./html/statusWindow.html, false'
+'@include: ./html/messageWindow.html, false'
+'@include: ./html/controlPanel.html, false'
+'@include: ./html/contextMenu.html, false'
+'@include: ./html/blWindow.html, false'
 <div style="left: 0; top: 0; visibility: hidden;" type="window" id="sf_calendar"></div>
-<div style="left: 0; top: 0; visibility: hidden;" id="sf_contextMenu"></div>

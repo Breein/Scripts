@@ -1,6 +1,31 @@
-<div class="menu">Персонаж</div>
-<div class="menu-item" type="getStatus">▫ Получить статус</div>
-<div class="menu-item" type="showWrites">▫ Открыть список тем участия</div>
-<div class="menu">Черный список</div>
-<div class="menu-item" type="addMembersBL">▫ Добавить отмеченных</div>
-<div class="menu-item" type="addSindicateBL">▫ Добавить синдикат</div>
+<div style="left: 0; top: 0; visibility: hidden;" id="sf_contextMenu">
+    <ul type="themes">
+        <li class="parent"><span>Провести анализ</span>
+            <ul>
+                <li><span action='["parseThemes", "check"]'>Отмеченые</span></li>
+                <li><span action='["parseThemes", "all"]'>Все</span></li>
+            </ul>
+        </li>
+    </ul>
+    <ul type="bl">
+        <li><span action='["operationBL", "edit"]'>Изменить причину</span></li>
+        <li><span action='["operationBL", "remove"]'>Убрать из списка</span></li>
+    </ul>
+    <ul type="stats">
+        <li class="parent"><span>Персонажи</span>
+            <ul>
+                <li><span action='["getStatus"]'>Получить статус</span></li>
+                <li><span action='["getWrites"]'>Посмотреть темы</span></li>
+                <li><span action='["sendMail", "Отправка письма", "mail"]'>Отправить письмо</span></li>
+                <li><span action='["sendMail", "Отправка приглашения и письма", "invite"]'>Пригласить</span></li>
+                <li><span action='["sendMail", "Исключение из синдиката, отправка письма", "goAway"]'>Выгнать</span></li>
+            </ul>
+        </li>
+        <li class="parent"><span>Черный список</span>
+            <ul>
+                <li><span action='["operationBL", "add"]'>Добавить</span></li>
+                <li><span action='["operationBL", "remove"]'>Убрать</span></li>
+            </ul>
+        </li>
+    </ul>
+</div>

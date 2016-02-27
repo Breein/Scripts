@@ -1,36 +1,38 @@
-<table type="padding">
-    <tr type="header" height="35">
-        <td align="center" style="color: #990000;">Прогресс задачи</td>
-    </tr>
-    <tr height="15">
-        <td></td>
-    </tr>
-    <tr>
-        <td style="padding-left: 30px;">
-            <b>Задача:</b> <span id="sf_progressText" style="font-style: italic;"></span> [<span id="sf_progressCurrent"></span>/<span id="sf_progressMax"></span>]
-            <span id="sf_progressTextExtra"></span>
-        </td>
-    </tr>
-    <tr>
-        <td style="padding-left: 30px;">
-            <b>Времени осталось:</b> <span>00:00</span><span style="display: none;" id="sf_progressTime">0</span>
-        </td>
-    </tr>
-    <tr>
-        <td style="padding-left: 30px;">
-            <div style="width: 510px; height: 10px; border: solid 1px #000000; float: left; margin-top: 7px;">
-                <div style="width: 0; height: 100%; background-color: brown;" id="sf_progressBar"></div>
-            </div>
-            <div style="float: left; width: 5px; height: 25px;"></div>
-            <div style="float: left; width: 25px; height: 25px;" id="sf_progressIco" name=""></div>
-        </td>
-    </tr>
-    <tr height="25">
-        <td align="right" style="padding: 15px 30px 10px 0;">
-            <input type="button" id="sf_pauseButton" value="Пауза" /> <input type="button" value="Отмена" />
-        </td>
-    </tr>
-    <tr height="5" bgcolor="#d0eed0">
-        <td></td>
-    </tr>
-</table>
+<div style="visibility: hidden;" type="window" id="sf_statusWindow">
+    <table type="padding" class="no-border">
+        <tr type="header" height="35">
+            <td align="center" style="color: #990000;">Прогресс задачи</td>
+        </tr>
+        <tr height="15">
+            <td></td>
+        </tr>
+        <tr>
+            <td style="padding-left: 30px;">
+                <b>Задача:</b> <span id="sf_progressText" style="font-style: italic;"></span> [<span id="sf_progressCurrent"></span>/<span id="sf_progressMax"></span>]
+                <span id="sf_progressTextExtra"></span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-left: 30px;">
+                <b>Времени осталось:</b> <span>00:00</span><span style="display: none;" id="sf_progressTime">0</span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding-left: 30px;">
+                <div style="width: 510px; height: 10px; border: solid 1px #000000; float: left; margin-top: 7px;">
+                    <div style="width: 0; height: 100%; background-color: brown;" id="sf_progressBar"></div>
+                </div>
+                <div style="float: left; width: 5px; height: 25px;"></div>
+                <div style="float: left; width: 25px; height: 25px;" id="sf_progressIco" name=""></div>
+            </td>
+        </tr>
+        <tr height="25">
+            <td align="right" style="padding: 15px 30px 10px 0;">
+                <input type="button" id="sf_pauseButton" value="Пауза" /> <input type="button" value="Отмена" />
+            </td>
+        </tr>
+        <tr height="5" bgcolor="#d0eed0">
+            <td></td>
+        </tr>
+    </table>
+</div>

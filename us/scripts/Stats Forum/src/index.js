@@ -96,23 +96,10 @@ function addStyle(){
     td[filter].enable{
       background-image: url(${$ico.boxOn});
       background-color: #cfe5cf;
-    }
-
-    #sf_statusWindow{
-      left: ${$screenWidth / 2 - 325};
-      top: ${$screenHeight / 2 - 120};
-    }
-    #sf_controlPanelWindow{
-        left: ${$screenWidth / 2 - 175};
-        top: ${$screenHeight / 2 - 260};
-    }
-    #sf_messageWindow{
-        left: ${$screenWidth / 2 - 370};
-        top: ${$screenHeight / 2 - 222};
     }`;
 
-  code += '@include: ./html/index.css';
-  code += '@include: ./../../css/filter.css';
+  code += '@include: ./html/index.css, true';
+  code += '@include: ./../../css/filter.css, true';
 
   css = $("style").html(code).node();
   css.setAttribute("type", "text/css");
@@ -131,7 +118,7 @@ function createStatGUIButton(){
   navigate = $('a[style="color: #990000"]:contains("~Форумы")').up('b');
   name = navigate.text().match(/(.+) » (.+)/)[2];
 
-  button = $('<span>').html('@include: ./html/button.html').node();
+  button = $('<span>').html('@include: ./html/button.html, true').node();
   navigate.node().appendChild(button);
 
   $cd.fid = fid;
@@ -199,9 +186,9 @@ function addToDB(){
     $ss = $ls.load("gk_SF_settings");
 
     $t = {
-      stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI"], "stats", $ss, $ico),
-      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL"], "themes", $ss, $ico),
-      bl: createTable(["#sf_header_BL", "#sf_content_BL", "#sf_footer_BL"], "bl", $ss, $ico)
+      stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI", "#sf_contextMenu"], "stats", $ss, $ico),
+      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL", "#sf_contextMenu"], "themes", $ss, $ico),
+      bl: createTable(["#sf_header_BL", "#sf_content_BL", "#sf_footer_BL", "#sf_contextMenu"], "bl", $ss, $ico)
     };
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
@@ -213,12 +200,13 @@ function addToDB(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var table, td, gui;
+  var table, td, gui, disabled;
 
+  disabled = $mode ? '' : 'disabled';
   table = $('td[style="color: #990000"]:contains("Тема")').up('table').up('table').node();
   td = table.rows[0].cells[0];
 
-  gui = $('<td>').html('@include: ./html/baseGUI.html').node();
+  gui = $('<td>').html('@include: ./html/baseGUI.html, true').node();
 
   td.parentNode.removeChild(td);
   table.rows[0].appendChild(gui);
@@ -233,9 +221,7 @@ function createGUI(){
   createShadowLayer();
 
   bindEvent($('#sf_gui_settings').node(), 'onclick', openControlPanelWindow);
-  bindEvent($('#sf_gui_message').node(), 'onclick', openMessageWindow);
   bindEvent($('#sf_forgetForum').node(), 'onclick', forgetForum);
-
 
   $('#sf_controlPanelWindow')
     .find('input[type="button"]')
@@ -248,9 +234,13 @@ function createGUI(){
 
   bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
   bindEvent($('#sf_pauseButton').node(), 'onclick', pauseProgress);
+  bindEvent($('#sf_proceedBLButton').node(), 'onclick', bindProceedBLWindow);
 
   $calendar.setContainer("#sf_calendar");
   $calendar.bind($('span[type="calendarCall"]').node());
+
+  bindActionsContextMenu();
+  bidHideContextMenu();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -264,26 +254,6 @@ function createShadowLayer(){
   shadowLayer.style.height = fullHeight;
 
   bindEvent(shadowLayer, 'onclick', closeWindows);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function createStatusWindow(){
-  return '@include: ./html/statusWindow.html';
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function createControlPanel(){
-  var code, disabled;
-
-  disabled = $mode ? '' : 'disabled';
-  code = '@include: ./html/controlPanel.html';
-
-  return code;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function createMessageWindow(){
-  return '@include: ./html/messageWindow.html';
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -308,14 +278,184 @@ function selectTabTable(tab){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function bindActionsContextMenu(){
+  var actions;
+
+  actions = {
+    getStatus: (table)=>{
+      prepareParseMembers(0, table.getCheckedContent());
+    },
+    getWrites: (table)=>{
+      alert("Упс! Не доделано пока что.");
+      alert("ID тем:\n" + table.getCheckedContent()[0].writes.join(', '));
+    },
+    sendMail: (text, mode, table)=>{
+      openMessageWindow(mode, text, table.getCheckedContent());
+    },
+    operationBL: (action, table)=>{
+      switch(action){
+        case "add":
+          openBlackListWindow(action, "Добавить", "", table.getName());
+          break;
+
+        case "edit":
+          openBlackListWindow(action, "Изменить описание", "[новое описание, причина]", table.getName());
+          break;
+
+        case "remove":
+          blActions("Убираю", 0, 0, table.getCheckedContent());
+          break;
+      }
+    },
+    parseThemes: (mode, table)=>{
+      if(mode == "check"){
+        prepareParseThemes(0, table.getCheckedContent());
+      }else{
+        prepareParseThemes(0);
+      }
+    }
+  };
+
+  $('#sf_contextMenu').find('ul[type]').nodeArr().forEach((ul)=>{
+    var table;
+    ul = $(ul);
+    table = $t[ul.attr("type")];
+    ul.find('span[action]').nodeArr().forEach((item)=>{
+      bindEvent(item, "onclick", ()=>{
+        var func, args;
+
+        args = JSON.parse($(item).attr("action"));
+        func = args.shift();
+        args.push(table);
+        actions[func].apply(null, args);
+      });
+    });
+  });
+}
+
+function bindProceedBLWindow(){
+  var table, action, text, desc, date, mode, sid, window;
+
+  window = $('#sf_blWindow').node();
+  action = $(window).find('input[name="action"]').node().value;
+  date = Number($(window).find('input[name="date"]').node().value);
+  sid = Number($(window).find('input[name="sid"]').node().value);
+  text = $(window).find('span').text();
+  desc = $(window).find('textarea').node().value;
+  mode = $(window).find('input[type="radio"]:checked').node().value;
+
+  table = $(window).find('table').attr("name");
+  table = $t[table];
+
+  if(mode == "players"){
+    if(action == "add"){
+      blActions(text, date, desc, table.getCheckedContent());
+    }else{
+      blActions(text, null, desc, table.getCheckedContent());
+    }
+  }else{
+    if(isNaN(sid) || sid == 0){
+      alert("ID Синдиката не корректен");
+      return;
+    }
+    getBLMembersFromSindicate(sid, text, date, desc);
+  }
+  window.style.visibility = "hidden";
+}
+
+function getBLMembersFromSindicate(id, text, date, desc){
+  var url, list;
+
+  openStatusWindow();
+  displayProgress('start', `Сбор состава синдиката #${id}, для добавления в черный список`, 0, 1);
+
+  url = `http://www.ganjawars.ru/syndicate.php?id=${id}&page=members`;
+  list = [];
+
+  ajax(url, 'GET', null).then((r)=>{
+    $answer.innerHTML = r.text;
+    correctionTime(r.time);
+
+    $($answer)
+      .find('b:contains("Состав синдиката")')
+      .up('table')
+      .find('a[href*="info.php"]')
+      .nodeArr()
+      .forEach((a)=>{
+      list.push({
+        id: Number(a.href.match(/(\d+)/)[0]),
+        name: a.textContent
+      });
+    });
+
+    displayProgress("done");
+    blActions(text, date, desc, list);
+  }, (e)=>{
+
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function bidHideContextMenu(){
+  bindEvent(document.body, 'onclick', ()=>{
+    var menu = $('#sf_contextMenu').node();
+    if(menu.style.visibility == "visible"){
+      menu.style.visibility = "hidden";
+      menu.removeAttribute("class");
+    }
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function blActions(action, date, desc, list){
+  var g, timeout = 120;
+  g = actions();
+  g.next();
+
+  openStatusWindow();
+  displayProgress('start', `Операции над черным списком`, 0, list.length);
+  displayProgressTime(list.length * timeout);
+
+  function* actions(){
+    var player;
+    var i, length;
+
+    for(i = 0, length = list.length; i < length; i++){
+      displayProgress('extra', `<br><b>${action}</b>: <i>${list[i].name}</i>`);
+
+      player = yield $idb.getOne.gkWait(g, $idb, [`players`, "id", list[i].id]);
+      player = Pack.player(player);
+
+      if(player == null){
+        player = Create.player(list[i].id);
+        player.name = list[i].name;
+      }
+
+      if(date != null){
+        player.bl = date;
+      }
+      player.desc = desc == "" ? 0 : desc;
+      player._ch = true;
+
+      $idb.add('players', Pack.player(player));
+      displayProgress('work');
+
+      yield g.next.gkDelay(timeout, g);
+    }
+
+    displayProgress('done');
+    renderStatsTable(false);
+    renderBLTable(false);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function prepareDoTask(node){
 
   openStatusWindow();
 
   switch (node.name){
     case 'sf_parseForum': forum(); break;
-    case 'sf_parseThemes': themes(); break;
-    case 'sf_parsePlayers': players(); break;
     case 'sf_memberList': getMembersList(); break;
     case 'sf_sindicateLog': getMaxPageSindicateLog(); break;
   }
@@ -337,48 +477,6 @@ function prepareDoTask(node){
   }
   /////////////////////////////
 
-  function themes(){
-    var p = getParam('sf_parseThemes'), l;
-
-    switch(p.type){
-      case 'count':
-        prepareParseThemes(p.count);
-        break;
-
-      case 'select':
-        l = getList('sf_themesList');
-        prepareParseThemes(0, l);
-        break;
-
-      case 'all':
-        prepareParseThemes(0);
-        break;
-    }
-  }
-  /////////////////////////////
-
-  function players(){
-    var p, l;
-
-    p = getParam('sf_parsePlayers');
-
-    switch(p.type){
-      case 'count':
-        prepareParseMembers(p.count);
-        break;
-
-      case 'select':
-        l = getList('sf_membersList');
-        prepareParseMembers(0, l);
-        break;
-
-      case 'all':
-        prepareParseMembers(0);
-        break;
-    }
-  }
-  /////////////////////////////
-
   function getParam(name){
     var type, count, table;
 
@@ -388,20 +486,6 @@ function prepareDoTask(node){
     count = Number(count);
 
     return {count: count, type: type};
-  }
-  /////////////////////////////
-
-  function getList(name){
-    var id, list = [];
-
-    $(`input[type="checkbox"][name="${name}"]:checked`).nodeArr().forEach(
-      function(node){
-        id = Number(node.value);
-        list.push(id);
-      }
-    );
-
-    return {array: list, count: list.length};
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -425,9 +509,7 @@ function forgetForum(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function displayProgress(ini, text, current, max){
-  var percent, c, m, b, i, t, te, img;
-
-  img = `<div style="width: 25px; height: 25px; background: url(${$ico.loading});"></div>`;
+  var percent, c, m, b, i, t, te;
 
   c = $("#sf_progressCurrent");
   m = $("#sf_progressMax");
@@ -505,7 +587,34 @@ function pauseProgress(){
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function openBlackListWindow(action, text, desc, table){
+  var window, inputs;
+
+  window = $("#sf_blWindow").node();
+
+  $(window).find('table').attr("name", table);
+  $(window).find('span').text(text);
+  $(window).find('input[name="action"]').node().value = action;
+  $(window).find('textarea').node().value = desc;
+
+  inputs = $(window).find('input[name="sid"]');
+  inputs = [inputs.node(), inputs.prev('input').node()];
+
+  if(action == "edit"){
+    inputs[0].disabled = true;
+    inputs[1].disabled = true;
+  }else{
+    inputs[0].disabled = false;
+    inputs[1].disabled = false;
+  }
+
+  $("#sf_shadowLayer").node().style.visibility = "visible";
+  window.style.visibility = "visible";
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function openStatusWindow(){
+  $("#sf_shadowLayer").node().style.visibility = "visible";
   $("#sf_controlPanelWindow").node().style.visibility = "hidden";
   $("#sf_filtersWindow").node().style.visibility = "hidden";
   $("#sf_messageWindow").node().style.visibility = "hidden";
@@ -516,29 +625,22 @@ function openStatusWindow(){
 
 function openControlPanelWindow(){
   $("#sf_shadowLayer").node().style.visibility = "visible";
-
-  $("#sf_countThreads").html($forum.themes[0] + '/' + $forum.themes[1]);
-  $("#sf_countMembers").html($cd.statsCount);
   $("#sf_controlPanelWindow").node().style.visibility = "visible";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function openFiltersWindow(){
-  $("#sf_shadowLayer").node().style.visibility = "visible";
-  $("#sf_filtersWindow").node().style.visibility = "visible";
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function openMessageWindow(){
-  var window, n;
+function openMessageWindow(mode, text, list){
+  var window;
 
   $("#sf_shadowLayer").node().style.visibility = "visible";
   window = $("#sf_messageWindow").node();
-  n = 0;
 
   createSelectList();
   createSelectSID();
-  $(window).find('span[type="count"]').html(n);
+
+  $(window).find('span[type="count"]').html(list.length);
+  $(window).find('input[name="workMode"]').node().value = mode;
+  $(window).find('span[name="workMode"]').text(text);
 
   window.style.visibility = "visible";
   /////////////////////////////
@@ -562,19 +664,12 @@ function openMessageWindow(){
   /////////////////////////////
 
   function createSelectList(){
-    var code, name;
+    var code, i, length;
 
     code = '<option>Посмотреть список...</option>';
-
-    $('#sf_content_SI').find('input[type="checkbox"]:checked')
-      .nodeArr()
-      .forEach(
-        function(box){
-          n++;
-          name = $(box).up('tr').node().cells[2].textContent;
-          code += `<option value="${box.value}">${n}. ${name}</option>`;
-        }
-      );
+    for(i = 0, length = list.length; i < length; i++){
+      code += `<option value="${list[i].id}">${i + 1}. ${list[i].name}</option>`;
+    }
 
     $(window).find('select[name="mid"]').html(code);
   }
@@ -590,6 +685,7 @@ function closeWindows(){
   $("#sf_shadowLayer").node().style.visibility = "hidden";
 
   $("#sf_controlPanelWindow").node().style.visibility = "hidden";
+  $("#sf_blWindow").node().style.visibility = "hidden";
   $("#sf_filtersWindow").node().style.visibility = "hidden";
   $("#sf_messageWindow").node().style.visibility = "hidden";
   $("#sf_calendar").node().style.visibility = "hidden";
@@ -1158,13 +1254,14 @@ function prepareParseThemes(max, data){
 
   $idb.getFew(`themes_${$forum.id}`, type).then((themes)=>{
     if(data){
-      for(i = 0, length = data.count; i < length; i++) push(themes, data.array[i]);
+      for(i = 0, length = data.length; i < length; i++) push(themes, data[i].id);
     }else{
       for(i = 0, length = max ? max : themes.length; i < length; i++) push(themes, i);
     }
 
     countPages = list.length * 1250 + countPages * 1250 + 500;
 
+    openStatusWindow();
     displayProgress('start', `Обработка тем`, 0, list.length);
     displayProgressTime(countPages);
     parseThemes(0, list.length, list);
@@ -1390,13 +1487,14 @@ function prepareParseMembers(max, data){
 
   $idb.getFew(`players`, type).then((players)=>{
     if(data){
-      for(i = 0, length = data.count; i < length; i++) push(players, data.array[i]);
+      for(i = 0, length = data.length; i < length; i++) push(players, data[i].id);
     }else{
       for(i = 0, length = max ? max : players.length; i < length; i++) push(players, i);
     }
 
     count = list.length;
 
+    openStatusWindow();
     displayProgress('start', `Обработка персонажей`, 0, count);
     displayProgressTime(count * 1250);
     parseMembers(0, count, list);
@@ -1542,7 +1640,7 @@ function prepareSendMails(){
       window = $("#sf_messageWindow").node();
       param.subject = $c.encodeHeader($(window).find('input[type="text"][name="subject"]').node().value);
       param.message = $c.encodeHeader($(window).find('textarea[name="message"]').node().value);
-      param.mode = $(window).find('select[name="workMode"]').find('option:checked').node().value;
+      param.mode = $(window).find('input[name="workMode"]').node().value;
       sid = $(window).find('select[name="sid"]').find('option:checked').node();
       param.sid = Number(sid.value); sid = sid.textContent;
       param.id = "1" + param.sid;
@@ -1802,8 +1900,8 @@ function renderBaseHTML(){
     check: [45, null, null]
   });
 
-  $('#sf_header_SI').html('@include: ./html/statsTableHeader.html');
-  $('#sf_footer_SI').html('@include: ./html/statsTableFooter.html');
+  $('#sf_header_SI').html('@include: ./html/statsTableHeader.html, true');
+  $('#sf_footer_SI').html('@include: ./html/statsTableFooter.html, true');
 
   t.setSizes();
   t.setSorts(renderStatsTable);
@@ -1823,8 +1921,8 @@ function renderBaseHTML(){
     check: [45, null, null]
   });
 
-  $('#sf_header_TL').html('@include: ./html/themesTableHeader.html');
-  $('#sf_footer_TL').html('@include: ./html/themesTableFooter.html');
+  $('#sf_header_TL').html('@include: ./html/themesTableHeader.html, true');
+  $('#sf_footer_TL').html('@include: ./html/themesTableFooter.html, true');
 
   t.setSizes();
   t.setSorts(renderThemesTable);
@@ -1840,8 +1938,8 @@ function renderBaseHTML(){
     check: [45, null, null]
   });
 
-  $('#sf_header_BL').html('@include: ./html/blTableHeader.html');
-  $('#sf_footer_BL').html('@include: ./html/blTableFooter.html');
+  $('#sf_header_BL').html('@include: ./html/blTableHeader.html, true');
+  $('#sf_footer_BL').html('@include: ./html/blTableFooter.html, true');
 
   t.setSizes();
   t.setSorts(renderBLTable);
@@ -1879,37 +1977,7 @@ function renderStatsTable(sorted){
 
     table.setCountRows();
     yield showTable.gkWait(g, this, [table]);
-    table.bindClickRow();
-
-    $(table.body).find('tr').nodeArr().forEach((tr)=>{
-      bindEvent(tr.cells[2], "contextmenu", (event)=>{
-        event.preventDefault();
-        var x, y, menu;
-        x = event.clientX;
-        y = event.clientY + + document.body.scrollTop;
-
-        menu = $('#sf_contextMenu').node();
-        menu.style.left = x;
-        menu.style.top = y;
-        menu.style.visibility = "visible";
-
-        menu.innerHTML = '@include: ./html/contextMenu.html';
-
-        $(menu).find('*[class="menu-item"]').nodeArr().forEach((item)=>{
-          bindEvent(item, "onclick", ()=>{
-            console.log($(item).attr("type"));
-          });
-        });
-
-      });
-    });
-
-    bindEvent(document.body, 'onclick', ()=>{
-      var menu = $('#sf_contextMenu').node();
-      if(menu.style.visibility == "visible"){
-        menu.style.visibility = "hidden";
-      }
-    });
+    table.bindClickRow(true);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1937,7 +2005,7 @@ function renderThemesTable(sorted){
 
     table.setCountRows();
     yield showTable.gkWait(g, this, [table]);
-    table.bindClickRow();
+    table.bindClickRow(true);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1965,7 +2033,7 @@ function renderBLTable(sorted){
 
     table.setCountRows();
     yield showTable.gkWait(g, this, [table]);
-    table.bindClickRow();
+    table.bindClickRow(true);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2026,15 +2094,15 @@ function showTable(t){
   function getRows(t, tr){
     switch(t.getName()){
       case "stats":
-        return '@include: ./html/statsTableRow.html';
+        return '@include: ./html/statsTableRow.html, true';
         break;
 
       case "themes":
-        return '@include: ./html/themesTableRow.html';
+        return '@include: ./html/themesTableRow.html, true';
         break;
 
       case "bl":
-        return '@include: ./html/blTableRow.html';
+        return '@include: ./html/blTableRow.html, true';
         break;
     }
   }

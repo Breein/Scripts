@@ -45,7 +45,7 @@ Filter.prototype = {
 
     if(this.html == "" || this.types[0] == "check"){
       row = this.createRow();
-      this.html = '@include: ./../../html/filterWindow.html';
+      this.html = '@include: ./../../html/filterWindow.html, true';
     }
 
     this.fw.style.left = 0;
@@ -148,19 +148,19 @@ Filter.prototype = {
     this.types.forEach((type)=>{
       switch(type){
         case "number":
-          code += '@include: ./../../html/numberRow.html';
+          code += '@include: ./../../html/numberRow.html, true';
           break;
         case "date":
-          code += '@include: ./../../html/dateRow.html';
+          code += '@include: ./../../html/dateRow.html, true';
           break;
         case "multiple":
-          code += '@include: ./../../html/multipleRow.html';
+          code += '@include: ./../../html/multipleRow.html, true';
           break;
         case "boolean":
-          code += '@include: ./../../html/booleanRow.html';
+          code += '@include: ./../../html/booleanRow.html, true';
           break;
         case "check":
-          code += '@include: ./../../html/checkRow.html';
+          code += '@include: ./../../html/checkRow.html, true';
           break;
       }
     });
