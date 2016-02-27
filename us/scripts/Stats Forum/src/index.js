@@ -15,6 +15,7 @@ const $pause = require('./../../../js/pause.js');
 
 
 var $nameScript = "Stats forums [GW]";
+var $maxTimestamps = 10;
 var $mode = true;
 var $cd, $ss, $answer, $screenWidth, $screenHeight, $date, $checked, $t;
 
@@ -38,7 +39,7 @@ $screenWidth = document.body.clientWidth;
 $screenHeight = document.body.clientHeight;
 
 $answer = $('<span>').node();
-$date = parseInt(new Date().getTime() / 1000, 10);
+$date = $c.getTimeNow();
 
 $cd = {
   fid: 0,
@@ -135,7 +136,7 @@ function createStatGUIButton(){
     makeConnect("gk_StatsForum", true)
   });
 
-  makeConnect("gk_StatsForum", true);
+  //makeConnect("gk_StatsForum", true);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -313,6 +314,12 @@ function bindActionsContextMenu(){
       }else{
         prepareParseThemes(0);
       }
+    },
+    getTimestamp: (table)=>{
+      alert("Данные есть, графиков еще нет.");
+      //$idb.getOne(`timestamp_${$forum.id}`, 'id', 2040777).then((result)=>{
+      //  console.log(result);
+      //});
     }
   };
 
@@ -694,7 +701,7 @@ function closeWindows(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getCharacter(value, tid){
-  var player, member, index, id, result;
+  var player, member, index, id, result, timestamp;
   var g, f;
 
   index = typeof value == "string" ? "NAME" : "id";
@@ -739,7 +746,11 @@ function getCharacter(value, tid){
         player._ch = true;
       }
 
-      resolve({p: player, m: member});
+      timestamp = yield $idb.getOne.gkWait(g, $idb, [`timestamp_${tid}`, "id", player.id]);
+      timestamp = Pack.timestamp(timestamp);
+      if(timestamp == null) timestamp = Create.timestamp(player.id);
+
+      resolve({p: player, m: member, t: timestamp});
     }
   };
   /////////////////////////////
@@ -1323,8 +1334,6 @@ function parseTheme(theme, startPost, args){
       correctionTime(r.time);
 
       table = $($answer).find('td[style="color: #990000"]:contains("Автор")').up('table').node();
-      tr = table.rows;
-
       $(table).find('font:contains("~Тема закрыта")').nodeArr().forEach(
         function(node){
           node = $(node).up('tr').node();
@@ -1332,6 +1341,7 @@ function parseTheme(theme, startPost, args){
         }
       );
 
+      tr = table.rows;
       for(i = startPost, length = tr.length; i < length; i++){
         rows.push(tr[i]);
       }
@@ -1355,6 +1365,7 @@ function parseTheme(theme, startPost, args){
   function parseRow(tr){
     var table, pid, words, date, carma;
     var character, player, member;
+    var timestamp, tsKeys;
     var g, f;
 
     f = (resolve) => {
@@ -1365,7 +1376,7 @@ function parseTheme(theme, startPost, args){
         pid = getId();
 
         character = yield getCharacter.gkWait(g, this, [pid]);
-        player = character.p; member = character.m;
+        player = character.p; member = character.m; timestamp = character.t;
 
         date = getLastDate();
         words = getWords();
@@ -1392,8 +1403,14 @@ function parseTheme(theme, startPost, args){
         if(!$c.exist(theme.id, member.write)) member.write.push(theme.id);
         member._ch = true;
 
+        timestamp.data[$date] = Create.stamp(member);
+        tsKeys = Object.keys(timestamp.data);
+        if(tsKeys.length > $maxTimestamps) delete timestamp.data[tsKeys[0]];
+        timestamp._ch = true;
+
         $idb.add("players", Pack.player(player));
         $idb.add(`members_${$forum.id}`, Pack.member(member));
+        $idb.add(`timestamp_${$forum.id}`, Pack.timestamp(timestamp));
         resolve();
       }
     };
@@ -2086,7 +2103,7 @@ function showTable(t){
       }
       setTimeout(()=>{
         resolve();
-      }, 100);
+      }, 200);
     })
   }
   /////////////////////////////

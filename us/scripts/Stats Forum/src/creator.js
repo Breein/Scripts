@@ -85,8 +85,7 @@ GeneratorData.prototype = {
   timestamp: function(id){
     return {
       id: id,
-      time: [],
-      data: [],
+      data: {},
       _ch: true
     }
   },
@@ -172,6 +171,22 @@ GeneratorData.prototype = {
       desc: t.f,
       check: false
     };
+  },
+
+  /**
+   * @param {object} m
+   * @returns {{a: number, c: number, d: number, e: number, f: number, g: number, h: number}}
+   */
+  stamp: function(m){
+    return {
+      a: m.posts,
+      c: m.start.length,
+      d: m.write.length,
+      e: m.words,
+      f: m.wordsAverage,
+      g: m.carma,
+      h: m.carmaAverage
+    }
   }
 };
 

@@ -62,8 +62,8 @@ PackerData.prototype = {
   timestamp: function(o){
     if(!o) return o;
     return this.isPacked(o) ?
-    {id: o.id, time: o.a, data: o.b, _ch: false} :
-    {id: o.id, a: o.time, b: o.data, _ch: o._ch};
+    {id: o.id, data: o.a, _ch: false} :
+    {id: o.id, a: o.data, _ch: o._ch};
   }
 };
 
