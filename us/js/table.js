@@ -14,6 +14,7 @@ function Table(nodesID, settingsKey, settings, icons){
   this.icons = icons;
   this.structure = {};
   this.content = [];
+  this.renderContent = [];
   this.size = [];
   this.filters = {};
   this.sort = {
@@ -23,6 +24,7 @@ function Table(nodesID, settingsKey, settings, icons){
   this.settings = settings;
   this.setups = this.settings[this.name];
   this.rows = 0;
+  this.renderRows = 0;
   this.indexedKeys = [];
 
   this.ini();
@@ -50,10 +52,11 @@ Table.prototype = {
   },
 
   /**
-   * @returns {object[]}
+   * @param {boolean=} render
+   * @returns {Array}
    */
-  getContent: function(){
-    return this.content;
+  getContent: function(render){
+    return render ? this.renderContent : this.content;
   },
 
   /**
@@ -62,7 +65,7 @@ Table.prototype = {
   getCheckedContent: function(){
     var result = [];
 
-    this.content.forEach((row)=>{
+    this.renderContent.forEach((row)=>{
       if(row.check){
         result.push(row);
       }
@@ -72,27 +75,40 @@ Table.prototype = {
   },
 
   /**
+   * @param {boolean=} render
    * @returns {number}
    */
-  getLastRowContent: function(){
-    return this.rows - 1;
+  getLastRowContent: function(render){
+    return render ? this.renderRows - 1 : this.rows - 1;
   },
 
   /**
    * @param {object} element
+   * @param {boolean=} render
    */
-  pushContent: function(element){
-    this.content.push(element);
-    this.rows++;
+  pushContent: function(element, render){
+    if(render){
+      this.renderContent.push(element);
+      this.renderRows++;
+    }else{
+      this.content.push(element);
+      this.rows++;
+    }
   },
 
   /**
+   * @param {boolean=} render
    */
-  clearContent: function(){
-    this.content = [];
-    this.rows = 0;
-    $(this.footer).find('span[type="checkAll"]').html("[отметить всё]");
-    $(this.footer).find('b[type="countCheck"]').html(0);
+  clearContent: function(render){
+    if(render){
+      this.renderContent = [];
+      this.renderRows = 0;
+      $(this.footer).find('span[type="checkAll"]').html("[отметить всё]");
+      $(this.footer).find('b[type="countCheck"]').html(0);
+    }else{
+      this.content = [];
+      this.rows = 0;
+    }
   },
 
   /**
@@ -122,7 +138,7 @@ Table.prototype = {
    * @param {*} value
    */
   setContentValue: function(index, key, value){
-    this.content[index][key] = value;
+    this.renderContent[index][key] = value;
   },
 
   /**
@@ -164,7 +180,7 @@ Table.prototype = {
   /**
    */
   setCountRows: function(){
-    $(this.footer).find('b[type="countRows"]').html(this.rows);
+    $(this.footer).find('b[type="countRows"]').html(this.renderRows + '/' + this.rows);
   },
 
   setCountCheck: function(){
@@ -178,7 +194,7 @@ Table.prototype = {
   sorting: function(){
     var value, type, array;
 
-    array = this.getContent();
+    array = this.getContent(true);
     value = this.setups.sort.cell;
     type = this.setups.sort.type;
 
@@ -233,9 +249,8 @@ Table.prototype = {
         }
 
         table.changeSortImage();
-        table.sorting();
         table.saveSettings();
-        callback(true);
+        callback("sort");
       });
     });
   },
@@ -456,6 +471,20 @@ Table.prototype = {
     }
   },
 
+  /**
+   * @param {string} mode
+   */
+  prepare: function(mode){
+    if(mode == "filter"){
+      this.clearContent(true);
+      this.getContent().forEach((row)=>{
+        row.check = false;
+        if(this.filtering(row)) this.pushContent(row, true);
+      });
+    }
+    this.sorting();
+    this.setCountRows();
+  },
   /**
    * @param {string} html
    * @param {boolean=} add

@@ -1965,7 +1965,7 @@ function renderBaseHTML(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function renderStatsTable(sorted){
+function renderStatsTable(mode){
   var g, table, players, cMembers, members, row;
 
   cMembers = {};
@@ -1974,8 +1974,8 @@ function renderStatsTable(sorted){
   g.next();
 
   function* render(){
-
-    if(!sorted){
+    if(mode == null){
+      mode = "filter";
       table.clearContent();
 
       members = yield $idb.getFew.gkWait(g, $idb, [`members_${$forum.id}`]);
@@ -1986,20 +1986,18 @@ function renderStatsTable(sorted){
 
       members.forEach((member)=>{
         row = Create.characters(member, players[member.id], cMembers[member.id]);
-        if(table.filtering(row)) table.pushContent(row);
+        table.pushContent(row);
       });
-
-      table.sorting();
     }
 
-    table.setCountRows();
+    table.prepare(mode);
     yield showTable.gkWait(g, this, [table]);
     table.bindClickRow(true);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function renderThemesTable(sorted){
+function renderThemesTable(mode){
   var g, table, themes, row;
 
   table = $t.themes;
@@ -2007,27 +2005,25 @@ function renderThemesTable(sorted){
   g.next();
 
   function* render(){
-    if(!sorted){
+    if(mode == null){
+      mode = "filter";
       table.clearContent();
 
       themes = yield $idb.getFew.gkWait(g, $idb, [`themes_${$forum.id}`]);
-
       themes.forEach((theme)=>{
         row = Create.thread(theme);
-        if(table.filtering(row)) table.pushContent(row);
+        table.pushContent(row);
       });
-
-      table.sorting();
     }
 
-    table.setCountRows();
+    table.prepare(mode);
     yield showTable.gkWait(g, this, [table]);
     table.bindClickRow(true);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function renderBLTable(sorted){
+function renderBLTable(mode){
   var g, table, players, row;
 
   table = $t.bl;
@@ -2035,20 +2031,17 @@ function renderBLTable(sorted){
   g.next();
 
   function* render(){
-    if(!sorted){
+    if(mode == null){
       table.clearContent();
 
       players = yield $idb.getFew.gkWait(g, $idb, [`players`, "[]", "BL", [">", 1]]);
-
       players.forEach((player)=>{
         row = Create.blackList(player);
-        if(table.filtering(row)) table.pushContent(row);
+        table.pushContent(row);
       });
-
-      table.sorting();
     }
 
-    table.setCountRows();
+    table.prepare(mode);
     yield showTable.gkWait(g, this, [table]);
     table.bindClickRow(true);
   }
@@ -2066,7 +2059,7 @@ function showTable(t){
   var code, rows, html, first = 1, n = 0;
   var i, length;
 
-  rows = t.getContent();
+  rows = t.getContent(true);
   code = [];
   html = "";
 

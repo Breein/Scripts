@@ -350,7 +350,7 @@ Filter.prototype = {
       }
       this.hide();
       this.table.saveSettings();
-      callback(false);
+      callback("filter");
     });
   },
 
