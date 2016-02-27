@@ -2056,7 +2056,7 @@ function renderTables(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function showTable(t){
-  var code, rows, html, first = 1, n = 0;
+  var code, rows, html, first = 1, n = 0, b;
   var i, length;
 
   rows = t.getContent(true);
@@ -2064,6 +2064,7 @@ function showTable(t){
   html = "";
 
   for(i = 0, length = rows.length; i < length; i++){
+    b = i > 0 && i < length - 1 ? "" : (i == 0 ? 'type="no-b-top"' : 'type="no-b-bottom"');
     if(!n && i == 80){
       code[n] = html;
       html = "";
@@ -2074,7 +2075,7 @@ function showTable(t){
       html = "";
       n++;
     }
-    html += getRows(t, rows[i]);
+    html += getRows(t, rows[i], b);
   }
   code[n] = html;
 
@@ -2096,12 +2097,12 @@ function showTable(t){
       }
       setTimeout(()=>{
         resolve();
-      }, 200);
+      }, 100);
     })
   }
   /////////////////////////////
 
-  function getRows(t, tr){
+  function getRows(t, tr, border){
     switch(t.getName()){
       case "stats":
         return '@include: ./html/statsTableRow.html, true';

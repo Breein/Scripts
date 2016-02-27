@@ -73,10 +73,10 @@ div.content{
 table[type="padding"]{
     border-collapse: collapse;
 }
-table[type="padding"][id^="sf_content"] tr:first-child td{
+table[type="padding"] tr[type="no-b-top"] td{
     border-top-style: none;
 }
-table[type="padding"][id^="sf_content"] tr:last-child td{
+table[type="padding"] tr[type="no-b-bottom"] td{
     border-bottom-style: none;
 }
 table[type="padding"] td {
