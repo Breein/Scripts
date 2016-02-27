@@ -1306,7 +1306,7 @@ function parseThemes(index, max, list){
   if(index < max){
     theme = list[index];
     startPost = theme.posts[0] % 20;
-    startPost = startPost ? startPost : 1;
+    startPost = startPost ? startPost + 1 : 1;
 
     parseTheme(theme, startPost, [index, max, list]);
   }else{
@@ -1325,9 +1325,8 @@ function parseTheme(theme, startPost, args){
     return;
   }
 
-  url = 'http://www.ganjawars.ru/messages.php?fid=' + $forum.id + '&tid='+ theme.id +'&page_id=' + theme.pages[0];
-
-  if(theme.pages[0] < theme.pages[1]){
+  if(theme.pages[0] < theme.pages[1] && theme.posts[0] < theme.posts[1]){
+    url = 'http://www.ganjawars.ru/messages.php?fid=' + $forum.id + '&tid='+ theme.id +'&page_id=' + theme.pages[0];
 
     ajax(url, "GET", null).then((r)=>{
       $answer.innerHTML = r.text;
@@ -1469,8 +1468,10 @@ function parseTheme(theme, startPost, args){
   /////////////////////////////
 
   function nextPageTheme(){
-    theme.pages[0]++;
-    theme._ch = true;
+    if(theme.posts[0] % 20 == 0){
+      theme.pages[0]++;
+      theme._ch = true;
+    }
 
     $idb.add("forums", Pack.forum($forum));
     $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
