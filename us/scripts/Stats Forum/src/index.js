@@ -453,8 +453,8 @@ function blActions(action, date, desc, list){
     }
 
     displayProgress('done');
-    renderStatsTable(false);
-    renderBLTable(false);
+    renderStatsTable();
+    renderBLTable();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2036,6 +2036,7 @@ function renderBLTable(mode){
 
   function* render(){
     if(mode == null){
+      mode = "filter";
       table.clearContent();
 
       players = yield $idb.getFew.gkWait(g, $idb, [`players`, "[]", "BL", [">", 1]]);
