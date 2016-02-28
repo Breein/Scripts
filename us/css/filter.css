@@ -3,6 +3,7 @@
     z-index: 2
 }
 #sf_filtersWindow > div:first-child {
+    box-shadow: 0 0 10px black;
     background: #defadc;
     border: solid 2px white;
     border-radius: 10px;
@@ -23,7 +24,7 @@
     border: solid 2px white;
     border-bottom-style: none;
     border-top-style: none;
-    height: 10px;
+    height: 15px;
     background: #defadc;
 }
 

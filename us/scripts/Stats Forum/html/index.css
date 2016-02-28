@@ -146,11 +146,14 @@ tr[type="filters"]{
 
 div[type="window"]{
     position: absolute;
-    left: 50%;
-    top: 50%;
     z-index: 2;
     border-radius: 10px;
     background-color: #FFFFFF;
+    box-shadow: 0 0 15px black;
+}
+div.center-screen{
+    left: 50%;
+    top: 50%;
     transform: translate(-50%, -50%);
 }
 
@@ -172,6 +175,9 @@ input[type="text"].sf_hideInput{
 }
 
 /* Стили каледнаря */
+#sf_calendar tr{
+    border: none;
+}
 #sf_calendar td{
     text-align: center;
     height: 20px;

@@ -219,7 +219,7 @@ Filter.prototype = {
     if(offsetRight > 1890) offsetLeft = 1890 - wp.width;
 
     w.style.left = offsetLeft < 0 ? 15 + "px" : offsetLeft + "px";
-    w.style.top = cp.top - wp.height - 7 + document.body.scrollTop;
+    w.style.top = cp.top - wp.height - 12 + document.body.scrollTop;
   },
 
   setPositionSpace: function(w, wp, cp){
