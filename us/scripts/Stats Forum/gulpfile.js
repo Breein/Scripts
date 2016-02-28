@@ -21,7 +21,7 @@ gulp.task('wrap', function(){
   userScriptHeader =
     `// ==UserScript==
 // @name        Stats forums [GW]
-// @namespace   гном убийца
+// @author      гном убийца
 // @description Форумная статистика (${nowDate})
 // @include     http://www.ganjawars.ru/threads.php?fid=*
 // @exclude     http://www.ganjawars.ru/threads.php?fid=*&page_id=*
