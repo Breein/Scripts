@@ -10,23 +10,28 @@ var runSequence = require('run-sequence');
 var chokidar = require('chokidar');
 var fs = require('fs');
 
-var userScriptHeader =
-  `// ==UserScript==
+
+
+gulp.task('wrap', function(){
+  var userScriptHeader, userScriptFooter, nowDate;
+
+  includeHTML();
+  nowDate = new Date(new Date().getTime()).toLocaleString();
+
+  userScriptHeader =
+    `// ==UserScript==
 // @name        Stats forums [GW]
 // @namespace   гном убийца
-// @description (RAW) Форумная статистика (14.01.16.1916)
+// @description Форумная статистика (${nowDate})
 // @include     http://www.ganjawars.ru/threads.php?fid=*
 // @exclude     http://www.ganjawars.ru/threads.php?fid=*&page_id=*
-// @version     1.20
+// @version     2.000
 // @grant       none
 // ==/UserScript==
 
 (function(){`;
-var userScriptFooter = `})();`;
 
-gulp.task('wrap', function(){
-
-  includeHTML();
+  userScriptFooter = `})();`;
 
   return gulp.src('./out/bundle_full.js')
     .pipe(concat.header(userScriptHeader))

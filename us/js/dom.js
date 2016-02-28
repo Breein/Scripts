@@ -188,12 +188,7 @@ Api.prototype = {
 
     while (node.nodeName != param) {
       node = node.parentNode;
-      if (node == document) {
-        this.nodeList[0] = null;
-        this.length = 0;
-
-        return this;
-      }
+      if (node == document) return this.nodeNull();
     }
     this.nodeList[0] = node;
     this.length = 1;
@@ -206,22 +201,20 @@ Api.prototype = {
    * @returns {Api}
    */
   next: function (param){
-    var node, lastNode;
+    var node, lNode;
 
     this.selector += " > next[" + param + "]";
     param = param.toUpperCase();
+
     node = this.nodeList[0].nextElementSibling;
-    lastNode = node.parentNode.lastChild;
+    if(node == null) return this.nodeNull();
+
+    lNode = node.parentNode.lastChild;
     this.nodeList = [];
 
-    while (node.nodeName != param) {
+    while (node.nodeName != param){
       node = node.nextElementSibling;
-      if (node == lastNode) {
-        this.nodeList[0] = null;
-        this.length = 0;
-
-        return this;
-      }
+      if (node == lNode) return this.nodeNull();
     }
     this.nodeList[0] = node;
     this.length = 1;
@@ -235,25 +228,30 @@ Api.prototype = {
    * @returns {Api}
    */
   prev: function (param){
-    var node, firstNode;
+    var node, fNode;
 
     this.selector += " > prev[" + param + "]";
     param = param.toUpperCase();
+
     node = this.nodeList[0].previousElementSibling;
-    firstNode = node.parentNode.firstChild;
+    if(node == null) return this.nodeNull();
+
+    fNode = node.parentNode.firstChild;
     this.nodeList = [];
 
     while(node.nodeName != param){
       node = node.previousElementSibling;
-      if(node == firstNode){
-        this.nodeList[0] = null;
-        this.length = 0;
-
-        return this;
-      }
+      if(node == fNode) return this.nodeNull();
     }
     this.nodeList[0] = node;
     this.length = 1;
+
+    return this;
+  },
+
+  nodeNull: function(){
+    this.nodeList[0] = null;
+    this.length = 0;
 
     return this;
   }

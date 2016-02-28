@@ -147,7 +147,7 @@ Api.prototype = {
 
     this.selector += " > next[" + value + "]";
     value = value.toUpperCase();
-    node = this.nodeList[0].nextSibling;
+    node = this.nodeList[0].nextElSibling;
     lastNode = node.parentNode.lastChild;
     this.nodeList = [];
 

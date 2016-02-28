@@ -235,6 +235,7 @@ function createGUI(){
 
   bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
   bindEvent($('#sf_pauseButton').node(), 'onclick', pauseProgress);
+  bindEvent($('#sf_cancelButton').node(), 'onclick', cancelProgress);
   bindEvent($('#sf_proceedBLButton').node(), 'onclick', bindProceedBLWindow);
 
   $calendar.setContainer("#sf_calendar");
@@ -429,6 +430,7 @@ function blActions(action, date, desc, list){
 
     for(i = 0, length = list.length; i < length; i++){
       displayProgress('extra', `<br><b>${action}</b>: <i>${list[i].name}</i>`);
+      if($pause.isStop()) return;
 
       player = yield $idb.getOne.gkWait(g, $idb, [`players`, "id", list[i].id]);
       player = Pack.player(player);
@@ -592,6 +594,14 @@ function pauseProgress(){
     progress.style.background = `url(${$ico.pause})`;
     i.name = "pause";
   }
+}
+
+function cancelProgress(){
+  $pause.stop();
+  $cd.showProgressTime = false;
+
+  $("#sf_shadowLayer").node().style.visibility = "hidden";
+  $("#sf_statusWindow").node().style.visibility = "hidden";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -899,10 +909,8 @@ function getMaxPageSindicateLog(){
 function parseSindicateLog(index){
   var url;
 
-  if($pause.isActive()){
-    $pause.freeze(parseThemes, arguments);
-    return;
-  }
+  if($pause.isStop()) return;
+  if($pause.isActive(parseSindicateLog, arguments)) return;
 
   if(index != -1){
     url = `http://www.ganjawars.ru/syndicate.log.php?id=${$forum.sid}&page_id=${$forum.log[0]}`;
@@ -1059,10 +1067,8 @@ function getMaxPageForum(){
 function parseForum(index, mode, stopDate){
   var url, count;
 
-  if($pause.isActive()){
-    $pause.freeze(parseForum, arguments);
-    return;
-  }
+  if($pause.isStop()) return;
+  if($pause.isActive(parseForum, arguments)) return;
 
   url = `http://www.ganjawars.ru/threads.php?fid=${$cd.fid}&page_id=${index}`;
   count = 0;
@@ -1136,15 +1142,14 @@ function parseForum(index, mode, stopDate){
           theme.start = date;
         }else{
           posts = getPosts();
-          pages = getPages();
-
-          if(pages[1] != theme.pages[1]){
-            theme.pages = pages;
+          if(posts[1] != theme.posts[1]){
+            theme.posts = posts;
             theme._ch = true;
           }
 
-          if(posts[1] != theme.posts[1]){
-            theme.posts = posts;
+          pages = getPages();
+          if(pages[1] != theme.pages[1]){
+            theme.pages = pages;
             theme._ch = true;
           }
         }
@@ -1298,10 +1303,8 @@ function prepareParseThemes(max, data){
 function parseThemes(index, max, list){
   var theme, startPost;
 
-  if($pause.isActive()){
-    $pause.freeze(parseThemes, arguments);
-    return;
-  }
+  if($pause.isStop()) return;
+  if($pause.isActive(parseThemes, arguments)) return;
 
   if(index < max){
     theme = list[index];
@@ -1320,12 +1323,11 @@ function parseTheme(theme, startPost, args){
   var url, table, tr;
   var i, length, rows = [];
 
-  if($pause.isActive()){
-    $pause.freeze(parseTheme, arguments);
-    return;
-  }
+  if($pause.isStop()) return;
+  if($pause.isActive(parseTheme, arguments)) return;
 
-  if(theme.pages[0] < theme.pages[1] && theme.posts[0] < theme.posts[1]){
+  if(theme.pages[0] != theme.pages[1]){
+    displayProgress('extra', `<br><b>Тема:</b> <i>${theme.name}</i> [${theme.pages[0] + 1}/${theme.pages[1]}]`);
     url = 'http://www.ganjawars.ru/messages.php?fid=' + $forum.id + '&tid='+ theme.id +'&page_id=' + theme.pages[0];
 
     ajax(url, "GET", null).then((r)=>{
@@ -1354,7 +1356,7 @@ function parseTheme(theme, startPost, args){
 
     }, (e)=>{
       errorLog('Сбор информации о сообщениях', 1, e);
-      nextPageTheme();
+      nextPageTheme(true);
     });
   }else{
     nextTheme();
@@ -1387,6 +1389,8 @@ function parseTheme(theme, startPost, args){
         }
 
         theme.posts[0]++;
+        if(theme.posts[0] > theme.posts[1])
+          theme.posts[1] = theme.posts[0];
         theme._ch = true;
 
         $forum.posts++;
@@ -1467,17 +1471,20 @@ function parseTheme(theme, startPost, args){
   }
   /////////////////////////////
 
-  function nextPageTheme(){
-    if(theme.posts[0] % 20 == 0){
+  function nextPageTheme(error){
+    var page = $($answer).find('a[class="clr"][style*="#AA0000"]');
+
+    if(page.length && page.up('td').next('td').length || error){
       theme.pages[0]++;
       theme._ch = true;
+
+      parseTheme.gkDelay(750, this, [theme, 1, args]);
+    }else{
+      nextTheme();
     }
 
     $idb.add("forums", Pack.forum($forum));
     $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
-
-    displayProgress.gkDelay(750, this, ['extra', `<br><b>Тема:</b> <i>${theme.name}</i> [${theme.pages[0]}/${theme.pages[1]}]`]);
-    parseTheme.gkDelay(750, this, [theme, 1, args]);
   }
   /////////////////////////////
 
@@ -1530,10 +1537,8 @@ function prepareParseMembers(max, data){
 function parseMembers(id, count, list){
   var url, player;
 
-  if($pause.isActive()){
-    $pause.freeze(parseMembers, arguments);
-    return;
-  }
+  if($pause.isStop()) return;
+  if($pause.isActive(parseMembers, arguments)) return;
 
   if(id < count){
     player = list[id];
@@ -1790,10 +1795,8 @@ function prepareSendMails(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function doActions(index, count, param){
-  if($pause.isActive()){
-    $pause.freeze(doActions, arguments);
-    return;
-  }
+  if($pause.isStop()) return;
+  if($pause.isActive(doActions, arguments)) return;
 
   if(index < count){
     if(param.mode == "invite"){
