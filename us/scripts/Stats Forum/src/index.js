@@ -235,7 +235,7 @@ function createGUI(){
 
   bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
   bindEvent($('#sf_pauseButton').node(), 'onclick', pauseProgress);
-  bindEvent($('#sf_cancelButton').node(), 'onclick', cancelProgress);
+  bindEvent($('#sf_cancelButton').node(), 'onclick', ()=>{$pause.stop()});
   bindEvent($('#sf_proceedBLButton').node(), 'onclick', bindProceedBLWindow);
 
   $calendar.setContainer("#sf_calendar");
@@ -430,7 +430,7 @@ function blActions(action, date, desc, list){
 
     for(i = 0, length = list.length; i < length; i++){
       displayProgress('extra', `<br><b>${action}</b>: <i>${list[i].name}</i>`);
-      if($pause.isStop()) return;
+      if($pause.isStop(cancelProgress)) return;
 
       player = yield $idb.getOne.gkWait(g, $idb, [`players`, "id", list[i].id]);
       player = Pack.player(player);
@@ -597,11 +597,13 @@ function pauseProgress(){
 }
 
 function cancelProgress(){
-  $pause.stop();
   $cd.showProgressTime = false;
+
+  console.log("Ok");
 
   $("#sf_shadowLayer").node().style.visibility = "hidden";
   $("#sf_statusWindow").node().style.visibility = "hidden";
+  renderTables();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -909,7 +911,7 @@ function getMaxPageSindicateLog(){
 function parseSindicateLog(index){
   var url;
 
-  if($pause.isStop()) return;
+  if($pause.isStop(cancelProgress)) return;
   if($pause.isActive(parseSindicateLog, arguments)) return;
 
   if(index != -1){
@@ -1067,7 +1069,7 @@ function getMaxPageForum(){
 function parseForum(index, mode, stopDate){
   var url, count;
 
-  if($pause.isStop()) return;
+  if($pause.isStop(cancelProgress)) return;
   if($pause.isActive(parseForum, arguments)) return;
 
   url = `http://www.ganjawars.ru/threads.php?fid=${$cd.fid}&page_id=${index}`;
@@ -1303,7 +1305,7 @@ function prepareParseThemes(max, data){
 function parseThemes(index, max, list){
   var theme, startPost;
 
-  if($pause.isStop()) return;
+  if($pause.isStop(cancelProgress)) return;
   if($pause.isActive(parseThemes, arguments)) return;
 
   if(index < max){
@@ -1323,7 +1325,7 @@ function parseTheme(theme, startPost, args){
   var url, table, tr;
   var i, length, rows = [];
 
-  if($pause.isStop()) return;
+  if($pause.isStop(cancelProgress)) return;
   if($pause.isActive(parseTheme, arguments)) return;
 
   if(theme.pages[0] != theme.pages[1]){
@@ -1537,7 +1539,7 @@ function prepareParseMembers(max, data){
 function parseMembers(id, count, list){
   var url, player;
 
-  if($pause.isStop()) return;
+  if($pause.isStop(cancelProgress)) return;
   if($pause.isActive(parseMembers, arguments)) return;
 
   if(id < count){
@@ -1553,7 +1555,7 @@ function parseMembers(id, count, list){
       nextMember();
 
     }, (e)=>{
-      errorLog('Сбор статуса персонажа', 1, e);
+      errorLog('Сбор статуса персонажа', 0, e);
       nextMember();
     });
   }else{
@@ -1795,7 +1797,7 @@ function prepareSendMails(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function doActions(index, count, param){
-  if($pause.isStop()) return;
+  if($pause.isStop(cancelProgress)) return;
   if($pause.isActive(doActions, arguments)) return;
 
   if(index < count){
@@ -2173,6 +2175,7 @@ function correctionTime(t){
 
 function errorLog(text, full, e){
   if(full){
+    $cd.showProgressTime = false;
     console.groupCollapsed($nameScript);
     console.error(`Случилась при: ${text}. Ошибка: %s, строка: %d"`, e.name, e.lineNumber);
     console.groupEnd();

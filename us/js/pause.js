@@ -55,10 +55,12 @@ Pause.prototype = {
   },
 
   /**
+   * @param {Function} callback
    * @returns {boolean}
    */
-  isStop: function(){
+  isStop: function(callback){
     if(this.cancel){
+      callback();
       this.cancel = false;
       return true;
     }else{
