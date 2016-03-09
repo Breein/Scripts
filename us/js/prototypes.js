@@ -14,24 +14,6 @@ module.exports = function(){
   };
 
   /**
-   * @param {*} value
-   * @returns {boolean}
-   */
-  Array.prototype.gkExist = function(value){
-    var length, array;
-
-    array = this;
-    length = array.length;
-
-    while(length--){
-      if(array[length] == value){
-        return true;
-      }
-    }
-    return false;
-  };
-
-  /**
    * @param {Function} generator
    * @param {*} ctx
    * @param {*[]} args

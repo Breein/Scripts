@@ -87,7 +87,7 @@ Api.prototype = {
    * @returns {Api|string}
    */
   attr: function(attribute, value){
-    if(value){
+    if(value != null){
       this.nodeList[0].setAttribute(attribute, value);
       return this;
     }else{

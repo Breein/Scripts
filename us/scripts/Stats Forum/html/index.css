@@ -1,8 +1,13 @@
-table.mainTable {
+table.tabs {
     width: 98%;
     border-style: none;
     border-collapse: collapse;
     margin-top: 10px;
+}
+table.mainTable {
+    width: 98%;
+    border-style: none;
+    border-collapse: collapse;
 }
 td.tabTop {
     height: 5px;
@@ -15,6 +20,7 @@ td.tabTopActive{
 td.tab{
     font-weight: bold;
     height: 25px;
+    width: 160px;
     border: solid #339933 1px;
     text-align: center;
     background-color: #d0efd0;
@@ -28,12 +34,7 @@ td.tab.tabActive{
     border-bottom-style: none;
     background-color: #f0fff0;
 }
-td.tabFirst{
-    width: 15px;
-    border-bottom: solid #339933 1px;
-}
-td.tabLast{
-    width: 1200px;
+td.tabBegin-End{
     border-bottom: solid #339933 1px;
 }
 td.tabContent{
@@ -70,6 +71,10 @@ div.content{
     margin: auto;
 }
 
+.window-content{
+    margin: 20px 25px;
+    background-color: #f0fff0;
+}
 table[type="padding"]{
     border-collapse: collapse;
 }
@@ -104,7 +109,6 @@ tr.checked{
 tr.light:hover{
     background-color: #beccbe;
 }
-
 tr[type="header"] {
     background-color: #d0eed0;
     font-weight: bold;
@@ -112,6 +116,11 @@ tr[type="header"] {
 tr[type="header"] td{
     text-align: center;
 }
+tr[type="filters"]{
+    background-color: #d0eed0;
+    height: 28px;
+}
+
 td[sort] > img{
     float: right;
 }
@@ -121,11 +130,13 @@ td[sort], td[filter]{
 td[sort]:hover, td[filter]:hover{
     background-color: #cae1ca;
 }
-tr[type="filters"]{
-    background-color: #d0eed0;
-    height: 28px;
+td.a-item{
+    text-indent: 5px;
 }
-
+td.a-item > a{
+    text-decoration: none;
+    font-weight: bold;
+}
 #sf_shadowLayer{
     position: absolute;
     width: 0;
@@ -270,7 +281,16 @@ span[type="checkAll"]{
     left: 98%;
     top: -1px;
 }
-
-#sf_blWindow input[type="radio"]{
+input.v-middle{
+    vertical-align: -3px;
+}
+input.v-middle-2{
     vertical-align: -2px;
+}
+
+#sf_writesWindow div[style*="max-height"] > table tr:first-child td{
+    border-top-style: none;
+}
+#sf_writesWindow div[style*="max-height"] > table tr:last-child td{
+    border-bottom-style: none;
 }

@@ -44,6 +44,7 @@ Table.prototype = {
       this.saveSettings();
     }
   },
+
   /**
    * @returns {string}
    */
@@ -60,18 +61,33 @@ Table.prototype = {
   },
 
   /**
+   * @param {number} index
+   * @param {boolean=} render
+   * @returns {object}
+   */
+  getContentOnIndex: function(index, render){
+    var content = render == null ? this.renderContent : this.content;
+    return content[index];
+  },
+
+  /**
    * @returns {Array}
    */
   getCheckedContent: function(){
     var result = [];
 
-    this.renderContent.forEach((row)=>{
-      if(row.check){
-        result.push(row);
-      }
+    this.getChecked().forEach((tr)=>{
+      result.push(this.renderContent[tr.rowIndex]);
     });
 
     return result;
+  },
+
+  /**
+   * @returns {Array}
+   */
+  getChecked: function(){
+    return $(this.body).find('input[type="checkbox"]:checked').nodeArr();
   },
 
   /**
@@ -183,9 +199,11 @@ Table.prototype = {
     $(this.footer).find('b[type="countRows"]').html(this.renderRows + '/' + this.rows);
   },
 
+  /**
+   */
   setCountCheck: function(){
     $(this.footer).find('b[type="countCheck"]').html(
-      $(this.body).find('input[type="checkbox"]:checked').length
+      this.getChecked().length
     );
   },
 
@@ -428,7 +446,7 @@ Table.prototype = {
           //if(table.getKeysOnCell(elem) != "name") return;
           event.preventDefault();
 
-          menu = $(table.ctxMenu).class("set", table.name).node();
+          menu = $(table.ctxMenu).class("set", table.name).attr("index", node.rowIndex).node();
           menu.style.left = event.clientX;
           menu.style.top = event.clientY + document.body.scrollTop;
           menu.style.visibility = "visible";

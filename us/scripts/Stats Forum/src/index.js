@@ -12,12 +12,25 @@ const Create = require('./../src/creator.js')();
 const Pack = require('./../src/packer.js')();
 const $ico = require('./../src/icons.js');
 const $pause = require('./../../../js/pause.js');
-
+const $graph = require('./../../../js/graphics.js');
 
 var $nameScript = "Stats forums [GW]";
 var $maxTimestamps = 10;
 var $mode = true;
-var $cd, $ss, $answer, $screenWidth, $screenHeight, $date, $checked, $t;
+var $cd, $ss, $answer, $screenWidth, $screenHeight, $date, $checked, $t, $task;
+
+var $interval = 1500;
+
+$task = {
+  stack: [],
+  queue: ()=>{
+    var text = "";
+    $task.stack.forEach((task)=>{
+      text += task.desk + ", ";
+    });
+    return text == "" ? "-" : text.substring(0, text.length - 2);
+  }
+};
 
 var $idb, $forum;
 
@@ -136,7 +149,7 @@ function createStatGUIButton(){
     makeConnect("gk_StatsForum", true)
   });
 
-  //makeConnect("gk_StatsForum", true);
+  makeConnect("gk_StatsForum", true);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -201,7 +214,7 @@ function addToDB(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var table, td, gui, disabled;
+  var table, td, gui, disabled, gr;
 
   disabled = $mode ? '' : 'disabled';
   table = $('td[style="color: #990000"]:contains("Тема")').up('table').up('table').node();
@@ -212,6 +225,7 @@ function createGUI(){
   td.parentNode.removeChild(td);
   table.rows[0].appendChild(gui);
 
+  gr = $graph('#sf_graphics', 1830, 683, 25);
 
   $('td[class="tab"],[class="tab tabActive"]').nodeArr().forEach((tab)=>{
     bindEvent(tab, 'onclick', ()=>{selectTabTable(tab)});
@@ -223,16 +237,7 @@ function createGUI(){
 
   bindEvent($('#sf_gui_settings').node(), 'onclick', openControlPanelWindow);
   bindEvent($('#sf_forgetForum').node(), 'onclick', forgetForum);
-
-  $('#sf_controlPanelWindow')
-    .find('input[type="button"]')
-    .nodeArr()
-    .forEach(
-      function(node){
-        bindEvent(node, 'onclick', function(){prepareDoTask(node)});
-      }
-    );
-
+  bindEvent($("#sf_startAnalyze").node(), 'onclick', prepareDoTask);
   bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
   bindEvent($('#sf_pauseButton').node(), 'onclick', pauseProgress);
   bindEvent($('#sf_cancelButton').node(), 'onclick', ()=>{$pause.stop()});
@@ -241,7 +246,7 @@ function createGUI(){
   $calendar.setContainer("#sf_calendar");
   $calendar.bind($('span[type="calendarCall"]').node());
 
-  bindActionsContextMenu();
+  bindActionsContextMenu(gr);
   bidHideContextMenu();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -260,41 +265,58 @@ function createShadowLayer(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function selectTabTable(tab){
-  var active, table;
+  var active, tabs, table;
 
   if(tab.className == "tab tabActive") return;
 
   active = $('td[class="tab tabActive"]').node();
-  table = $(active).up('table').node();
+  tabs = $(active).up('table').node();
+  table = $('table[class="mainTable"]').node();
 
-  table.rows[0].cells[active.cellIndex].className = "tabTop";
+  tabs.rows[0].cells[active.cellIndex].className = "tabTop";
   active.className = "tab";
 
-  table.rows[0].cells[tab.cellIndex].className = "tabTop tabTopActive";
+  tabs.rows[0].cells[tab.cellIndex].className = "tabTop tabTopActive";
   tab.className = "tab tabActive";
 
-  table.rows[1 + tab.cellIndex].className = "tabRow";
-  table.rows[1 + active.cellIndex].className = "tabRowHide";
+  table.rows[tab.cellIndex - 1].className = "tabRow";
+  table.rows[active.cellIndex - 1].className = "tabRowHide";
 
   closeWindows();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function bindActionsContextMenu(){
-  var actions;
+function bindActionsContextMenu(gr){
+  var actions, menu;
+
+  menu = $('#sf_contextMenu').node();
 
   actions = {
-    getStatus: (table)=>{
-      prepareParseMembers(0, table.getCheckedContent());
+    getStatus: (list)=>{
+      prepareParseMembers(0, list);
     },
-    getWrites: (table)=>{
-      alert("Упс! Не доделано пока что.");
-      alert("ID тем:\n" + table.getCheckedContent()[0].writes.join(', '));
+    getWrites: (list)=>{
+      var window, code;
+
+      window = $('#sf_writesWindow').node();
+      code = "";
+
+      $idb.getFew(`themes_${$forum.id}`, '{}').then((themes)=>{
+        list[0].writes.forEach((index)=>{
+          var tr = Pack.theme(themes[index]);
+          code += '@include: ./html/writesRow.html, true';
+        });
+
+        $(window).find('table').node(-1).innerHTML = code;
+        $(window).find('td[colspan]').html(`Темы участия: ${list[0].name}`);
+
+        openWritesWindow();
+      });
     },
-    sendMail: (text, mode, table)=>{
-      openMessageWindow(mode, text, table.getCheckedContent());
+    sendMail: (text, mode, list)=>{
+      openMessageWindow(mode, text, list);
     },
-    operationBL: (action, table)=>{
+    operationBL: (action, list, table)=>{
       switch(action){
         case "add":
           openBlackListWindow(action, "Добавить", "", table.getName());
@@ -305,41 +327,47 @@ function bindActionsContextMenu(){
           break;
 
         case "remove":
-          blActions("Убираю", 0, 0, table.getCheckedContent());
+          blActions("Убираю", 0, 0, list);
           break;
       }
     },
-    parseThemes: (mode, table)=>{
+    parseThemes: (mode, list)=>{
       if(mode == "check"){
-        prepareParseThemes(0, table.getCheckedContent());
+        prepareParseThemes(0, list);
       }else{
         prepareParseThemes(0);
       }
     },
-    getTimestamp: (table)=>{
-      alert("Данные есть, графиков еще нет.");
-      //$idb.getOne(`timestamp_${$forum.id}`, 'id', 2040777).then((result)=>{
-      //  console.log(result);
-      //});
+    getTimestamp: (list)=>{
+      $idb.getOne(`timestamp_${$forum.id}`, 'id', list[0].id).then((result)=>{
+        gr.draw(result.a);
+        selectTabTable($('td[class="tab"]:contains("Графики")').node());
+      });
     }
   };
 
-  $('#sf_contextMenu').find('ul[type]').nodeArr().forEach((ul)=>{
+  $(menu).find('ul[type]').nodeArr().forEach((ul)=>{
     var table;
     ul = $(ul);
     table = $t[ul.attr("type")];
     ul.find('span[action]').nodeArr().forEach((item)=>{
       bindEvent(item, "onclick", ()=>{
-        var func, args;
+        var func, args, index, array;
+
+        index = Number($(menu).attr('index'));
+        array = table.getCheckedContent();
+        if(!array.length) array = [table.getContentOnIndex(index)];
 
         args = JSON.parse($(item).attr("action"));
         func = args.shift();
-        args.push(table);
+        args.push(array, table);
+
         actions[func].apply(null, args);
       });
     });
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function bindProceedBLWindow(){
   var table, action, text, desc, date, mode, sid, window;
@@ -370,6 +398,7 @@ function bindProceedBLWindow(){
   }
   window.style.visibility = "hidden";
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getBLMembersFromSindicate(id, text, date, desc){
   var url, list;
@@ -459,43 +488,45 @@ function blActions(action, date, desc, list){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function prepareDoTask(node){
+function prepareDoTask(){
+  var window, type, count, key;
 
-  openStatusWindow();
+  window = $("#sf_controlPanelWindow").node();
+  type = $(window).find(`input[type="radio"]:checked`).node().value;
+  count = $(window).find(`input[type="hidden"]`).node().value;
+  count = Number(count);
 
-  switch (node.name){
-    case 'sf_parseForum': forum(); break;
-    case 'sf_memberList': getMembersList(); break;
-    case 'sf_sindicateLog': getMaxPageSindicateLog(); break;
+  $(window)
+    .find('input[type="checkbox"]:checked')
+    .nodeArr()
+    .forEach((input)=>{
+      switch(input.value){
+        case "forum":
+          if(type == "all"){
+            $task.stack.push({func: getMaxPageForum, args: [], desk: "обработка форума"});
+          }else{
+            key = true;
+            $task.stack.push({func: parseForum, args: [0, false, count], desk: "обработка форума"});
+          }
+          break;
+        case "themes":
+          $task.stack.push({func: prepareParseThemes, args: [0], desk: "обработка тем"});
+          break;
+        case "log":
+          $task.stack.push({func: getMaxPageSindicateLog, args: [], desk: "обработка протокола"});
+          break;
+        case "list":
+          $task.stack.push({func: getMembersList, args: [], desk: "обработка состава"});
+          break;
+      }
+  });
+
+  if(key){
+    displayProgress('start', `Обработка форума синдиката #${$forum.id} «${$forum.name}»`, 0, 100);
+    displayProgressTime(0);
   }
-  /////////////////////////////
-
-  function forum(){
-    var p = getParam('sf_parseForum');
-
-    switch(p.type){
-      case 'count':
-        displayProgress('start', `Обработка форума синдиката #${$forum.id} «${$forum.name}»`, 0, 100);
-        parseForum(0, false, p.count);
-        break;
-
-      case 'all':
-        getMaxPageForum();
-        break;
-    }
-  }
-  /////////////////////////////
-
-  function getParam(name){
-    var type, count, table;
-
-    table = $(node).up('table').node();
-    type = $(table).find(`input[type="radio"][name="${name}"]:checked`).node().value;
-    count = $(table).find(`input[type="text"][name="${name}"]`).node().value;
-    count = Number(count);
-
-    return {count: count, type: type};
-  }
+  openStatusWindow.gkDelay(1200);
+  displayProgress("next");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -518,7 +549,7 @@ function forgetForum(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function displayProgress(ini, text, current, max){
-  var percent, c, m, b, i, t, te;
+  var percent, c, m, b, i, t, te, q, task;
 
   c = $("#sf_progressCurrent");
   m = $("#sf_progressMax");
@@ -526,6 +557,7 @@ function displayProgress(ini, text, current, max){
   i = $("#sf_progressIco").node();
   t = $("#sf_progressText");
   te = $("#sf_progressTextExtra");
+  q = $("#sf_progressTaskStack");
 
   if(ini == 'start'){
     i.style.background = `url(${$ico.loading})`;
@@ -556,6 +588,14 @@ function displayProgress(ini, text, current, max){
     i.name = "done";
 
     $cd.showProgressTime = false;
+    ini = "next";
+  }
+  if(ini == "next"){
+    if($task.stack.length){
+      task = $task.stack.shift();
+      task.func.gkDelay(1200, this, task.args);
+      q.html($task.queue());
+    }
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -598,8 +638,7 @@ function pauseProgress(){
 
 function cancelProgress(){
   $cd.showProgressTime = false;
-
-  console.log("Ok");
+  $task.stack = [];
 
   $("#sf_shadowLayer").node().style.visibility = "hidden";
   $("#sf_statusWindow").node().style.visibility = "hidden";
@@ -645,6 +684,11 @@ function openStatusWindow(){
 function openControlPanelWindow(){
   $("#sf_shadowLayer").node().style.visibility = "visible";
   $("#sf_controlPanelWindow").node().style.visibility = "visible";
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function openWritesWindow(){
+  $("#sf_shadowLayer").node().style.visibility = "visible";
+  $("#sf_writesWindow").node().style.visibility = "visible";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -707,7 +751,9 @@ function closeWindows(){
   $("#sf_blWindow").node().style.visibility = "hidden";
   $("#sf_filtersWindow").node().style.visibility = "hidden";
   $("#sf_messageWindow").node().style.visibility = "hidden";
+  $("#sf_writesWindow").node().style.visibility = "hidden";
   $("#sf_calendar").node().style.visibility = "hidden";
+
   window.style.visibility = "hidden";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -900,8 +946,8 @@ function getMaxPageSindicateLog(){
     $idb.add("forums", Pack.forum($forum));
 
     displayProgress('start', `Обработка протокола синдиката #${$forum.id} «${$forum.name}»`, 0, page + 1);
-    displayProgressTime((page + 1) * 1250);
-    parseSindicateLog.gkDelay(750, this, [page]);
+    displayProgressTime((page + 1) * ($interval + 500));
+    parseSindicateLog.gkDelay($interval, this, [page]);
   }, (e)=>{
     errorLog("Сбор информации о максимальной странцие протокола синдиката", 1, e);
   });
@@ -950,7 +996,7 @@ function parseSindicateLog(index){
       $forum._ch = true;
     }
     $idb.add("forums", Pack.forum($forum));
-    parseSindicateLog.gkDelay(750, this, [index]);
+    parseSindicateLog.gkDelay($interval, this, [index]);
   }
 
   /////////////////////////////
@@ -1048,9 +1094,9 @@ function getMaxPageForum(){
     $idb.add("forums", Pack.forum($forum));
 
     displayProgress('start', `Обработка форума синдиката #${$forum.id} «${$forum.name}»`, 0, page + 1);
-    displayProgressTime(page * 1250 + 1500);
+    displayProgressTime(page * ($interval + 500) + 3000);
 
-    parseForum.gkDelay(750, this, [page, true]);
+    parseForum.gkDelay($interval, this, [page, true]);
   });
   /////////////////////////////
 
@@ -1257,7 +1303,7 @@ function parseForum(index, mode, stopDate){
 
     $idb.add(`forums`, Pack.forum($forum));
 
-    parseForum.gkDelay(750, this, [index, mode, stopDate]);
+    parseForum.gkDelay($interval, this, [index, mode, stopDate]);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1277,7 +1323,7 @@ function prepareParseThemes(max, data){
       for(i = 0, length = max ? max : themes.length; i < length; i++) push(themes, i);
     }
 
-    countPages = list.length * 1250 + countPages * 1250 + 500;
+    countPages = list.length * 1200 + countPages * 1200 + 500;
 
     openStatusWindow();
     displayProgress('start', `Обработка тем`, 0, list.length);
@@ -1357,7 +1403,7 @@ function parseTheme(theme, startPost, args){
       });
 
     }, (e)=>{
-      errorLog('Сбор информации о сообщениях', 1, e);
+      errorLog('Сбор информации о сообщениях', 0, e);
       nextPageTheme(true);
     });
   }else{
@@ -1402,16 +1448,49 @@ function parseTheme(theme, startPost, args){
         member.posts++;
         member.last = date;
         member.words += words;
-        member.wordsAverage += parseInt(member.words / member.posts, 10);
+        member.wordsAverage = parseInt(member.words / member.posts, 10);
         member.carma += carma;
         member.carmaAverage = parseInt(member.carma / member.posts, 10);
         if(!$c.exist(theme.id, member.write)) member.write.push(theme.id);
         member._ch = true;
 
-        timestamp.data[$date] = Create.stamp(member);
-        tsKeys = Object.keys(timestamp.data);
-        if(tsKeys.length > $maxTimestamps) delete timestamp.data[tsKeys[0]];
-        timestamp._ch = true;
+        //var key = 0, tt, time;
+        //tsKeys = Object.keys(timestamp.data);
+        //
+        //if(tsKeys.length == 0){
+        //  for(var i = 1; i < 13; i++){
+        //    time = $date - (i * 604800);
+        //    timestamp.data[time] = Create.stamp();
+        //  }
+        //  //key = Number(tsKeys[tsKeys.length - 1]);
+        //}
+        //
+        //tsKeys = Object.keys(timestamp.data);
+        //for(var i = 0; i < 11; i++){
+        //  time = Number(tsKeys[i]);
+        //  if(i == 0 && date < time){
+        //    key = time;
+        //    break;
+        //  }
+        //  if(date > time && date < Number(tsKeys[i + 1])){
+        //    key = time;
+        //    break;
+        //  }
+        //  if(i == 10 && key == 0){
+        //    key = Number(tsKeys[11]);
+        //  }
+        //}
+        //
+        //tt = timestamp.data[key];
+        //tt.a++;
+        //tt.e += words;
+        //tt.f += parseInt(member.words / member.posts, 10);
+        //tt.g += carma;
+        //tt.h += parseInt(member.carma / member.posts, 10);
+        //timestamp.data[key] = tt;
+        //
+        ////if(tsKeys.length > $maxTimestamps) delete timestamp.data[tsKeys[0]];
+        //timestamp._ch = true;
 
         $idb.add("players", Pack.player(player));
         $idb.add(`members_${$forum.id}`, Pack.member(member));
@@ -1480,7 +1559,7 @@ function parseTheme(theme, startPost, args){
       theme.pages[0]++;
       theme._ch = true;
 
-      parseTheme.gkDelay(750, this, [theme, 1, args]);
+      parseTheme.gkDelay($interval, this, [theme, 1, args]);
     }else{
       nextTheme();
     }
@@ -1499,7 +1578,7 @@ function parseTheme(theme, startPost, args){
     $idb.add(`themes_${$forum.id}`, Pack.theme(theme));
 
     displayProgress('work');
-    parseThemes.gkDelay(750, this, args);
+    parseThemes.gkDelay($interval, this, args);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1523,7 +1602,7 @@ function prepareParseMembers(max, data){
 
     openStatusWindow();
     displayProgress('start', `Обработка персонажей`, 0, count);
-    displayProgressTime(count * 1250);
+    displayProgressTime(count * ($interval + 500));
     parseMembers(0, count, list);
   });
 
@@ -1566,8 +1645,8 @@ function parseMembers(id, count, list){
 
   function nextMember(){
     id++;
-    displayProgress.gkDelay(750, this, ['work']);
-    parseMembers.gkDelay(750, this, [id, count, list]);
+    displayProgress.gkDelay($interval, this, ['work']);
+    parseMembers.gkDelay($interval, this, [id, count, list]);
   }
   /////////////////////////////
 
@@ -1682,12 +1761,12 @@ function prepareSendMails(){
 
       //if(param.mode == "invite"){
       //  yield getDataInvite.gkWait(g, this, []);
-      //  yield setTimeout(()=>{g.next()}, 750);
+      //  yield setTimeout(()=>{g.next()}, $interval);
       //}
 
       if(param.mode == "goAway"){
         yield getDataIdKick.gkWait(g, this, []);
-        yield setTimeout(()=>{g.next()}, 750);
+        yield setTimeout(()=>{g.next()}, $interval);
       }
 
       yield getDataSend.gkWait(g, this, []);
@@ -1695,7 +1774,7 @@ function prepareSendMails(){
       getSendingList();
       count = param.list.length;
 
-      yield setTimeout(()=>{g.next()}, 750);
+      yield setTimeout(()=>{g.next()}, $interval);
 
       openStatusWindow();
       displayProgress('start', 'Рассылка сообщений выбранным игрокам', 0, count);
@@ -1810,7 +1889,7 @@ function doActions(index, count, param){
       }
     }
 
-    sendMail.gkDelay(1250, this, [index, param]);
+    sendMail.gkDelay(($interval + 500), this, [index, param]);
 
     param.out++;
     index++;
@@ -2077,11 +2156,11 @@ function showTable(t){
       html = "";
       n++;
     }
-    if(i && i % 1500 == 0){
-      code[n] = html;
-      html = "";
-      n++;
-    }
+    //if(i && i % 1500 == 0){
+    //  code[n] = html;
+    //  html = "";
+    //  n++;
+    //}
     html += getRows(t, rows[i], b);
   }
   code[n] = html;

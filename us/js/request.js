@@ -11,8 +11,9 @@ module.exports = function (url, method, param) {
       if (request.readyState == 4 && request.status == 200) {
         time = new Date().getTime() - time;
         onsuccess({text: request.responseText, time: time});
-      } else if (request.readyState == 4 && request.status != 200) {
-        onfailure(request);
+      } else if (request.readyState == 4 && request.status != 200){
+        time = new Date().getTime() - time;
+        onfailure({error: request, time: time});
       }
     }
   });

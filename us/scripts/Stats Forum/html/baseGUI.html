@@ -1,7 +1,7 @@
 <b><a style="color: #990000" href="http://www.ganjawars.ru/forum.php">Форумы</a> » ${$forum.name}</b>
 :: <span id="sf_gui_settings" style="cursor: pointer; font-weight: bold;">Панель управления</span>
 <br>
-<table class="mainTable" cellspacing="0" cellpadding="0" align="center">
+<table class="tabs" cellspacing="0" cellpadding="0" align="center">
     <tr>
         <td class="tabTop"></td>
         <td class="tabTop tabTopActive"></td>
@@ -10,13 +10,15 @@
         <td class="tabTop"></td>
     </tr>
     <tr>
-        <td class="tabFirst"></td>
+        <td class="tabBegin-End" style="width: 15px;"></td>
         <td class="tab tabActive">Данные по игрокам</td>
         <td class="tab">Данные по темам</td>
         <td class="tab">Графики</td>
         <td class="tab">Черный список</td>
-        <td class="tabLast"></td>
+        <td class="tabBegin-End"></td>
     </tr>
+</table>
+<table class="mainTable" cellspacing="0" cellpadding="0" align="center">
     <tr class="tabRow">
         <td colspan="6" class="tabContent">
             <div class="tab header" id="sf_header_SI"></div>
@@ -37,11 +39,7 @@
     </tr>
     <tr class="tabRowHide">
         <td colspan="6" class="tabContent">
-            <div class="tab header" id="sf_header_GL"></div>
-            <div class="tab content">
-                <table align="center" style="width: 100%;" type="padding" id="sf_content_GL"></table>
-            </div>
-            <div class="tab" id="sf_footer_GL"></div>
+            <canvas id="sf_graphics" style="margin: 20px 10px;"></canvas>
         </td>
     </tr>
     <tr class="tabRowHide">
@@ -62,4 +60,5 @@
 '@include: ./html/controlPanel.html, false'
 '@include: ./html/contextMenu.html, false'
 '@include: ./html/blWindow.html, false'
+'@include: ./html/writesWindow.html, false'
 <div style="left: 0; top: 0; visibility: hidden;" type="window" id="sf_calendar"></div>

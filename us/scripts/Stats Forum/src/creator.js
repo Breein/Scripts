@@ -174,19 +174,18 @@ GeneratorData.prototype = {
   },
 
   /**
-   * @param {object} m
    * @returns {{a: number, c: number, d: number, e: number, f: number, g: number, h: number}}
    */
-  stamp: function(m){
-    return {
-      a: m.posts,
-      c: m.start.length,
-      d: m.write.length,
-      e: m.words,
-      f: m.wordsAverage,
-      g: m.carma,
-      h: m.carmaAverage
-    }
+  stamp: function(){
+    return{
+      a: 0,
+      c: 0,
+      d: 0,
+      e: 0,
+      f: 0,
+      g: 0,
+      h: 0
+    };
   }
 };
 

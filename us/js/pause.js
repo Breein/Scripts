@@ -3,7 +3,7 @@ function Pause(){
   this.cancel = false;
   this.func = null;
   this.args = [];
-  this.context = null;
+  this.ctx = null;
 }
 
 Pause.prototype = {
@@ -15,12 +15,12 @@ Pause.prototype = {
   freeze: function(f, a, c){
     this.func = f;
     this.args = a || [];
-    this.context = c || null;
+    this.ctx = c || null;
   },
   /**
    */
   unfreeze: function(){
-    this.func.apply(this.context, this.args);
+    this.func.apply(this.ctx, this.args);
   },
   /**
    * @param {Function=} f

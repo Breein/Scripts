@@ -1,7 +1,7 @@
 <tr height="28" class="${getClass(tr)}" ${border}>
     <td ${t.getWidth("id")} align="right">${$c.convertID(tr.id)}</td>
     <td ${t.getWidth("sNumber")} align="center">${$c.hz(tr.sNumber)}</td>
-    <td ${t.getWidth("name")} style="text-indent: 5px;"><a style="text-decoration: none; font-weight: bold;" target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
+    <td ${t.getWidth("name")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.id}">${tr.name}</a></td>
     <td ${t.getWidth("start")} align="center">${$c.hz(tr.start)}</td>
     <td ${t.getWidth("write")} align="center">${$c.hz(tr.write)}</td>
     <td ${t.getWidth("lastMessage")} align="center">${$c.getNormalDate(tr.lastMessage).d}</td>
