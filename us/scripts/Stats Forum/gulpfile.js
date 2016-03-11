@@ -25,7 +25,7 @@ gulp.task('wrap', function(){
 // @description Форумная статистика (${nowDate})
 // @include     http://www.ganjawars.ru/threads.php?fid=*
 // @exclude     http://www.ganjawars.ru/threads.php?fid=*&page_id=*
-// @version     2.001
+// @version     2.100
 // @grant       none
 // ==/UserScript==
 
