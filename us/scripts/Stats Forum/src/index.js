@@ -15,7 +15,6 @@ const $pause = require('./../../../js/pause.js');
 const $graph = require('./../../../js/graphics.js');
 
 var $nameScript = "Stats forums [GW]";
-var $maxTimestamps = 10;
 var $mode = true;
 var $cd, $ss, $answer, $screenWidth, $screenHeight, $date, $checked, $t, $task;
 
@@ -57,6 +56,7 @@ $date = $c.getTimeNow();
 $cd = {
   fid: 0,
   showProgressTime: false,
+  progressTime: 0,
   statsCount: 0,
   themesCount: 0
 };
@@ -237,6 +237,7 @@ function createGUI(){
 
   bindEvent($('#sf_gui_settings').node(), 'onclick', openControlPanelWindow);
   bindEvent($('#sf_forgetForum').node(), 'onclick', forgetForum);
+  bindEvent($('#sf_forgetDB').node(), 'onclick', forgetDB);
   bindEvent($("#sf_startAnalyze").node(), 'onclick', prepareDoTask);
   bindEvent($('#sf_sendMessages').node(), 'onclick', prepareSendMails);
   bindEvent($('#sf_pauseButton').node(), 'onclick', pauseProgress);
@@ -356,7 +357,7 @@ function bindActionsContextMenu(gr){
 
         index = Number($(menu).attr('index'));
         array = table.getCheckedContent();
-        if(!array.length) array = [table.getContentOnIndex(index)];
+        if(array.length == 0) array = [table.getContentOnIndex(index)];
 
         args = JSON.parse($(item).attr("action"));
         func = args.shift();
@@ -546,6 +547,13 @@ function forgetForum(){
     location.href = location.href + "";
   }
 }
+
+function forgetDB(){
+  if(confirm('Вы уврены что хотите удалить всю базу данных?')){
+    $idb.deleteDB();
+    location.href = location.href + "";
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function displayProgress(ini, text, current, max){
@@ -601,15 +609,12 @@ function displayProgress(ini, text, current, max){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function displayProgressTime(t){
-  var node, time;
-
   if(!$cd.showProgressTime) return;
 
-  node = $('#sf_progressTime');
-  time = t ? t : Number(node.text()) - 1000;
-  if(time < 0) time = 0;
-  node.node().previousElementSibling.textContent = $c.getNormalTime(time);
-  node.html(time);
+  $cd.progressTime = t ? t : $cd.progressTime - 1000;
+  if($cd.progressTime < 0) $cd.progressTime = 0;
+  $('#sf_progressTime').text($c.getNormalTime($cd.progressTime));
+
   displayProgressTime.gkDelay(1000, this, []);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1323,7 +1328,7 @@ function prepareParseThemes(max, data){
       for(i = 0, length = max ? max : themes.length; i < length; i++) push(themes, i);
     }
 
-    countPages = list.length * 1200 + countPages * 1200 + 500;
+    countPages = (list.length + countPages) * ($interval + 500) + 500;
 
     openStatusWindow();
     displayProgress('start', `Обработка тем`, 0, list.length);
@@ -1412,9 +1417,9 @@ function parseTheme(theme, startPost, args){
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function parseRow(tr){
-    var table, pid, words, date, carma;
+    var table, pid, words, date, carma, write, start;
     var character, player, member;
-    var timestamp, tsKeys;
+    var timestamp, data;
     var g, f;
 
     f = (resolve) => {
@@ -1430,6 +1435,8 @@ function parseTheme(theme, startPost, args){
         date = getLastDate();
         words = getWords();
         carma = getCarma();
+        start = getStarter();
+        write = 0;
 
         if(player.name == ""){
           player.name = getName();
@@ -1451,46 +1458,13 @@ function parseTheme(theme, startPost, args){
         member.wordsAverage = parseInt(member.words / member.posts, 10);
         member.carma += carma;
         member.carmaAverage = parseInt(member.carma / member.posts, 10);
-        if(!$c.exist(theme.id, member.write)) member.write.push(theme.id);
+        if(!$c.exist(theme.id, member.write)){
+          member.write.push(theme.id);
+          write = 1;
+        }
         member._ch = true;
 
-        //var key = 0, tt, time;
-        //tsKeys = Object.keys(timestamp.data);
-        //
-        //if(tsKeys.length == 0){
-        //  for(var i = 1; i < 13; i++){
-        //    time = $date - (i * 604800);
-        //    timestamp.data[time] = Create.stamp();
-        //  }
-        //  //key = Number(tsKeys[tsKeys.length - 1]);
-        //}
-        //
-        //tsKeys = Object.keys(timestamp.data);
-        //for(var i = 0; i < 11; i++){
-        //  time = Number(tsKeys[i]);
-        //  if(i == 0 && date < time){
-        //    key = time;
-        //    break;
-        //  }
-        //  if(date > time && date < Number(tsKeys[i + 1])){
-        //    key = time;
-        //    break;
-        //  }
-        //  if(i == 10 && key == 0){
-        //    key = Number(tsKeys[11]);
-        //  }
-        //}
-        //
-        //tt = timestamp.data[key];
-        //tt.a++;
-        //tt.e += words;
-        //tt.f += parseInt(member.words / member.posts, 10);
-        //tt.g += carma;
-        //tt.h += parseInt(member.carma / member.posts, 10);
-        //timestamp.data[key] = tt;
-        //
-        ////if(tsKeys.length > $maxTimestamps) delete timestamp.data[tsKeys[0]];
-        //timestamp._ch = true;
+        setTimestamp(date, [1, start, write, words, member.wordsAverage, carma, member.carmaAverage]);
 
         $idb.add("players", Pack.player(player));
         $idb.add(`members_${$forum.id}`, Pack.member(member));
@@ -1548,6 +1522,51 @@ function parseTheme(theme, startPost, args){
       carma = carma.length ? Number(carma.text()) : 0;
 
       return carma;
+    }
+    /////////////////////////////
+    function getStarter(){
+      return theme.pages[0] == 0 && tr.rowIndex == 1 ? 1 : 0;
+    }
+    /////////////////////////////
+
+    function setTimestamp(key, data){
+      var stamps, keys, period, count, prev, now, last, first;
+      var i;
+
+      count = [12, 11];         // 3 месяца
+      period = 604800;          // неделя
+      stamps = timestamp.data;
+      keys = Object.keys(stamps);
+
+      if(keys.length == 0){
+        for(i = 0; i < count[0]; i++) stamps[key - period * i] = Create.stamp();
+        keys = Object.keys(stamps);
+      }
+
+      last = Number(keys[count[1]]);
+      first = Number(keys[0]);
+
+      if(key > last){
+        while(key > last){
+          first = last - (count[1] * period);
+          last = last + period;
+          stamps[last] = Create.stamp();
+          delete stamps[first];
+        }
+        keys = Object.keys(stamps);
+      }
+
+      if(key > first){
+        for(i = 1; i < count[0]; i++){
+          prev = Number(keys[i - 1]);
+          now = Number(keys[i]);
+
+          if(key > prev && key <= now){
+            stamps[now] = Create.stamp(stamps[now], data);
+            timestamp._ch = true;
+          }
+        }
+      }
     }
   }
   /////////////////////////////
@@ -2239,15 +2258,10 @@ function getTimeRequest(type){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function correctionTime(t){
-  var node, time;
-
-  node = $('#sf_progressTime');
-  time = Number(node.text());
-
   if(t > 500){
-    node.html(time - (500 - t));
+    $cd.progressTime = $cd.progressTime + (t - 500);
   }else if(t < 500){
-    node.html(time + (t - 500));
+    $cd.progressTime = $cd.progressTime - (500 - t);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
