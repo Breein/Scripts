@@ -87,7 +87,7 @@ Table.prototype = {
    * @returns {Array}
    */
   getChecked: function(){
-    return $(this.body).find('input[type="checkbox"]:checked').nodeArr();
+    return $(this.body).find('tr[class="light checked"]').nodeArr();
   },
 
   /**
