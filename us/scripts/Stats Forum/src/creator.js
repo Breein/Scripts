@@ -174,18 +174,26 @@ GeneratorData.prototype = {
   },
 
   /**
-   * @returns {{a: number, c: number, d: number, e: number, f: number, g: number, h: number}}
+   * @param {Array|{}=} a
+   * @param {Array=} b
+   * @returns {[number,...]}
    */
-  stamp: function(){
-    return{
-      a: 0,
-      c: 0,
-      d: 0,
-      e: 0,
-      f: 0,
-      g: 0,
-      h: 0
-    };
+  stamp: function(a, b){
+    var aa = [];
+    if(a == null){
+      return [0, 0, 0, 0, 0, 0, 0];
+    }else{
+      if(a[0] == null){
+        aa[0] = a.a; aa[1] = a.c; aa[2] = a.d;
+        aa[3] = a.e; aa[4] = a.f; aa[5] = a.g;
+        aa[6] = a.h; a = aa;
+      }
+      a[0] += b[0]; a[1] += b[1]; a[2] += b[2];
+      a[3] += b[3]; a[4] += b[4]; a[5] += b[5];
+      a[6] += b[6];
+
+      return a;
+    }
   }
 };
 
