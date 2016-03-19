@@ -1,6 +1,5 @@
-#extract_items_div div tr:hover,
-#store_items_div div tr:hover {
-    background-color: #bbe2bb;
+#store_td, #take_td{
+    cursor: pointer;
 }
 
 td.checkCell{
@@ -8,9 +7,80 @@ td.checkCell{
     text-align: center;
     cursor: pointer;
 }
-td.checkedCell{
+td.checkCell.checked{
     color: red;
     font-weight: bold;
+}
+
+td.icon{
+    width: 55px;
+    height: 70px;
+    cursor: pointer;
+    font-size: 10px;
+    text-align: center;
+    vertical-align: bottom;
+    background-repeat: no-repeat;
+    background-position: center 4px;
+}
+td.icon:hover{
+    background-color: #bbe2bb;
+}
+td.icon.checked{
+    background-color: #9fcb9f;
+}
+td.icon input[type=checkbox]{
+    display: none;
+}
+td.icon span.mod{
+    font-size: 10px;
+    background-color: #F0FFF0;
+}
+td.icon div{
+    margin-bottom: 2px;
+}
+#CIA_tooltip{
+    position: absolute;
+    width: 250px;
+    background-color: #F0FFF0;
+    border: solid 1px #339933;
+    padding: 8px 10px;
+    z-index: 2;
+    box-shadow: 0 0 5px black;
+    border-radius: 10px;
+}
+
+#CIA_tooltip.hide{
+    visibility: hidden;
+}
+#CIA_tooltip.no-hide{
+    visibility: visible
+}
+#CIA_tooltip:hover{
+    visibility: visible;
+}
+#CIA_tooltip a{
+    font-weight: bold;
+    text-decoration: none;
+}
+#CIA_tooltip img{
+    width: 20px;
+    height: 14px;
+    vertical-align: -3px;
+}
+
+div.item-name{
+    width: 100%;
+    text-align: center;
+}
+div.item-info{
+    margin: 10px 0 10px 0;
+}
+div.button{
+    text-decoration: dotted;
+    font-size: 10px;
+    cursor: pointer;
+    margin-left: 40px;
+    width: 177px;
 }
 
 img.miniIcon{
