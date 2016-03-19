@@ -136,6 +136,7 @@ Api.prototype = {
 
     this.selector = param;
     node = this.nodeList[0] ? this.nodeList[0] : document;
+    if(node == null) return this.nodeNull();
 
     text = param.match(/(.+):contains\("~(.+)"\)/i);
     if (!text) {
@@ -252,6 +253,7 @@ Api.prototype = {
   nodeNull: function(){
     this.nodeList[0] = null;
     this.length = 0;
+    console.log(this.selector);
 
     return this;
   }
