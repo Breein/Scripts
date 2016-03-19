@@ -1,0 +1,28 @@
+#extract_items_div div tr:hover,
+#store_items_div div tr:hover {
+    background-color: #bbe2bb;
+}
+
+td.checkCell{
+    width: 19px;
+    text-align: center;
+    cursor: pointer;
+}
+td.checkedCell{
+    color: red;
+    font-weight: bold;
+}
+
+img.miniIcon{
+    width: 19px;
+    height: 19px;
+    vertical-align: -5px;
+}
+img.icon-0{
+    margin-left: 8px;
+    margin-right: 3px;
+}
+img.icon-1{
+    margin-right: 8px;
+    margin-left: 3px;
+}

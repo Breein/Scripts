@@ -16,9 +16,9 @@ var babel = require("babel-core");
 gulp.task('wrap', function(){
   var userScriptHeader, userScriptFooter, userScriptName, userScriptDir, userScriptVersion, nowDate;
 
-  userScriptDir = '';
-  userScriptName = '.user.js';
-  userScriptVersion = '1.00';
+  userScriptDir = 'Check_it_all_[GW]';
+  userScriptName = 'Check_it_all_[GW].user.js';
+  userScriptVersion = '1.01';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
@@ -113,3 +113,4 @@ gulp.task('dev', function(){
 });
 
 gulp.task('default', ['dev']);
+
