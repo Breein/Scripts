@@ -5,66 +5,112 @@ var babelify = require('babelify');
 var buffer = require('vinyl-buffer');
 var uglify = require('gulp-uglify');
 var source = require('vinyl-source-stream');
-var hbsfy = require('hbsfy');
 var gulp = require('gulp');
 var runSequence = require('run-sequence');
 var chokidar = require('chokidar');
+var fs = require('fs');
+var babel = require("babel-core");
 
-var userScriptHeader =
-  `// ==UserScript==
-// @name           Meters [GW]
-// @namespace      гном убийца
-// @description    Счетчики опыта и умений (26.12.14.1508)
-// @version        2.0
-// @grant          none
-// @include        http://www.ganjawars.ru/me/
+
+
+gulp.task('wrap', function(){
+  var userScriptHeader, userScriptFooter, userScriptName, userScriptDir, userScriptVersion, nowDate;
+
+  userScriptDir = '';
+  userScriptName = '.user.js';
+  userScriptVersion = '1.00';
+
+  nowDate = new Date(new Date().getTime()).toLocaleString();
+  userScriptHeader =
+    `// ==UserScript==
+// @name
+// @author
+// @description (${nowDate})
+// @include
+// @version     ${userScriptVersion}
+// @grant       none
 // ==/UserScript==
-(function(){`;
-var userScriptFooter = `})();`;
 
-gulp.task('wrap', function () {
-  return gulp.src('./out/bundle.js')
+(function(){`;
+  userScriptFooter = `})();`;
+
+  return gulp.src('./out/bundle_full.js')
     .pipe(concat.header(userScriptHeader))
     .pipe(concat.footer(userScriptFooter))
-    .pipe(rename('Test.user.js'))
-    //.pipe(gulp.dest('C:/Users/Breein/AppData/Roaming/Mozilla/Firefox/Profiles/breein.default/gm_scripts/Test'));
-  .pipe(gulp.dest('./pathToUserScriptDirectory'));
+    .pipe(rename(userScriptName))
+    .pipe(gulp.dest(`C:/Users/Breein/AppData/Roaming/Mozilla/Firefox/Profiles/breein.default/gm_scripts/${userScriptDir}/`));
 });
 
-gulp.task('bundle', function () {
+gulp.task('repack', function(){
+  return new Promise((resolve)=>{
+    var textFile;
+
+    textFile = fs.readFileSync('./out/bundle.js', 'utf8');
+    textFile = textFile.replace(/'@include: (.+)'/g, include);
+    textFile = babel.transform(textFile, {stage: 0, compact: false}).code;
+    fs.writeFileSync('./out/bundle_full.js', textFile);
+    resolve();
+
+    function include(str){
+      var url, key = false;
+
+      str = str.match(/'@include: (.+)'/);
+      url = str[1].split(', ');
+
+      if(url){
+        key = 'true' == url[1];
+        url = url[0];
+      }else{
+        url = str[1];
+      }
+      str = fs.readFileSync(url, 'utf8');
+      str = str.replace(/'@include: (.+)'/g, include);
+
+      if(key){
+        return '`' + str + '`';
+      }else{
+        return str;
+      }
+    }
+  });
+});
+
+gulp.task('bundle', function(){
   return browserify('./src/index.js')
-    .transform(babelify)
-    .transform(hbsfy)
     .bundle()
     .pipe(source('bundle.js'))
     .pipe(buffer())
     .pipe(gulp.dest('./out'));
 });
 
-gulp.task('uglify', function () {
-  return gulp.src('./out/bundle.js')
+gulp.task('uglify', function(){
+  return gulp.src('./out/bundle_full.js')
     .pipe(uglify())
     .pipe(gulp.dest('./out/'));
 });
 
-gulp.task('build', function () {
-  runSequence('bundle', 'wrap');
+gulp.task('build', function(){
+  runSequence('bundle', 'repack', 'wrap');
 });
 
-gulp.task('release', function () {
-  runSequence('bundle', 'uglify', 'wrap');
+gulp.task('release', function(){
+  runSequence('bundle', 'repack', 'uglify', 'wrap');
 });
 
 var watchFiles = [
-  './html/**/*.hbs',
+  'W:/Scripts/us/js/*.js',
+  'W:/Scripts/us/html/*.html',
+  'W:/Scripts/us/css/*.css',
+  './html/**/*.*',
   './src/**/*.js'
 ];
 
-gulp.task('dev', function () {
-  chokidar.watch(watchFiles, { ignored: /[\/\\]\./ }).on('all', (event, path) => {
-    console.log(event, path);
+gulp.task('dev', function(){
+  chokidar.watch(watchFiles, {ignored: /[\/\\]\./}).on('all', (event, path) =>{
+    //console.log(event, path);
     gulp.start('build');
   });
 });
 
 gulp.task('default', ['dev']);
+
