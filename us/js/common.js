@@ -42,6 +42,7 @@ Common.prototype = {
     date = date.toLocaleString();
 
     date = date.match(/(\d+).(\d+).(\d+), (\d+):(\d+):(.+)/);
+    if(date[4] < 10) date[4] = "0" + date[4];
 
     if(full != null) {
       date = {
