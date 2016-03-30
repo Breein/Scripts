@@ -1,0 +1,38 @@
+<table class="tabs" cellspacing="0" cellpadding="0" align="center">
+    <tr>
+        <td class="tabTop"></td>
+        <td class="tabTop tabTopActive"></td>
+        <td class="tabTop"></td>
+    </tr>
+    <tr>
+        <td class="tabBegin-End" style="width: 15px;"></td>
+        <td class="tab tabActive">Предметы</td>
+        <td class="tab">Объявления</td>
+        <td class="tabBegin-End"></td>
+    </tr>
+</table>
+<table class="mainTable" cellspacing="0" cellpadding="0" align="center">
+    <tr class="tabRow">
+        <td class="tabContent">
+            <div class="tab" id="header-items"></div>
+            <div class="tab content">
+                <table align="center" style="width: 100%;" type="padding" id="content-items"></table>
+            </div>
+            <div class="tab" id="footer-items"></div>
+        </td>
+    </tr>
+    <tr class="tabRowHide">
+        <td class="tabContent">
+            <div class="tab" id="sf_header_TL"></div>
+            <div class="tab content">
+                <table align="center" style="width: 100%;" type="padding" id="sf_content_TL"></table>
+            </div>
+            <div class="tab" id="sf_footer_TL"></div>
+        </td>
+    </tr>
+</table>
+<br>
+<div style="left: 0; top: 0; visibility: hidden;" id="filtersWindow"></div>
+'@include: ./html/contextMenu.html, false'
+'@include: ./html/advertWindow.html, false'
+<div style="left: 0; top: 0; visibility: hidden;" type="window" id="calendar"></div>

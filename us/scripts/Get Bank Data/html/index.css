@@ -1,0 +1,65 @@
+div[type="window"].hide{
+    visibility: hidden;
+}
+div[type="window"]{
+    position: absolute;
+    z-index: 2;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 15px black;
+}
+div.center-screen{
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+.window-content{
+    margin: 20px 25px;
+    background-color: #f0fff0;
+}
+
+table[type="padding"]{
+    border-collapse: collapse;
+}
+table[type="padding"] td {
+    padding: 2px 5px 2px 5px;
+    border: solid 2px white;
+}
+table.no-border td{
+    border: 0 none;
+}
+
+tr[type="header"] {
+    background-color: #d0eed0;
+    font-weight: bold;
+}
+tr[type="header"] td{
+    text-align: center;
+}
+tr.light{
+    height: 28px;
+    background-color: #d8e8d8;
+}
+tr.light:hover{
+    background-color: #beccbe;
+}
+
+td.button-close{
+    background-color: #d0eed0;
+    text-align: right;
+    vertical-align: middle;
+}
+td.indent{
+    text-indent: 8px;
+}
+
+#gbd_operationWindow div[style*="max-height"] > table tr:first-child td{
+    border-top-style: none;
+}
+#gbd_operationWindow div[style*="max-height"] > table tr:last-child td{
+    border-bottom-style: none;
+}
+span[id*="gbd_operationButton"]{
+    cursor: pointer;
+    font-size: 9px;
+}
