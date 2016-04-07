@@ -1,16 +1,36 @@
-require('./../../../js/protoDelay')();
-var $ = require('./../../../js/dom');
-var bindEvent = require('./../../../js/events');
-var ajax = require('./../../../js/request');
-var createTable = require('./../../../js/table');
+require('./../../../js/protoDelay.js')();
+var $ = require('./../../../js/dom.js');
+var bindEvent = require('./../../../js/events.js');
+var ajax = require('./../../../js/request.js');
+var createTable = require('./../../../js/table.js');
+var setStyle = require('./../../../js/style.js');
+var pw = require('./../../../js/progress.js');
 
+const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
 const $ico = require('./../src/icons.js');
+const Create = require('./../src/creator.js')();
 
-var $answer, $items, $t;
+var $answer, $items, $adverts, $t, $texts;
 
 
 $answer = $('<span>').node();
+
+$adverts = $ls.load("gk_acfd_adverts");
+
+$texts = {
+  island: {
+    "-1": "Не имеет значения",
+    "0": "[G] Ganja Island",
+    "1": "[Z] Z-Land",
+    "4": "[P] Palm Island"
+  },
+  action:{
+    "sell": '<span style="color: darkgreen;">Продажа</span>',
+    "buy": '<span style="color: darkred;">Покупка</span>',
+    "rent": '<span style="color: darkblue;">Аренда</span>'
+  }
+};
 
 getItemsData();
 
@@ -20,9 +40,9 @@ createButton();
 createGUI();
 
 function addStyle(){
-  var css, code;
+  var css;
 
-  code = `
+  css = `
     tr.light div[type="checkbox"]{
       background-image: url(${$ico.boxOff});
     }
@@ -41,16 +61,10 @@ function addStyle(){
       background-color: #cfe5cf;
     }`;
 
-  code += '@include: ./html/index.css, true';
-  code += '@include: ./../../css/filter.css, true';
-
-  css = $("<style>")
-    .attr("type", "text/css")
-    .attr("script", "true")
-    .html(code)
-    .node();
-
-  document.head.appendChild(css);
+  css += '@include: ./html/index.css, true';
+  setStyle('common.js', '@include: ./../../css/common.css, true');
+  setStyle('advanced control for do.js', css);
+  setStyle('filter.js', '@include: ./../../css/filter.css, true');
 }
 
 function createButton(){
@@ -61,14 +75,17 @@ function createButton(){
 
   node.parentNode.insertBefore(button, node.nextSibling);
   bindEvent(button, "onclick", createGUI);
-
-  $t = {
-    items: createTable(["#header-items", "#content-items", "#footer-items", "#contextMenu"], "items", "gk_acfd_settings", $ico, "level")
-  };
 }
 
 function createGUI(){
   var td;
+
+  pw();
+
+  $t = {
+    items: createTable(["#header-items", "#content-items", "#footer-items", "#contextMenu"], "items", "gk_acfd_settings", $ico, "level"),
+    adverts: createTable(["#header-adverts", "#content-adverts", "#footer-adverts", "#contextMenu"], "adverts", "gk_acfd_settings", $ico, "section")
+  };
 
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td');
   td = td.html('@include: ./html/baseGUI.html, true').node();
@@ -76,6 +93,8 @@ function createGUI(){
   $('td[class="tab"],[class="tab tabActive"]').nodeArr().forEach((tab)=>{
     bindEvent(tab, 'onclick', selectTabTable);
   });
+
+  bindEvent($("#acfd_addAdvert").node(), "onclick", bindAddAdvert);
 
   renderBaseHTML();
   renderTables();
@@ -93,26 +112,17 @@ function bidHideContextMenu(){
   });
 }
 
-function bindActionsContextMenu(gr){
+function bindActionsContextMenu(){
   var actions, menu, table;
 
   menu = $('#contextMenu').node();
 
   actions = {
-    addAdvert: (action, list, table)=>{
-      switch(action){
-        case "sell":
-          console.log(action);
-          break;
-
-        case "buy":
-          console.log(action);
-          break;
-
-        case "rent":
-          console.log(action);
-          break;
-      }
+    addAdvert: (mode, text, list)=>{
+      openAdvertWindow(mode, text, list);
+    },
+    updateItems: ()=>{
+      getItemsData(true);
     }
   };
 
@@ -140,6 +150,59 @@ function bindActionsContextMenu(gr){
   }
 }
 
+function getValues(element){
+  var result = {};
+
+  $(element).find('input[type="text"],input[type="hidden"]').nodeArr().forEach((input)=>{
+    result[input.name] = input.value;
+  });
+  $(element).find('input[type="checkbox"]').nodeArr().forEach((input)=>{
+    result[input.name] = input.checked;
+  });
+  $(element).find('input[type="radio"]:checked').nodeArr().forEach((input)=>{
+    result[input.name] = input.checked;
+  });
+  $(element).find('select').nodeArr().forEach((select)=>{
+    result[select.name] = $(select).find('option:checked').node().value;
+  });
+  $(element).find('textarea').nodeArr().forEach((textarea)=>{
+    result[textarea.name] = textarea.value;
+  });
+
+  return result;
+}
+
+function bindAddAdvert(){
+  var window, data, list;
+  var durability;
+
+  window = $("#acfd_advertWindow").class("add", "hide").node();
+  list = $t.items.getCheckedContent();
+  data = getValues(window);
+
+  list.forEach((item)=>{
+    durability = data.durability == "new" ? [item.durability, item.durability] : [0, 1];
+
+    $adverts[`${item.id}-${data.action}`] = {
+      id: item.id,
+      mod: 0,
+      action: data.action,
+      island: Number(data.island),
+      durNow: durability[0],
+      durMax: durability[1],
+      termPost: Number(data.termPost),
+      termRent: Number(data.termPost),
+      date: $c.getTimeNow(),
+      price: Number(data.price),
+      posted: 0,
+      autoPost: 0
+    }
+  });
+
+  $ls.save("gk_acfd_adverts", $adverts);
+  renderTables();
+}
+
 function selectTabTable(tab){
   var active, tabs, table;
 
@@ -159,18 +222,48 @@ function selectTabTable(tab){
   table.rows[active.cellIndex - 1].className = "tabRowHide";
 }
 
+function openAdvertWindow(mode, text, list){
+  var window, hide;
+
+  //$("#sf_shadowLayer").node().style.visibility = "visible";
+  window = $("#acfd_advertWindow").node();
+  hide = mode == "rent" ? "display: table-row;" : "display: none";
+
+  createSelectList();
+
+  $(window).find('span[type="count"]').html(list.length);
+  $(window).find('input[name="action"]').node().value = mode;
+  $(window).find('span[name="action"]').text(text);
+  $(window).find('tr[type="rent"]').attr("style", hide);
+  $(window).class("remove", "hide");
+
+  function createSelectList(){
+    var code, i, length;
+
+    code = '<option>Посмотреть список...</option>';
+    for(i = 0, length = list.length; i < length; i++){
+      code += `<option value="${list[i].id}">${i + 1}. ${list[i].name}</option>`;
+    }
+
+    $(window).find('select[name="iid"]').html(code);
+  }
+}
+
 
 function renderBaseHTML(){
   var t;
 
   t = $t.items;
   t.setStructure({
-    section: [300, "check", "Тип предмета"],
+    section: [200, "check", "Тип предмета"],
     name: [-1, "check", "Название предмета"],
-    durability: [125, "number", "Прочность"],
-    level: [125, "number", "Минимальный уровень"],
-    cost: [100, "number", "Стоимость предмета"],
-    refund: [100, "number", "Возврат с продажи"],
+    durability: [100, "number", "Прочность"],
+    level: [80, "number", "Минимальный уровень"],
+    cost: [125, "number", "Стоимость предмета"],
+    refund: [125, "number", "Возврат с продажи"],
+    sell: [75, "boolean", "Объявление, продажа|добавленные|тех что добавлены"],
+    buy: [75, "boolean", "Объявление, покупка|добавленные|тех что добавлены"],
+    rent: [75, "boolean", "Объявление, аредна|добавленные|тех что добавлены"],
     check: [45, null, null]
   });
 
@@ -180,6 +273,33 @@ function renderBaseHTML(){
   t.setSizes();
   t.setSorts(renderItemsTable);
   t.setFilters(renderItemsTable);
+  t.bindCheckAll();
+
+  t = $t.adverts;
+  t.setStructure({
+    section: [200, "check", "Тип предмета"],
+    name: [-1, "check", "Название предмета"],
+    mod: [125, "check|boolean", "Модификтор|с модом|что с модом"],
+    level: [80, "number", "Минимальный уровень"],
+    action: [125, "multiple", "Тип объявления"],
+    island: [140, "multiple", "Остров"],
+    durNow: [70, "number|boolean", "Прочность текущая|новые предметы|новых предметов"],
+    durMax: [70, "number", "Прочность максимальная"],
+    termPost: [100, "number", "Срок размещения"],
+    termRent: [80, "number", "Срок аредны"],
+    date: [80, "date", "Дата создания, изменения"],
+    price: [100, "number", "Цена предмета"],
+    posted: [40, "boolean", "Размещенные на доске|размещенные|не размещенные"],
+    autoPost: [40, "boolean", "Авто-продление объявления|с продлением|тех что с продлением"],
+    check: [45, null, null]
+  });
+
+  $('#header-adverts').html('@include: ./html/advertsTableHeader.html, true');
+  $('#footer-adverts').html('@include: ./html/advertsTableFooter.html, true');
+
+  t.setSizes();
+  t.setSorts(renderAdvertsTable);
+  t.setFilters(renderAdvertsTable);
   t.bindCheckAll();
 }
 
@@ -193,10 +313,29 @@ function renderItemsTable(mode){
     table.clearContent();
     items = Object.keys($items.item);
 
-    items.forEach((item)=>{
-      item = $items.item[item];
-      item.check = false;
-      table.pushContent(item);
+    items.forEach((id)=>{
+      table.pushContent(Create.item($items.item[id], $adverts));
+    });
+  }
+
+  table.prepare(mode);
+  showTable(table).then(()=>{
+    table.bindClickRow(true);
+  });
+}
+
+function renderAdvertsTable(mode){
+  var table, adverts;
+
+  table = $t.adverts;
+
+  if(mode == null){
+    mode = "filter";
+    table.clearContent();
+    adverts = Object.keys($adverts);
+
+    adverts.forEach((id)=>{
+      table.pushContent(Create.advert($adverts[id], $items.item[$adverts[id].id]));
     });
   }
 
@@ -208,6 +347,7 @@ function renderItemsTable(mode){
 
 function renderTables(){
   renderItemsTable();
+  renderAdvertsTable();
 }
 
 function showTable(t){
@@ -257,6 +397,9 @@ function showTable(t){
       case "items":
         return '@include: ./html/itemsTableRow.html, true';
         break;
+      case "adverts":
+        return '@include: ./html/advertsTableRow.html, true';
+        break;
     }
   }
   /////////////////////////////
@@ -276,11 +419,11 @@ function showTable(t){
 
 
 
-function getItemsData(){
+function getItemsData(update){
   var sections, name;
 
   $items = $ls.load("gk_acfd_items");
-  if($items.names == null){
+  if($items.names == null || update){
     $items = {
       item: {},
       names: {}
@@ -320,6 +463,7 @@ function getItemsData(){
       ajax(url, "GET", null).then((r)=>{
         $($answer)
           .html(r.text)
+          .find('td[width="800"]')
           .find('a[href*="item.php"]')
           .nodeArr()
           .forEach((node)=>{
@@ -398,8 +542,8 @@ function getItemsData(){
         return level;
       }
     }else{
-      console.log($items);
       $ls.save("gk_acfd_items", $items);
+      renderItemsTable();
     }
   }
 }
