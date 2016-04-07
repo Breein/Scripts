@@ -6,7 +6,6 @@ var ajax = require('./../../../js/request');
 var createTable = require('./../../../js/table');
 
 const $c = require('./../../../js/common.js')();
-const $ls = require('./../../../js/ls.js');
 const $calendar = require('./../../../js/calendar.js')();
 const Create = require('./../src/creator.js')();
 const Pack = require('./../src/packer.js')();
@@ -115,7 +114,7 @@ function addStyle(){
   code += '@include: ./html/index.css, true';
   code += '@include: ./../../css/filter.css, true';
 
-  css = $("style").html(code).node();
+  css = $("<style>").html(code).node();
   css.setAttribute("type", "text/css");
   css.setAttribute("script", "true");
 
@@ -197,12 +196,12 @@ function addToDB(){
     $idb.nextVersion();
     makeConnect("gk_StatsForum", false);
   }else{
-    $ss = $ls.load("gk_SF_settings");
+    $ss = "gk_SF_settings";
 
     $t = {
-      stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI", "#sf_contextMenu"], "stats", $ss, $ico),
-      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL", "#sf_contextMenu"], "themes", $ss, $ico),
-      bl: createTable(["#sf_header_BL", "#sf_content_BL", "#sf_footer_BL", "#sf_contextMenu"], "bl", $ss, $ico)
+      stats: createTable(["#sf_header_SI", "#sf_content_SI", "#sf_footer_SI", "#contextMenu"], "stats", $ss, $ico),
+      themes: createTable(["#sf_header_TL", "#sf_content_TL", "#sf_footer_TL", "#contextMenu"], "themes", $ss, $ico),
+      bl: createTable(["#sf_header_BL", "#sf_content_BL", "#sf_footer_BL", "#contextMenu"], "bl", $ss, $ico)
     };
 
     $idb.getOne("forums", "id", $cd.fid).then((res)=>{
@@ -225,10 +224,10 @@ function createGUI(){
   td.parentNode.removeChild(td);
   table.rows[0].appendChild(gui);
 
-  gr = $graph('#sf_graphics', 1830, 683, 25);
+  gr = $graph('#sf_graphics', 1630, 683, 25);
 
   $('td[class="tab"],[class="tab tabActive"]').nodeArr().forEach((tab)=>{
-    bindEvent(tab, 'onclick', ()=>{selectTabTable(tab)});
+    bindEvent(tab, 'onclick', selectTabTable);
   });
 
   renderBaseHTML();
@@ -244,7 +243,7 @@ function createGUI(){
   bindEvent($('#sf_cancelButton').node(), 'onclick', ()=>{$pause.stop()});
   bindEvent($('#sf_proceedBLButton').node(), 'onclick', bindProceedBLWindow);
 
-  $calendar.setContainer("#sf_calendar");
+  $calendar.setContainer("#calendar");
   $calendar.bind($('span[type="calendarCall"]').node());
 
   bindActionsContextMenu(gr);
@@ -290,7 +289,7 @@ function selectTabTable(tab){
 function bindActionsContextMenu(gr){
   var actions, menu;
 
-  menu = $('#sf_contextMenu').node();
+  menu = $('#contextMenu').node();
 
   actions = {
     getStatus: (list)=>{
@@ -341,7 +340,7 @@ function bindActionsContextMenu(gr){
     },
     getTimestamp: (list)=>{
       $idb.getOne(`timestamp_${$forum.id}`, 'id', list[0].id).then((result)=>{
-        gr.draw(result.a);
+        gr.draw(result.a, [1, 1, 0, 0, 1, 1, 1]);
         selectTabTable($('td[class="tab"]:contains("Графики")').node());
       });
     }
@@ -436,7 +435,7 @@ function getBLMembersFromSindicate(id, text, date, desc){
 
 function bidHideContextMenu(){
   bindEvent(document.body, 'onclick', ()=>{
-    var menu = $('#sf_contextMenu').node();
+    var menu = $('#contextMenu').node();
     if(menu.style.visibility == "visible"){
       menu.style.visibility = "hidden";
       menu.removeAttribute("class");
@@ -754,10 +753,10 @@ function closeWindows(){
 
   $("#sf_controlPanelWindow").node().style.visibility = "hidden";
   $("#sf_blWindow").node().style.visibility = "hidden";
-  $("#sf_filtersWindow").node().style.visibility = "hidden";
   $("#sf_messageWindow").node().style.visibility = "hidden";
   $("#sf_writesWindow").node().style.visibility = "hidden";
-  $("#sf_calendar").node().style.visibility = "hidden";
+  $("#filtersWindow").node().style.visibility = "hidden";
+  $("#calendar").node().style.visibility = "hidden";
 
   window.style.visibility = "hidden";
 }
@@ -1418,8 +1417,7 @@ function parseTheme(theme, startPost, args){
 
   function parseRow(tr){
     var table, pid, words, date, carma, write, start;
-    var character, player, member;
-    var timestamp, data;
+    var character, player, member, timestamp;
     var g, f;
 
     f = (resolve) => {
