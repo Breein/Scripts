@@ -1,25 +1,25 @@
-#sf_filtersWindow{
+#filtersWindow{
     position: absolute;
     z-index: 2
 }
-#sf_filtersWindow > div:first-child {
+#filtersWindow > div:first-child {
     box-shadow: 0 0 10px black;
     background: #defadc;
     border: solid 2px white;
     border-radius: 10px;
 }
-#sf_filtersWindow > div:first-child > div:first-child {
+#filtersWindow > div:first-child > div:first-child {
     margin: 10px 10px;
     border: dashed 1px #339933;
 }
-#sf_filtersWindow table{
+#filtersWindow table{
     border-collapse: collapse;
     background-color: #f0fff0;
 }
-#sf_filtersWindow table td{
+#filtersWindow table td{
     padding: 2px 10px 2px 10px;
 }
-#sf_filtersWindow > div:last-child {
+#filtersWindow > div:last-child {
     position: absolute;
     border: solid 2px white;
     border-bottom-style: none;
