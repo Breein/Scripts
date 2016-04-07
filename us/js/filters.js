@@ -18,7 +18,7 @@ function Filter(id, table, td, f, key){
   this.max = null;
   this.html = "";
 
-  $calendar.setContainer("#sf_calendar");
+  $calendar.setContainer("#calendar");
 }
 
 Filter.prototype = {
@@ -169,14 +169,18 @@ Filter.prototype = {
   },
 
   createOptionList: function(){
-    var code = "";
+    var code = "", arrays, value;
 
-    if(this.column == "status"){
-      [ "Необработан", "В порядке", "Торговый", "Арестован",
-        "Форумный", "Общий бан", "Заблокирован"
-      ].forEach((text, index)=>{
-        code += `<div type="option" name="${index}">${text}</div>`;
-      });
+    arrays = {
+      status: {"Необработан": 0, "В порядке": 1, "Торговый": 2, "Арестован": 3, "Форумный": 4, "Общий бан": 5, "Заблокирован": 6},
+      island: {"Не имеет значения": -1, "[G] Ganja Island": 0, "[Z] Z-Land": 1, "[P] Palm Island": 4},
+      action: {"Продажа": "sell", "Покупка": "buy", "Аренда": "rent"}
+    };
+
+    if(arrays[this.column] != null){
+      for(value in arrays[this.column]){
+        code += `<div type="option" name="${arrays[this.column][value]}">${value}</div>`;
+      }
     }else{
       $(this.table.body).find('input[type="checkbox"]:checked').nodeArr().forEach((box)=>{
         var name;
@@ -376,7 +380,11 @@ Filter.prototype = {
     selector = c ? 'div[type="option"]' : 'div[type="option selected"]';
 
     $(this.fw).find(selector).nodeArr().forEach((option)=>{
-      var v = c ? $(option).attr('name') : Number($(option).attr('name'));
+      var v;
+
+      v = Number($(option).attr('name'));
+      if(isNaN(v)) v = $(option).attr('name');
+
       result.push(v);
     });
 
