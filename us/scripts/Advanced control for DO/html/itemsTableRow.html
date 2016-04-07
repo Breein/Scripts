@@ -5,5 +5,8 @@
     <td ${t.getWidth("level")} align="center">${tr.level}</td>
     <td ${t.getWidth("cost")} align="center">${tr.cost}</td>
     <td ${t.getWidth("refund")} align="center">${tr.refund}</td>
+    <td ${t.getWidth("sell")} align="center">${tr.sell ? '√' : ''}</td>
+    <td ${t.getWidth("buy")} align="center">${tr.buy ? '√' : ''}</td>
+    <td ${t.getWidth("rent")} align="center">${tr.rent ? '√' : ''}</td>
     <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
 </tr>

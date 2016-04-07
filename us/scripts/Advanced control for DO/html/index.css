@@ -74,6 +74,9 @@ div.content{
 #contextMenu.items > ul[type="items"]{
     display: block;
 }
+#contextMenu.adverts > ul[type="adverts"]{
+    display: block;
+}
 #contextMenu ul{
     margin: 0;
     padding: 0 0 0 25px;
@@ -187,8 +190,12 @@ td[sort], td[filter]{
 td[sort]:hover, td[filter]:hover{
     background-color: #cae1ca;
 }
+
 td.a-item{
-    text-indent: 5px;
+     text-indent: 10px;
+}
+td.ct{
+    text-align: center;
 }
 td.a-item > a{
     text-decoration: none;
@@ -254,6 +261,9 @@ div[type="window"]{
     border-radius: 10px;
     background-color: #FFFFFF;
     box-shadow: 0 0 15px black;
+}
+div[type="window"].hide{
+    visibility: hidden;
 }
 div.center-screen{
     left: 50%;
