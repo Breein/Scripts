@@ -14,19 +14,26 @@ function Graphics(id, w, h, step){
   this.h = this.height - 20;
   this.lines = parseInt(this.h / this.step, 10);
 
+  this.rect = {
+    x: 50,
+    y: 5,
+    xx: this.w,
+    yy: this.h - 20
+  };
+
   this.colors = ['#526B12', '#265185', '#A0241A', '#FCD873', '#0099FF', '#E896E9', '#EFEE52', '#0B2B5C', '#E9D2D4', '#869DD5', '#ADD338'];
   this.dataX = [];
   this.dataY = [];
   this.data = {};
+  this.show = [];
   this.max = 0;
+  this.min = 0;
 }
 
 Graphics.prototype = {
 
   processingData: function(){
-    var cells, max = 0;
-    var i, length;
-    var maxString, maxResidue;
+    var cells, max = 0, min = 0;
 
     this.dataX = [];
     this.dataY = [];
@@ -35,38 +42,51 @@ Graphics.prototype = {
       this.dataX.push(key);
       cells = this.data[key];
       Object.keys(cells).forEach((k, index)=>{
-        if(this.dataY[index] == null) this.dataY[index] = [];
-        if(max < cells[k]) max = cells[k];
-        this.dataY[index].push(cells[k]);
+        if(this.show[index]){
+          if(this.dataY[index] == null) this.dataY[index] = [];
+          if(max < cells[k]) max = cells[k];
+          if(min > cells[k]) min = cells[k];
+          this.dataY[index].push(cells[k]);
+        }
       });
     });
 
-    maxString = '4';
-    maxResidue = '1';
+    this.max = getRound(max, false);
+    this.min = min == 0 ? 0 : getRound(min, true);
 
-    for(i = 0, length = (max.toString()).length - 2; i < length; i++){
-      maxString += '0';
-      maxResidue += '0';
+    function getRound(value, negative){
+      var string, residue;
+      var i, length;
+
+      string = '4';
+      residue = '1';
+      if(negative) value = Math.abs(value);
+
+      for(i = 0, length = (value.toString()).length - 2; i < length; i++){
+        string += '0';
+        residue += '0';
+      }
+      value += Number(string);
+      value = value - (value % Number(residue));
+
+      return value;
     }
-
-    max += Number(maxString);
-    this.max = max - (max % Number(maxResidue));
   },
 
-  draw: function(data){
+  draw: function(data, show){
     this.data = {};
     this.data = data;
+    this.show = show;
 
-    //BID('mainSenseDiv_' + iTab).innerHTML = '';
     this.ctx.clearRect(0, 0, this.width + 10, this.height);
 
-    this.ctx.rect(50, 1, this.w, this.height - 42);
+    this.ctx.rect(this.rect.x, this.rect.y, this.rect.xx, this.rect.yy);
     this.ctx.lineWidth = 1;
     this.ctx.strokeStyle = 'black';
     this.ctx.stroke();
 
     this.processingData();
-    this.drawGridY(this.max);
+    this.drawGridY();
     this.drawGridX();
 
     this.dataY.forEach((data, index)=>{
@@ -75,47 +95,60 @@ Graphics.prototype = {
   },
 
   drawGridX: function(){
-    var step, text;
+    var step, text, x, y, ty;
     var i, length = this.dataX.length;
 
     step = parseFloat((this.w / (length - 1)).toFixed(1));
+    y = this.rect.yy + this.rect.y;
+    ty = y + 20;
+
     this.ctx.beginPath();
+    this.ctx.font = "10pt Calibri";
+    this.ctx.lineWidth = 0.8;
+    this.ctx.strokeStyle = "#c0c0c0";
   
     for(i = 0; i < length; i++){
-      this.ctx.moveTo((i * step) + 50, 0);
-      this.ctx.lineTo((i * step) + 50, this.h - 20);
-  
+      x = i * step + this.rect.x;
       text = $c.getNormalDate(this.dataX[i]).d;
-      //text = text.d + ", " + text.t;
-  
-      this.ctx.font = "10pt Calibri";
-      this.ctx.fillText(text, (i * step) + 50, this.h + 5);
+
+      this.ctx.moveTo(x, this.rect.y);
+      this.ctx.lineTo(x, y);
+      this.ctx.fillText(text, x, ty);
     }
-  
-    this.ctx.lineWidth = 0.8;
-    this.ctx.strokeStyle = "#c0c0c0";
+
     this.ctx.stroke();
     this.ctx.closePath();
   },
 
-  drawGridY: function(maxValue){
-    var step = parseFloat(((this.h - 20) / this.lines).toFixed(1));
-    var stepNum = maxValue / this.lines;
-    var n = 0;
+  drawGridY: function(){
+    var step, stepNum, value;
+    var lineStart, lineStop, textStart, y;
+
+    value = 0;
+    step = this.rect.yy / this.lines;
+    step = parseFloat(step.toFixed(1));
+    stepNum = (this.max + this.min) / this.lines;
+
+    lineStart = this.rect.x;
+    lineStop = this.rect.x + this.rect.xx;
+    textStart = 25;
   
     this.ctx.beginPath();
-  
+    this.ctx.textAlign = "center";
+    this.ctx.font = "10pt Calibri";
+    this.ctx.fillStyle = 'black';
+
+    this.ctx.fillText(this.max, textStart, this.rect.y + 5);
+
     for(var i = 1; i < this.lines; i++){
-      this.ctx.moveTo(50, step * i);
-      this.ctx.lineTo((this.w + 50), step * i);
-  
-      n = Math.round((maxValue - (i * stepNum)));
-  
-      this.ctx.textAlign = "center";
-      this.ctx.font = "10pt Calibri";
-      this.ctx.fillStyle = 'black';
-      this.ctx.fillText(n.toString(), 25, (step * i) + 3);
+      value = Math.round((this.max - i * stepNum));
+      y = step * i + this.rect.y;
+
+      this.ctx.moveTo(lineStart, y);
+      this.ctx.lineTo(lineStop, y);
+      this.ctx.fillText(value, textStart, y + 3);
     }
+    this.ctx.fillText(this.min > 0 ? "-" + this.min : "" + this.min, textStart, this.rect.y + this.rect.yy);
   
     this.ctx.lineWidth = 0.8;
     this.ctx.strokeStyle = "#c0c0c0";
@@ -123,20 +156,20 @@ Graphics.prototype = {
     this.ctx.closePath();
   },
 
-  drawLine: function(data, color, maxValue){
+  drawLine: function(data, color){
     var step, percent, p;
     var i, count;
 
     count = data.length;
     step = parseFloat((this.w / (count - 1)).toFixed(1));
-    percent = (this.h - 20) / maxValue;
+    percent = (this.h - 20) / (this.max + this.min);
 
-    p = [{x: 50, y: (this.h - 20) - (data[0] * percent)}];
+    p = [{x: 50, y: (this.h - 20) - ((data[0] + this.min) * percent)}];
   
     this.ctx.beginPath();
     this.ctx.moveTo(p[0].x, p[0].y);
     for(i = 1; i < count; i++){
-      p.push({x: (i * step) + 50, y: (this.h - 20) - (data[i] * percent)});
+      p.push({x: (i * step) + 50, y: (this.h - 20) - ((data[i] + this.min) * percent)});
       this.ctx.lineTo(p[i].x, p[i].y);
     }
     this.ctx.lineWidth = 2;
