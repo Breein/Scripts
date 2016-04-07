@@ -4,7 +4,7 @@ var bindEvent = require('./../../../js/events.js');
 var ajax = require('./../../../js/request.js');
 var createTable = require('./../../../js/table.js');
 var setStyle = require('./../../../js/style.js');
-var pw = require('./../../../js/progress.js');
+var progress = require('./../../../js/progress.js')(()=>{console.log("Done;")});
 
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
@@ -34,6 +34,31 @@ $texts = {
 
 getItemsData();
 
+progress.start("Test", 10, 750, 60);
+f(0, 10);
+
+function f(now, max){
+  if(progress.isWork(f, arguments)) return;
+  if(now < max){
+    progress.work();
+    now++;
+    progress.start("Test Extra: " + now, 5, 750, null, true);
+    f2(0, 5, [now, max]);
+  }else{
+    progress.done();
+  }
+}
+
+function f2(now, max, args){
+  if(progress.isWork(f2, arguments)) return;
+  if(now < max){
+    progress.work(true);
+    now++;
+    f2.gkDelay(750, this, [now, max, args]);
+  }else{
+    f.gkDelay(750, this, args);
+  }
+}
 
 addStyle();
 createButton();
@@ -79,8 +104,6 @@ function createButton(){
 
 function createGUI(){
   var td;
-
-  pw();
 
   $t = {
     items: createTable(["#header-items", "#content-items", "#footer-items", "#contextMenu"], "items", "gk_acfd_settings", $ico, "level"),
