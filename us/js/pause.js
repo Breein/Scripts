@@ -56,6 +56,7 @@ Pause.prototype = {
 
   /**
    * @param {Function} callback
+   * @param {*=} c
    * @returns {boolean}
    */
   isStop: function(callback){
@@ -74,6 +75,11 @@ Pause.prototype = {
     this.cancel = true;
     this.work = true;
     //console.log("Cancel!");
+  },
+
+  reset: function(){
+    this.cancel = false;
+    this.work = true;
   }
 };
 
