@@ -42,6 +42,7 @@ td.tabContent{
     border: solid #339933 1px;
     border-top-style: none;
     background-color: #f0fff0;
+    padding: 0 10px;
 }
 tr.tabRow{
     display: table-row;
@@ -51,7 +52,6 @@ tr.tabRowHide{
 }
 div.tab{
     margin: auto;
-    width: 1835px;
     height: 100%;
 }
 div.header{
@@ -60,15 +60,6 @@ div.header{
 div.content{
     height: 559px;
     overflow-y: scroll;
-}
-
-.windows{
-    width: 100%;
-    height: 100%;
-    left: 0;
-    top: 0;
-    position: absolute;
-    margin: auto;
 }
 
 .window-content{
@@ -186,16 +177,16 @@ input[type="text"].sf_hideInput{
 }
 
 /* Стили каледнаря */
-#sf_calendar tr{
+#calendar tr{
     border: none;
 }
-#sf_calendar td{
+#calendar td{
     text-align: center;
     height: 20px;
     border: solid 1px #339933;
     padding: 5px;
 }
-#sf_calendar td[type="day"]:hover, #sf_calendar td[type="control"]:hover{
+#calendar td[type="day"]:hover, #calendar td[type="control"]:hover{
     background: #D8E8D8;
     cursor: pointer;
 }
@@ -211,22 +202,22 @@ span[type="checkAll"]{
 }
 
 /* Конеткстное меню */
-#sf_contextMenu{
+#contextMenu{
     position: absolute;
 }
-#sf_contextMenu > ul[type]{
+#contextMenu > ul[type]{
     display: none;
 }
-#sf_contextMenu.themes > ul[type="themes"]{
+#contextMenu.themes > ul[type="themes"]{
     display: block;
 }
-#sf_contextMenu.stats > ul[type="stats"]{
+#contextMenu.stats > ul[type="stats"]{
     display: block;
 }
-#sf_contextMenu.bl > ul[type="bl"]{
+#contextMenu.bl > ul[type="bl"]{
     display: block;
 }
-#sf_contextMenu ul{
+#contextMenu ul{
     margin: 0;
     padding: 0 0 0 25px;
     cursor: context-menu;
@@ -235,12 +226,12 @@ span[type="checkAll"]{
     border: solid 1px;
     box-sizing: border-box;
 }
-#sf_contextMenu li.parent{
+#contextMenu li.parent{
     background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAHCAMAAAAYuxziAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAAGUExURQAzAAAAAEPme5kAAAACdFJOU/8A5bcwSgAAAB1JREFUeNpiYGBkZGRgYAATDGCCAcYCiQFlAQIMAADrAA1gGCQCAAAAAElFTkSuQmCC");
     background-position: 95% center;
     background-repeat: no-repeat;
 }
-#sf_contextMenu ul li {
+#contextMenu ul li {
     border-top: solid 1px #c0c0c0;
     border-left: solid 1px #c0c0c0;
     padding: 0 0 0 15px;
@@ -250,16 +241,16 @@ span[type="checkAll"]{
     width: 180px;
     line-height: 30px;
 }
-#sf_contextMenu ul li:first-child{
+#contextMenu ul li:first-child{
     border-top: none;
 }
-#sf_contextMenu ul li ul {
+#contextMenu ul li ul {
     display: none;
 }
-#sf_contextMenu ul li:hover{
+#contextMenu ul li:hover{
     position: relative;
 }
-#sf_contextMenu li > span{
+#contextMenu li > span{
     padding-left: 40px;
     left: -40px;
     top: 1px;
@@ -271,11 +262,11 @@ span[type="checkAll"]{
     border: 1px solid transparent;
     background-color: transparent;
 }
-#sf_contextMenu li > span:hover{
+#contextMenu li > span:hover{
     border: 1px solid rgba(0, 0, 0, 0.5);
     background-color: rgba(225, 247, 225, 0.5);
 }
-#sf_contextMenu ul li:hover > ul{
+#contextMenu ul li:hover > ul{
     position: absolute;
     display: block;
     left: 98%;
