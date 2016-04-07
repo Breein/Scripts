@@ -5,13 +5,15 @@ const bindEvent = require('./events.js');
 const $ls = require('./ls.js');
 const $c = require('./common.js')();
 
-function Table(nodesID, settingsKey, settings, icons){
+function Table(nodesID, settingsKey, settings, icons, sortKey){
   this.header = nodesID[0];
   this.body = nodesID[1];
   this.footer = nodesID[2];
   this.ctxMenu = nodesID[3];
   this.name = settingsKey;
   this.icons = icons;
+  this.sortKey = sortKey ? sortKey : "id";
+
   this.structure = {};
   this.content = [];
   this.renderContent = [];
@@ -21,7 +23,8 @@ function Table(nodesID, settingsKey, settings, icons){
     cell: null,
     type: null
   };
-  this.settings = settings;
+  this.settingsKey = settings;
+  this.settings = $ls.load(this.settingsKey);
   this.setups = this.settings[this.name];
   this.rows = 0;
   this.renderRows = 0;
@@ -210,18 +213,19 @@ Table.prototype = {
   /**
    */
   sorting: function(){
-    var value, type, array;
+    var value, type, array, sKey;
 
     array = this.getContent(true);
     value = this.setups.sort.cell;
     type = this.setups.sort.type;
+    sKey = this.sortKey;
 
     array.sort(
       function(e1, e2){
         var p1, p2, res, i1, i2;
 
         p1 = e1[value]; p2 = e2[value];
-        i1 = e1.id; i2 = e2.id;
+        i1 = e1[sKey]; i2 = e2[sKey];
 
         if(typeof p1 == "object"){
           p1 = p1[1];
@@ -360,7 +364,7 @@ Table.prototype = {
 
       bindEvent(td, 'onclick', function(){
         if(table.filters[value] == null){
-          table.filters[value] = filter("#sf_filtersWindow", table, td, ft, value);
+          table.filters[value] = filter("#filtersWindow", table, td, ft, value);
         }
         table.filters[value].activate(callback);
       });
@@ -421,37 +425,39 @@ Table.prototype = {
       .find('tr')
       .nodeArr()
       .forEach((node)=>{
-        bindEvent(node, 'onclick',()=>{
-          var box, action;
-
-          if($(table.ctxMenu).node().style.visibility == "visible")
-            return;
-
-          box = $(node).find('input[type="checkbox"]').node();
-          box.checked = !box.checked;
-          action = box.checked ? "add" : "remove";
-          $(node).class(action, "checked");
-
-          table.setContentValue(node.rowIndex, "check", box.checked);
-          table.setCountCheck();
-        });
-
+        bindEvent(node, 'onclick', leftClick);
         if(!contextMenu) return;
-
-        bindEvent(node, "contextmenu", (event)=>{
-          var menu, elem;
-
-          elem = event.target;
-          if(elem.nodeName != "TD") return;
-          //if(table.getKeysOnCell(elem) != "name") return;
-          event.preventDefault();
-
-          menu = $(table.ctxMenu).class("set", table.name).attr("index", node.rowIndex).node();
-          menu.style.left = event.clientX;
-          menu.style.top = event.clientY + document.body.scrollTop;
-          menu.style.visibility = "visible";
-        });
+        bindEvent(node, "contextmenu", rightClick, [], true);
       });
+
+    function leftClick(node){
+      var box, action;
+
+      if($(table.ctxMenu).node().style.visibility == "visible")
+        return;
+
+      box = $(node).find('input[type="checkbox"]').node();
+      box.checked = !box.checked;
+      action = box.checked ? "add" : "remove";
+      $(node).class(action, "checked");
+
+      table.setContentValue(node.rowIndex, "check", box.checked);
+      table.setCountCheck();
+    }
+
+    function rightClick(node, event){
+      var menu, elem;
+
+      elem = event.target;
+      if(elem.nodeName != "TD") return;
+      //if(table.getKeysOnCell(elem) != "name") return;
+      event.preventDefault();
+
+      menu = $(table.ctxMenu).class("set", table.name).attr("index", node.rowIndex).node();
+      menu.style.left = event.clientX;
+      menu.style.top = event.clientY + document.body.scrollTop;
+      menu.style.visibility = "visible";
+    }
   },
 
   /**
@@ -512,7 +518,7 @@ Table.prototype = {
   },
 
   saveSettings: function(){
-    $ls.save("gk_SF_settings", this.settings);
+    $ls.save(this.settingsKey, this.settings);
   }
 };
 
@@ -521,8 +527,9 @@ Table.prototype = {
  * @param {string} settingsKey
  * @param {object} settings
  * @param {object} icons
+ * @param {string=} sortKey
  * @returns {Table}
  */
-module.exports = function (nodesID, settingsKey, settings, icons){
-  return new Table(nodesID, settingsKey, settings, icons);
+module.exports = function (nodesID, settingsKey, settings, icons, sortKey){
+  return new Table(nodesID, settingsKey, settings, icons, sortKey);
 };
