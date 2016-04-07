@@ -1,21 +1,20 @@
-module.exports = function bindEvent(element, event, callback, args) {
-  if (!element) return;
+module.exports = function bindEvent(element, textEvent, callback, args, e) {
+  var index; if (!element) return;
 
-  if(args == null){
-    args = [element];
-  }else{
-    args.push(element);
-  }
+  args == null ? args = [element] : args.push(element);
+  index = args.length;
 
   if(element.addEventListener){
-    if(event.substr(0, 2) == 'on'){
-      event = event.substr(2);
-    }
-    element.addEventListener(event, ()=>{callback.apply(this, args)}, false);
+    if(textEvent.substr(0, 2) == 'on') textEvent = textEvent.substr(2);
+    element.addEventListener(textEvent, (event)=>{
+      if(e != null) args[index] = event;
+      callback.apply(null, args);
+    }, false);
   }else if(element.attachEvent){
-    if(event.substr(0, 2) != 'on'){
-      event = 'on' + event;
-    }
-    element.attachEvent(event, ()=>{callback.apply(this, args)}, false);
+    if(textEvent.substr(0, 2) != 'on') textEvent = 'on' + textEvent;
+    element.attachEvent(textEvent, (event)=>{
+      if(e != null) args[index] = event;
+      callback.apply(null, args);
+    }, false);
   }
 };
