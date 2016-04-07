@@ -1,0 +1,37 @@
+#progress-window > table{
+    width: 650px;
+    border-collapse: collapse;
+}
+#progress-window > table td{
+    border: 0 none;
+    padding: 2px 5px 2px 5px;
+}
+#progress-window td.pw-indent{
+    padding-left: 30px;
+}
+#progress-window .pw-bar-frame{
+    width: 560px;
+    height: 15px;
+    border: solid 1px #000000;
+    float: left;
+    margin-top: 5px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+#progress-window .pw-bar-core{
+    height: 100%;
+    background-color: #afd1af;
+}
+#progress-window .pw-space{
+    float: left;
+    width: 5px;
+    height: 25px;
+}
+#progress-window .pw-icon{
+    float: left;
+    width: 25px;
+    height: 25px;
+}
+#progress-window .pw-buttons{
+    padding: 15px 30px 10px 0;
+}
