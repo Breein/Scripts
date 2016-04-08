@@ -113,7 +113,9 @@ Api.prototype = {
       return this;
     }
     if(action == "add"){
-      this.nodeList[0].className = this.nodeList[0].className + " " + param;
+      if(this.nodeList[0].className.indexOf(param) == -1){
+        this.nodeList[0].className = this.nodeList[0].className + " " + param;
+      }
       return this;
     }
     if(action == "remove"){
