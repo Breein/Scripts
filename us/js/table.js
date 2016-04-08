@@ -427,7 +427,7 @@ Table.prototype = {
       .forEach((node)=>{
         bindEvent(node, 'onclick', leftClick);
         if(!contextMenu) return;
-        bindEvent(node, "contextmenu", rightClick, [], true);
+        bindEvent(node, "contextmenu", rightClick, [], null, true);
       });
 
     function leftClick(node){
