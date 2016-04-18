@@ -3,6 +3,7 @@ const setStyle = require('./style.js');
 const bindEvent = require('./events.js');
 const $c = require('./common.js')();
 const $pause = require('./pause.js');
+const shadow = require('./shadow.js')();
 
 function ProgressDisplay(callback){
   this._window = null;
@@ -24,10 +25,12 @@ function ProgressDisplay(callback){
 
 ProgressDisplay.prototype = {
   _insert: function(){
+    this._window = $('#progress-window').node(); if(this._window) return;
     this._window =
       $('<div>')
-        .class("set", "window center-screen")
+        .class("set", "window center-screen hide")
         .attr('id', "progress-window")
+        .attr('state', "done")
         .html('@include: ./../../html/progressWindow.html, true')
         .node();
 
@@ -116,13 +119,15 @@ ProgressDisplay.prototype = {
   start: function(text, count, interval, max, extra){
     if(count[0] == null) count = [0, count];
     if(!extra){
+      $(this._window).class("remove", "hide").attr("state", "work");
+      shadow.open();
       this._reset();
       this._finished = false;
       this._data.main.text = text;
       this._data.main.now = count[0];
       this._data.main.max = count[1];
       this._data.max = max ? max : count[1];
-      this._data.time = this._data.max * interval;
+      this._data.time = this._data.max * (interval + 500);
       this._data.state = "work";
       this._timeUpdate();
     }else{
@@ -134,11 +139,13 @@ ProgressDisplay.prototype = {
   },
 
   /**
-   * @param {boolean=}extra
+   * @param {boolean=} extra
+   * @param {Number=} t
    */
-  work: function(extra){
+  work: function(extra, t){
     !extra ? this._data.main.now++ : this._data.extra.now++;
     this._data.now++;
+    this._correctTime(t);
     this._render();
   },
 
@@ -148,7 +155,10 @@ ProgressDisplay.prototype = {
     this._finished = true;
     this._data.extra.text = "";
     this._data.state = "done";
+    $(this._window).attr("state", "done");
     this._render(true);
+
+    if(this._task.length) this._doTask();
   },
 
   /**
@@ -158,6 +168,21 @@ ProgressDisplay.prototype = {
    */
   isWork: function(f, args){
     return $pause.isStop(()=>{this._cancel()}) || $pause.isActive(f, args) ? true : false;
+  },
+
+  /**
+   * @param {Function} f
+   * @param {*[]}a
+   * @param {string} d
+   * @param {*[]=}s
+   */
+  addTask: function(f, a, d, s){
+    this._task.push({
+      func: f,
+      args: a,
+      desc: d,
+      start: s
+    });
   },
 
   _render: function(start){
@@ -202,7 +227,7 @@ ProgressDisplay.prototype = {
     var text = "";
 
     this._task.forEach((task)=>{
-      text += task.desk + ", ";
+      text += task.desc + ", ";
     });
     text = text == "" ? "-" : text.substring(0, text.length - 2);
 
@@ -218,7 +243,8 @@ ProgressDisplay.prototype = {
   },
 
   _cancel: function(){
-    $(this._window).class("add", "hide");
+    shadow.close();
+    this._task = [];
     this.done();
     this._callback();
   },
@@ -240,6 +266,7 @@ ProgressDisplay.prototype = {
     }
 
     this._nodes.buttons.pause.value = t;
+    $(this._window).attr("state", s);
     this._data.state = s;
     this._finished = f;
     this._setStateIcon();
@@ -253,6 +280,26 @@ ProgressDisplay.prototype = {
       this._cancel();
     }else{
       $pause.stop();
+    }
+  },
+
+  _doTask: function(){
+    var task, p;
+
+    p = this;
+    task = p._task.shift();
+    setTimeout(()=>{
+      if(task.start) p.start.apply(p, task.start);
+      task.func.apply(null, task.args);
+    }, 1200);
+  },
+
+  _correctTime(t){
+    if(!t) return;
+    if(t > 500){
+      this._data.time = this._data.time + (t - 500);
+    }else if(t < 500){
+      this._data.time = this._data.time - (500 - t);
     }
   }
 };
