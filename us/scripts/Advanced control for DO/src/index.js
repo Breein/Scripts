@@ -4,18 +4,21 @@ var bindEvent = require('./../../../js/events.js');
 var ajax = require('./../../../js/request.js');
 var createTable = require('./../../../js/table.js');
 var setStyle = require('./../../../js/style.js');
-var progress = require('./../../../js/progress.js')(()=>{console.log("Done;")});
+var progress = require('./../../../js/progress.js')(renderTables);
+var shadow = require('./../../../js/shadow.js')();
 
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
 const $ico = require('./../src/icons.js');
+const $mods = require('./../src/mods.js');
 const Create = require('./../src/creator.js')();
 
-var $answer, $items, $adverts, $t, $texts;
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var $answer, $items, $adverts, $t, $texts, $data;
 
 $answer = $('<span>').node();
 
+$items = $ls.load("gk_acfd_items");
 $adverts = $ls.load("gk_acfd_adverts");
 
 $texts = {
@@ -32,37 +35,12 @@ $texts = {
   }
 };
 
-getItemsData();
-
-progress.start("Test", 10, 750, 60);
-f(0, 10);
-
-function f(now, max){
-  if(progress.isWork(f, arguments)) return;
-  if(now < max){
-    progress.work();
-    now++;
-    progress.start("Test Extra: " + now, 5, 750, null, true);
-    f2(0, 5, [now, max]);
-  }else{
-    progress.done();
-  }
-}
-
-function f2(now, max, args){
-  if(progress.isWork(f2, arguments)) return;
-  if(now < max){
-    progress.work(true);
-    now++;
-    f2.gkDelay(750, this, [now, max, args]);
-  }else{
-    f.gkDelay(750, this, args);
-  }
-}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+loadData();
 addStyle();
 createButton();
-createGUI();
+extensionAdverts();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addStyle(){
   var css;
@@ -91,6 +69,7 @@ function addStyle(){
   setStyle('advanced control for do.js', css);
   setStyle('filter.js', '@include: ./../../css/filter.css, true');
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createButton(){
   var button, node;
@@ -101,9 +80,12 @@ function createButton(){
   node.parentNode.insertBefore(button, node.nextSibling);
   bindEvent(button, "onclick", createGUI);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
   var td;
+
+  if(!getItemsData()) return;
 
   $t = {
     items: createTable(["#header-items", "#content-items", "#footer-items", "#contextMenu"], "items", "gk_acfd_settings", $ico, "level"),
@@ -113,17 +95,22 @@ function createGUI(){
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td');
   td = td.html('@include: ./html/baseGUI.html, true').node();
 
-  $('td[class="tab"],[class="tab tabActive"]').nodeArr().forEach((tab)=>{
+  $('td[class="tab"],[class="tab tabActive"]').each((tab)=>{
     bindEvent(tab, 'onclick', selectTabTable);
   });
 
-  bindEvent($("#acfd_addAdvert").node(), "onclick", bindAddAdvert);
+  bindEvent($("#acfd_addAdvert"), "onclick", addAdvert);
+  bindEvent($("#acfd_editAdvert"), "onclick", editAdvert);
+  bindEvent($('#acfd_saveCostEun'), "onclick", saveCostEun);
 
   renderBaseHTML();
   renderTables();
+
   bidHideContextMenu();
   bindActionsContextMenu();
+  bindMoneyInputs();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function bidHideContextMenu(){
   bindEvent(document.body, 'onclick', ()=>{
@@ -134,6 +121,30 @@ function bidHideContextMenu(){
     }
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function bindMoneyInputs(){
+  var hidden, value;
+
+  $('span[class="money-input"]').each((span)=>{
+    bindEvent(span.firstElementChild, 'onkeyup', function(input){
+      hidden = input.nextElementSibling;
+      value = Number(input.value.replace(/,/g, ""));
+      hidden.value = isNaN(value) ? 0 : value;
+      input.value = $c.convertID(hidden.value);
+    });
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function saveCostEun(){
+  $('#acfd_costEunWindow').find('input[type="hidden"]').each((input)=>{
+    $data[input.name] = Number(input.value);
+  });
+  $ls.save("gk_acfd_data", $data);
+  shadow.close();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function bindActionsContextMenu(){
   var actions, menu, table;
@@ -141,11 +152,50 @@ function bindActionsContextMenu(){
   menu = $('#contextMenu').node();
 
   actions = {
+    setCostEUN: ()=>{
+      shadow.open();
+      $('#acfd_costEunWindow').class("remove", "hide");
+    },
+
     addAdvert: (mode, text, list)=>{
       openAdvertWindow(mode, text, list);
     },
     updateItems: ()=>{
       getItemsData(true);
+    },
+
+    board: (action, list)=>{
+      switch(action){
+        case "add":
+          progress.start("Размещение объявлений на доске", list.length, 1250);
+          boardAdd(0, list.length, list);
+          break;
+
+        case "delete":
+          checkAdverts(list, false);
+          break;
+
+        case "update":
+          checkAdverts(list, true);
+          break;
+      }
+    },
+
+    setAutoPost: (value, list)=>{
+      list.forEach((advert)=>{
+        $adverts[advert.aid].autoPost = value;
+      });
+      $ls.save("gk_acfd_adverts", $adverts);
+      renderAdvertsTable();
+    },
+
+    editAdvert: (list)=>{
+      openEditAdvertWindow(list[0]);
+    },
+
+    removeAdvert: (list)=>{
+      progress.start("Удаление объялений из базы", list.length, 50);
+      advertsAction("remove", 0, list.length, list);
     }
   };
 
@@ -172,59 +222,295 @@ function bindActionsContextMenu(){
     actions[func].apply(null, args);
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getValues(element){
   var result = {};
 
-  $(element).find('input[type="text"],input[type="hidden"]').nodeArr().forEach((input)=>{
+  $(element).find('input[type="text"],input[type="hidden"]').each((input)=>{
     result[input.name] = input.value;
   });
-  $(element).find('input[type="checkbox"]').nodeArr().forEach((input)=>{
+  $(element).find('input[type="checkbox"]').each((input)=>{
     result[input.name] = input.checked;
   });
-  $(element).find('input[type="radio"]:checked').nodeArr().forEach((input)=>{
+  $(element).find('input[type="radio"]:checked').each((input)=>{
     result[input.name] = input.checked;
   });
-  $(element).find('select').nodeArr().forEach((select)=>{
+  $(element).find('select').each((select)=>{
     result[select.name] = $(select).find('option:checked').node().value;
   });
-  $(element).find('textarea').nodeArr().forEach((textarea)=>{
+  $(element).find('textarea').each((textarea)=>{
     result[textarea.name] = textarea.value;
   });
 
   return result;
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function bindAddAdvert(){
-  var window, data, list;
-  var durability;
+function editAdvert(){
+  var window, data, advert, item;
+
+  shadow.close();
+  window = $('#acfd_editAdvertWindow').node();
+  data = getValues(window);
+  advert = $adverts[data.aid];
+  item = $items.item[advert.id];
+
+  advert.mod = Number(data.mod);
+  advert.island = Number(data.island);
+  advert.durNow = durability(data.durNow, 0);
+  advert.durMax = durability(data.durMax, 1);
+  advert.termPost = Number(data.termPost);
+  advert.termRent = Number(data.termRent);
+  advert.update = $c.getTimeNow();
+  advert.price = Number(data.price);
+
+  $ls.save("gk_acfd_adverts", $adverts);
+  renderAdvertsTable();
+
+  function durability(p, v){
+    var d  = Number(p);
+
+    if(isNaN(d) || d < 0) d = v;
+    if(d > item.durability) d = item.durability;
+    return d;
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function addAdvert(){
+  var window, data, list = [];
 
   window = $("#acfd_advertWindow").class("add", "hide").node();
-  list = $t.items.getCheckedContent();
   data = getValues(window);
 
-  list.forEach((item)=>{
-    durability = data.durability == "new" ? [item.durability, item.durability] : [0, 1];
-
-    $adverts[`${item.id}-${data.action}`] = {
-      id: item.id,
-      mod: 0,
-      action: data.action,
-      island: Number(data.island),
-      durNow: durability[0],
-      durMax: durability[1],
-      termPost: Number(data.termPost),
-      termRent: Number(data.termPost),
-      date: $c.getTimeNow(),
-      price: Number(data.price),
-      posted: 0,
-      autoPost: 0
+  $t.items.getCheckedContent().forEach((item)=>{
+    if(!$adverts[`${item.id}-${data.action}`]){
+      list.push(item);
     }
   });
 
-  $ls.save("gk_acfd_adverts", $adverts);
-  renderTables();
+  progress.start("Добавление объявлений в базу", list.length, 50);
+  advertsAction("add", 0, list.length, list, data);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function advertsAction(action, now, max, list, data){
+  var item, durability, aid, price;
+
+  if(progress.isWork(advertsAction, arguments)) return;
+  if(now < max){
+    item = list[now];
+
+    if(action == "add"){
+      durability = data.durability == "new" ? [item.durability, item.durability] : [0, 1];
+      aid = `${item.id}-${data.action}`;
+
+      if(data.price != "0"){
+        price = data.price == "sellEun" ? item.cost * $data.sellEun : item.refund * $data.buyEun;
+      }else{
+        price = 0;
+      }
+
+      $adverts[aid] = {
+        id: item.id,
+        did: 0,
+        mod: 0,
+        action: data.action,
+        island: Number(data.island),
+        durNow: durability[0],
+        durMax: durability[1],
+        termPost: Number(data.termPost),
+        termRent: Number(data.termRent),
+        update: $c.getTimeNow(),
+        price: price,
+        autoPost: 0,
+        expire: 0
+      };
+    }
+    if(action == "remove"){
+      delete $adverts[`${item.id}-${item.action}`];
+    }
+
+    $ls.save("gk_acfd_adverts", $adverts);
+    progress.work(false, 0);
+    now++;
+    advertsAction.gkDelay(50, null, [action, now, max, list, data]);
+  }else{
+    progress.done();
+    renderTables();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function boardAdd(now, max, list, ext){
+  var advert;
+  if(progress.isWork(boardAdd, arguments)) return;
+  if(now < max){
+    ajax("http://www.ganjawars.ru/market-p.php", "POST", Create.board(list[now])).then((r)=>{
+      if(/Ваше объявление успешно размещено/.test(r.text)){
+        advert = $adverts[list[now].aid];
+        advert.expire = $c.getTimeNow() + 600 + Number(advert.termPost) * 86400;
+
+        $ls.save("gk_acfd_adverts", $adverts);
+        console.log(`Success advert posted! [${advert.id}]`);
+      }
+      progress.work(false, r.time);
+      now++;
+      boardAdd.gkDelay(1250, null, [now, max, list, ext]);
+    });
+  }else{
+    progress.done();
+    if(!ext) renderTables();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function checkAdverts(list, update){
+  var length, count, key, deleteList = [];
+
+  count = [list.length, 0];
+  length = list.length;
+
+  while(length--){
+    if($adverts[list[length].aid].did == 0) key = true;
+    if(list[length].posted) deleteList.push(list[length]);
+  }
+  count[1] = deleteList.length;
+
+  if(key){
+    progress.addTask(boardDelete, [0, count[1], deleteList], "удаление объявлений", ["Удаление объявлений", count[1], 1250]);
+    addUpdate();
+    boardAdverts();
+    return;
+  }
+
+  addUpdate();
+  progress.start("Удаление объявлений", count[1], 1250);
+  boardDelete(0, count[1], deleteList);
+
+  function addUpdate(){
+    if(update){
+      progress.addTask(boardAdd, [0, count[0], list], "размещение объявлений", ["Размещение объявлений на доске", count[0], 1250]);
+    }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function boardDelete(now, max, list){
+  var advert;
+
+  if(progress.isWork(boardDelete, arguments)) return;
+  if(now < max){
+    advert = $adverts[list[now].aid];
+
+    ajax("http://www.ganjawars.ru/market-l.php?del=" + advert.did, "GET", null).then((r)=>{
+      if(/Объявление успешно удалено/.test(r.text)){
+        advert.did = 0;
+        advert.expire = 0;
+
+        $ls.save("gk_acfd_adverts", $adverts);
+        console.log(`Success advert deleted! [${advert.id}]`);
+      }
+
+      progress.work(false, r.time);
+      now++;
+      boardDelete.gkDelay(1250, null, [now, max, list]);
+    });
+  }else{
+    progress.done();
+    renderTables();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function boardAdverts(){
+  var did, id, aid, actions, maxPage;
+
+  actions = {
+    "Продаю": "sell",
+    "Куплю": "buy",
+    "Сдаю в аренду": "rent"
+  };
+
+  ajax("http://www.ganjawars.ru/market-l.php?page_id=1000", "GET", null).then((r)=>{
+    if(!/У вас нет активных объявлений./.test(r.text)){
+      maxPage = $($answer)
+        .html(r.text)
+        .find('a[href*="market-p.php"]:contains("Новое объявление")')
+        .up('center')
+        .prev('center')
+        .find('a')
+        .node(-1);
+      maxPage = Number(maxPage.href.split("page_id=")[1]) + 1;
+
+      progress.start("Получение списка объявлений c доски", maxPage, 1250);
+      getAdverts(0, maxPage);
+    }else{
+      progress.done();
+    }
+  });
+
+  /////////////////////////////
+  function getAdverts(now, max){
+    var url = "http://www.ganjawars.ru/market-l.php?page_id=" + now;
+
+    if(now < max){
+      ajax(url, "GET", null).then((r)=>{
+        $($answer).html(r.text)
+          .find('font[color="#990000"]:contains("Ваши объявления")')
+          .up('table')
+          .find('tr')
+          .each((row)=>{
+            did = $(row).find('a[href*="market-l.php?del="]').node();
+            if(did){
+              did = Number(did.href.match(/(\d+)/)[1]);
+              id = $items.names[row.cells[0].textContent];
+              aid = `${id}-${actions[row.cells[1].textContent]}`;
+
+              if($adverts[aid] != null) $adverts[aid].did = did;
+            }
+          }, 2);
+
+        $ls.save("gk_acfd_adverts", $adverts);
+        progress.work(false, r.time);
+        now++;
+        getAdverts.gkDelay(1250, null, [now, max]);
+      });
+    }else{
+      progress.done();
+      renderAdvertsTable();
+    }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function extensionAdverts(){
+  var list, advert, count, date;
+
+  if(!$items.names) return;
+
+  date = $c.getTimeNow();
+  list = [];
+
+  if(date - $data.time > 3600){
+    Object.keys($adverts).forEach((id)=>{
+      advert = Create.advert($adverts[id], $items.item[$adverts[id].id]);
+      if(advert.autoPost && !advert.posted) list.push(advert);
+    });
+
+    count = list.length;
+
+    if(count){
+      progress.start("Размещение объявлений на доске (продление)", count, 1250);
+      boardAdd(0, count, list, true);
+    }
+
+    $data.time = date;
+    $ls.save("gk_acfd_data", $data);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function selectTabTable(tab){
   var active, tabs, table;
@@ -244,11 +530,11 @@ function selectTabTable(tab){
   table.rows[tab.cellIndex - 1].className = "tabRow";
   table.rows[active.cellIndex - 1].className = "tabRowHide";
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function openAdvertWindow(mode, text, list){
   var window, hide;
 
-  //$("#sf_shadowLayer").node().style.visibility = "visible";
   window = $("#acfd_advertWindow").node();
   hide = mode == "rent" ? "display: table-row;" : "display: none";
 
@@ -259,7 +545,9 @@ function openAdvertWindow(mode, text, list){
   $(window).find('span[name="action"]').text(text);
   $(window).find('tr[type="rent"]').attr("style", hide);
   $(window).class("remove", "hide");
+  shadow.open();
 
+  /////////////////////////////
   function createSelectList(){
     var code, i, length;
 
@@ -271,7 +559,80 @@ function openAdvertWindow(mode, text, list){
     $(window).find('select[name="iid"]').html(code);
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function openEditAdvertWindow(advert){
+  var window, hide;
+
+  shadow.open();
+  window = $('#acfd_editAdvertWindow').class("remove", "hide").node();
+  hide = advert.action == "rent" ? "display: table-row;" : "display: none";
+
+  createModList();
+  checkingSelect("island", advert.island, window);
+  checkingSelect("termPost", advert.termPost, window);
+  checkingSelect("termRent", advert.termRent, window);
+  checkingSelect("mod", advert.mod, window);
+
+  $(window).find('span[name="aid"]').text(advert.name);
+  $(window).find('input[name="aid"]').node().value = advert.aid;
+  $(window).find('[name="action"]').text($texts.action[advert.action]);
+  $(window).find('tr[type="rent"]').attr("style", hide);
+  $(window).find('[name="durNow"]').node().value = advert.durNow;
+  $(window).find('[name="durMax"]').node().value = advert.durMax;
+  $(window).find('input[type="text"][name="price"]').node().value = $c.convertID(advert.price);
+  $(window).find('input[type="hidden"][name="price"]').node().value = advert.price;
+
+  /////////////////////////////
+  function createModList(){
+    var code, m1, m2;
+
+    switch(advert.section){
+      case "Штурмовые винтовки":
+      case "Пулемёты":
+      case "Снайперские винтовки":
+      case "Пистолеты-пулемёты":
+      case "Дробовики":
+      case "Гранатометы":
+        m2 = $mods("weapon");
+        break;
+      case "Броня":
+      case "Шлемы":
+      case "Броня ног":
+        m2 = $mods("armor");
+        break;
+    }
+
+    m1 = $mods(advert.section);
+
+    code = '<option value="0">Без модификатора</option>';
+    code+= getOptions(m1);
+    code+= getOptions(m2);
+
+    $(window).find('[name="mod"]').html(code);
+
+    /////////////////////////////
+    function getOptions(mods){
+      var mid, m, html = "";
+      if(!mods) return html;
+
+      for(mid in mods){
+        m = mods[mid];
+        html += `<option title="Эффект: ${m.d}, вероятность выпадения: ${m.f}" value="${mid}">${m.name} ${m.fn}</option>`;
+      }
+      return html;
+    }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function checkingSelect(name, value, node){
+  var select;
+
+  select = node ? $(node).find(`select[name="${name}"]`) : $(`select[name="${name}"]`);
+  select.find(`option[value="${value}"]`).node().selected = true;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderBaseHTML(){
   var t;
@@ -279,9 +640,9 @@ function renderBaseHTML(){
   t = $t.items;
   t.setStructure({
     section: [200, "check", "Тип предмета"],
+    level: [50, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
     durability: [100, "number", "Прочность"],
-    level: [80, "number", "Минимальный уровень"],
     cost: [125, "number", "Стоимость предмета"],
     refund: [125, "number", "Возврат с продажи"],
     sell: [75, "boolean", "Объявление, продажа|добавленные|тех что добавлены"],
@@ -301,16 +662,15 @@ function renderBaseHTML(){
   t = $t.adverts;
   t.setStructure({
     section: [200, "check", "Тип предмета"],
+    level: [50, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
-    mod: [125, "check|boolean", "Модификтор|с модом|что с модом"],
-    level: [80, "number", "Минимальный уровень"],
+    mod: [175, "check|boolean", "Модификтор|с модом|что с модом"],
     action: [125, "multiple", "Тип объявления"],
     island: [140, "multiple", "Остров"],
-    durNow: [70, "number|boolean", "Прочность текущая|новые предметы|новых предметов"],
-    durMax: [70, "number", "Прочность максимальная"],
-    termPost: [100, "number", "Срок размещения"],
-    termRent: [80, "number", "Срок аредны"],
-    date: [80, "date", "Дата создания, изменения"],
+    durNow: [90, "number|boolean", "Прочность (текущая)|новые предметы|новых предметов"],
+    termPost: [75, "number", "Срок размещения"],
+    termRent: [75, "number", "Срок аредны"],
+    update: [80, "date", "Дата изменения"],
     price: [100, "number", "Цена предмета"],
     posted: [40, "boolean", "Размещенные на доске|размещенные|не размещенные"],
     autoPost: [40, "boolean", "Авто-продление объявления|с продлением|тех что с продлением"],
@@ -325,6 +685,7 @@ function renderBaseHTML(){
   t.setFilters(renderAdvertsTable);
   t.bindCheckAll();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderItemsTable(mode){
   var table, items;
@@ -346,6 +707,7 @@ function renderItemsTable(mode){
     table.bindClickRow(true);
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderAdvertsTable(mode){
   var table, adverts;
@@ -367,11 +729,13 @@ function renderAdvertsTable(mode){
     table.bindClickRow(true);
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderTables(){
   renderItemsTable();
   renderAdvertsTable();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function showTable(t){
   var code, rows, html, first = 1, n = 0, b;
@@ -435,25 +799,30 @@ function showTable(t){
   function getChecked(row){
     return row.check ? "checked" : "";
   }
+  /////////////////////////////
+
+  function getMod(row){
+    var m;
+
+    if(row.mod == 0) return "";
+    m = $mods(row.section)[row.mod];
+    return m.name + " " + m.fn;
+  }
 }
-
-
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getItemsData(update){
   var sections, name;
 
-  $items = $ls.load("gk_acfd_items");
   if($items.names == null || update){
     $items = {
       item: {},
       names: {}
     };
   }else{
-    return;
+    return true;
   }
+  /////////////////////////////
 
   sections = {
     names: []
@@ -472,13 +841,15 @@ function getItemsData(update){
         sections.names.push(name);
     });
 
+    progress.start("Сбор новых данных предметов с Hi-Tech магазина, разделы", sections.names.length, 750);
     getData(0, sections.names.length);
   });
-
+  /////////////////////////////
 
   function getData(index, max){
     var table, data, url;
 
+    if(progress.isWork(getData, arguments)) return;
     if(index < max){
       url = sections.names[index];
       url = sections[url];
@@ -488,8 +859,7 @@ function getItemsData(update){
           .html(r.text)
           .find('td[width="800"]')
           .find('a[href*="item.php"]')
-          .nodeArr()
-          .forEach((node)=>{
+          .each((node)=>{
             table = $(node).up('table').node();
 
             data = {};
@@ -505,21 +875,26 @@ function getItemsData(update){
             $items.names[data.name] = data.id;
           });
 
+        progress.work(false, r.time);
         index++;
         getData.gkDelay(750, null, [index, max]);
       });
+      /////////////////////////////
 
       function getID(node){
         return node.href.split(/item_id=/)[1];
       }
+      /////////////////////////////
 
       function getName(){
         return $(table).find('font').text();
       }
+      /////////////////////////////
 
       function getSection(){
         return sections.names[index];
       }
+      /////////////////////////////
 
       function getCost(){
         var cost;
@@ -530,16 +905,20 @@ function getItemsData(update){
 
         return cost;
       }
+      /////////////////////////////
 
       function getRefund(){
         var refund;
 
+        if(data.section == "Аптека") return 0;
+
         refund = data.cost / 10;
-        refund = refund % 10 ? parseInt(refund, 10) + 1 : refund;
+        refund = data.cost % 10 ? parseInt(refund, 10) + 1 : refund;
         refund = data.cost - refund;
 
         return refund;
       }
+      /////////////////////////////
 
       function getDurability(){
         var durability;
@@ -550,6 +929,7 @@ function getItemsData(update){
 
         return durability;
       }
+      /////////////////////////////
 
       function getLevel(){
         var level;
@@ -564,9 +944,27 @@ function getItemsData(update){
 
         return level;
       }
+      /////////////////////////////
     }else{
       $ls.save("gk_acfd_items", $items);
-      renderItemsTable();
+      console.log(update);
+      update ? renderItemsTable() : createGUI();
+      progress.done();
     }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function loadData(){
+  $data = $ls.load("gk_acfd_data");
+
+  if($data.time == null){
+    $data = {
+      time: 0,
+      buyEun: 0,
+      sellEun: 0
+    };
+
+    $ls.save("gk_acfd_data", $data);
   }
 }
