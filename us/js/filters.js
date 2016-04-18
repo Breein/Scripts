@@ -18,7 +18,7 @@ function Filter(id, table, td, f, key){
   this.max = null;
   this.html = "";
 
-  $calendar.setContainer("#calendar");
+  //$calendar.setContainer("#calendar");
 }
 
 Filter.prototype = {
@@ -143,9 +143,9 @@ Filter.prototype = {
   },
 
   createRow: function(){
-    var code = "";
+    var filter = this, code = "";
 
-    this.types.forEach((type)=>{
+    filter.types.forEach((type)=>{
       switch(type){
         case "number":
           code += '@include: ./../../html/numberRow.html, true';
@@ -169,7 +169,7 @@ Filter.prototype = {
   },
 
   createOptionList: function(){
-    var code = "", arrays, value;
+    var code = "", arrays, value, check, name, s;
 
     arrays = {
       status: {"Необработан": 0, "В порядке": 1, "Торговый": 2, "Арестован": 3, "Форумный": 4, "Общий бан": 5, "Заблокирован": 6},
@@ -182,12 +182,18 @@ Filter.prototype = {
         code += `<div type="option" name="${arrays[this.column][value]}">${value}</div>`;
       }
     }else{
-      $(this.table.body).find('input[type="checkbox"]:checked').nodeArr().forEach((box)=>{
-        var name;
-
+      $(this.table.body).find('input[type="checkbox"]:checked').each((box)=>{
         name = $(box).up('tr').node().cells[this.cell.cellIndex].textContent;
         code += `<div type="option" class="noSelect" name="${name}">${name}</div>`;
+        check = true;
       });
+
+      s = this.settings[this.column];
+      if(!check && s  && s.type == "check"){
+        s.value.forEach((name)=>{
+          code += `<div type="option" class="noSelect" name="${name}">${name}</div>`;
+        });
+      }
     }
 
     return code;
