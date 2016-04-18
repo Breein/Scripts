@@ -252,7 +252,7 @@ Table.prototype = {
   setSorts: function(callback){
     var table = this;
 
-    $(table.header).find('td[sort]').nodeArr().forEach(function(td){
+    $(table.header).find('td[sort]').each(function(td){
       var value;
 
       value = td.getAttribute("sort");
@@ -322,11 +322,11 @@ Table.prototype = {
   setSizes: function(){
     var table = this;
 
-    $(this.header).find('td[sort]').nodeArr().forEach((cell)=>{
+    $(this.header).find('td[sort]').each((cell)=>{
       table.setWidth(cell, "sort");
     });
 
-    $(this.footer).find('td[filter]').nodeArr().forEach((cell)=>{
+    $(this.footer).find('td[filter]').each((cell)=>{
       table.setWidth(cell, "filter");
     });
   },
@@ -352,7 +352,7 @@ Table.prototype = {
   setFilters: function(callback){
     var table = this;
 
-    $(table.footer).find('td[filter]').nodeArr().forEach(function(td){
+    $(table.footer).find('td[filter]').each(function(td){
       var value, ft;
 
       value = $(td).attr("filter");
@@ -423,8 +423,7 @@ Table.prototype = {
 
     $(this.body)
       .find('tr')
-      .nodeArr()
-      .forEach((node)=>{
+      .each((node)=>{
         bindEvent(node, 'onclick', leftClick);
         if(!contextMenu) return;
         bindEvent(node, "contextmenu", rightClick, [], null, true);
@@ -474,8 +473,7 @@ Table.prototype = {
 
       $(table.body)
         .find('input[type="checkbox"]')
-        .nodeArr()
-        .forEach(
+        .each(
           function(box, index){
             if(status){
               action(box, "light checked", status, index);
