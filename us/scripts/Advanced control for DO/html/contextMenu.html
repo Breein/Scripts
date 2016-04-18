@@ -1,29 +1,31 @@
 <div style="left: 0; top: 0; visibility: hidden;" id="contextMenu">
-    <ul type="items">
-        <li class="parent"><span>Объявление</span>
-            <ul>
-                <li><span action='["addAdvert", "sell", "продажа"]'>Продать</span></li>
-                <li><span action='["addAdvert", "buy", "покупка"]'>Купить</span></li>
-                <li><span action='["addAdvert", "rent", "аренда"]'>Сдать</span></li>
-            </ul>
-        </li>
-        <li><span action='["updateItems"]'>Обновить данные</span></li>
-    </ul>
-    <ul type="adverts">
-        <li class="parent"><span>Доска объявлений</span>
-            <ul>
-                <li><span action='["addAdvert", "sell", "продажа"]'>Подать</span></li>
-                <li><span action='["addAdvert", "sell", "продажа"]'>Обновить</span></li>
-                <li><span action='["addAdvert", "buy", "покупка"]'>Удалить</span></li>
-            </ul>
-        </li>
-        <li class="parent"><span>Авто-продление</span>
-            <ul>
-                <li><span action='["addAdvert", "sell", "продажа"]'>Поставить</span></li>
-                <li><span action='["addAdvert", "sell", "продажа"]'>Убрать</span></li>
-            </ul>
-        </li>
-        <li><span action='["addAdvert", "sell", "продажа"]'>Изменить</span></li>
-        <li><span action='["addAdvert", "buy", "покупка"]'>Удалить</span></li>
-    </ul>
+  <ul type="items">
+    <li><span action='["setCostEUN"]'>Установить курс EUN</span></li>
+    <li class="parent"><span>Объявление</span>
+      <ul>
+        <li><span action='["addAdvert", "sell", "продажа"]'>Продать</span></li>
+        <li><span action='["addAdvert", "buy", "покупка"]'>Купить</span></li>
+        <li><span action='["addAdvert", "rent", "аренда"]'>Сдать</span></li>
+      </ul>
+    </li>
+    <li><span action='["updateItems"]'>Обновить данные</span></li>
+  </ul>
+  <ul type="adverts">
+    <li><span action='["setCostEUN"]'>Установить курс EUN</span></li>
+    <li class="parent"><span>Доска объявлений</span>
+      <ul>
+        <li><span action='["board", "add"]'>Подать</span></li>
+        <li><span action='["board", "update"]'>Обновить</span></li>
+        <li><span action='["board", "delete"]'>Удалить</span></li>
+      </ul>
+    </li>
+    <li class="parent"><span>Авто-продление</span>
+      <ul>
+        <li><span action='["setAutoPost", 1]'>Поставить</span></li>
+        <li><span action='["setAutoPost", 0]'>Убрать</span></li>
+      </ul>
+    </li>
+    <li><span action='["editAdvert"]'>Изменить</span></li>
+    <li><span action='["removeAdvert"]'>Удалить</span></li>
+  </ul>
 </div>

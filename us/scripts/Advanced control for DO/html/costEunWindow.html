@@ -1,0 +1,35 @@
+<div class="window center-screen hide" id="acfd_costEunWindow">
+  <table width="250" class="no-border window-content" type="padding">
+    <tr class="header" height="35">
+      <td style="color: #990000;" colspan="2">
+        Установить курс EUN
+      </td>
+    </tr>
+
+    <tr height="60">
+      <td align="center">
+        Грязный<br>$
+        <span class="money-input">
+          <input type="text" value="${$c.convertID($data.sellEun)}" maxlength="9" style="width: 80px;" />
+          <input type="hidden" name="sellEun" value="${$data.sellEun}">
+        </span>
+      </td>
+      <td align="center">
+        Чистый<br>$
+        <span class="money-input">
+          <input type="text" value="${$c.convertID($data.buyEun)}" maxlength="9" style="width: 80px;" />
+          <input type="hidden" name="buyEun" value="${$data.buyEun}">
+        </span>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" colspan="2" height="35">
+        <input type="button" id="acfd_saveCostEun" value="Сохранить">
+      </td>
+    </tr>
+
+    <tr class="footer-line">
+      <td colspan="2"></td>
+    </tr>
+  </table>
+</div>

@@ -1,15 +1,14 @@
 <tr height="28" class="${getClass(tr)}" ${border}>
     <td ${t.getWidth("section")} class="ct">${tr.section}</td>
-    <td ${t.getWidth("name")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/item.php?item_id=${tr.id}">${tr.name}</a></td>
-    <td ${t.getWidth("mod")} class="ct">${$c.hz(tr.mod)}</td>
     <td ${t.getWidth("level")} class="ct">${tr.level}</td>
+    <td ${t.getWidth("name")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/item.php?item_id=${tr.id}">${tr.name}</a></td>
+    <td ${t.getWidth("mod")} class="ct">${getMod(tr)}</td>
     <td ${t.getWidth("action")} class="ct">${$texts.action[tr.action]}</td>
     <td ${t.getWidth("island")} class="ct">${$texts.island[tr.island]}</td>
-    <td ${t.getWidth("durNow")} class="ct">${tr.durNow}</td>
-    <td ${t.getWidth("durMax")} class="ct">${tr.durMax}</td>
+    <td ${t.getWidth("durNow")} class="ct">${tr.durNow}/${tr.durMax}</td>
     <td ${t.getWidth("termPost")} class="ct">${tr.termPost}</td>
-    <td ${t.getWidth("termRent")} class="ct">${tr.termRent}</td>
-    <td ${t.getWidth("date")} class="ct">${$c.getNormalDate(tr.date).d}</td>
+    <td ${t.getWidth("termRent")} class="ct">${tr.action == "rent" ? tr.termRent : $c.hz(tr.termRent)}</td>
+    <td ${t.getWidth("update")} class="ct">${$c.getNormalDate(tr.update).d}</td>
     <td ${t.getWidth("price")} class="ct">${$c.convertID(tr.price)}</td>
     <td ${t.getWidth("posted")} class="ct">${tr.posted ? '√' : ''}</td>
     <td ${t.getWidth("autoPost")} class="ct">${tr.autoPost ? '√' : ''}</td>
