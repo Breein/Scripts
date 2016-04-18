@@ -1,5 +1,8 @@
 module.exports = function bindEvent(element, textEvent, callback, args, context, e) {
-  var index; if (!element) return;
+  var index;
+
+  if (!element) return;
+  if(element.node) element = element.node();
 
   args == null ? args = [element] : args.push(element);
   if(!context) context = null;
