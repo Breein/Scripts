@@ -1,0 +1,16 @@
+#calendar tr{
+    border: none;
+}
+#calendar td{
+    text-align: center;
+    height: 20px;
+    border: solid 1px #339933;
+    padding: 5px;
+}
+#calendar td[type="day"]:hover, #calendar td[type="control"]:hover{
+    background: #D8E8D8;
+    cursor: pointer;
+}
+span[type="calendarCall"]{
+    cursor: pointer;
+}
