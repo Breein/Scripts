@@ -45,6 +45,26 @@ Api.prototype = {
   },
 
   /**
+   * @param {Function} callback
+   * @param {Number=} start
+   * @param {Number=} end
+   * @returns {Api}
+   */
+  each: function(callback, start, end){
+    var i, length;
+
+    i = start ? start : 0;
+    length = end && end < this.length ? end : this.length;
+
+    while(i < length){
+      callback(this.nodeList[i], i, length);
+      i++;
+    }
+
+    return this;
+  },
+
+  /**
    * @returns {string}
    */
   getSelector: function () {
