@@ -1,3 +1,4 @@
+const setStyle = require('./style.js');
 const bindEvent = require('./events');
 const $c = require('./common')();
 var $ = require('./dom');
@@ -37,6 +38,8 @@ function Calendar(){
         <td colspan="7" id="gk_calendar_footer"></td>
       </tr>
     </table>`;
+
+  this.setContainer();
 }
 
 Calendar.prototype = {
@@ -85,16 +88,25 @@ Calendar.prototype = {
    * @param {string} id
    */
   setContainer: function(id){
-    this.node = $(id).node();
+    if(id){
+      this.node = $(id).node();
+    }else{
+      this.node = $('#calendar').node(); if(this.node) return;
+      this.node = $('<div>')
+        .attr('id', 'calendar')
+        .attr('style', 'left: 0, top: 0')
+        .class("set", "window hide")
+        .node();
+
+      document.body.appendChild(this.node);
+    }
   },
 
   /**
    * @param node
    */
   bind: function(node){
-    var calendar = this;
-
-    bindEvent(node, 'onclick', ()=>{calendar.render(node)});
+    bindEvent(node, 'onclick', this.render, [], this);
   },
 
   render: function(node){
@@ -143,12 +155,12 @@ Calendar.prototype = {
         function(button){
           if(button.getAttribute("type") == "control"){
             if(button.title == "Выбрать год"){
-              bindEvent(button, 'onclick', ()=>{calendar.setYear(node)});
+              bindEvent(button, 'onclick', calendar.setYear, [node], calendar);
             }else {
-              bindEvent(button, 'onclick', ()=>{calendar.setMonth(button, node)});
+              bindEvent(button, 'onclick', calendar.setMonth, [node], calendar);
             }
           }else{
-            bindEvent(button, 'onclick', ()=>{calendar.setDate(button, node)});
+            bindEvent(button, 'onclick', calendar.setDate, [node], calendar);
           }
         }
       );
@@ -162,7 +174,7 @@ Calendar.prototype = {
     return ++day;
   },
 
-  setMonth: function(button, node){
+  setMonth: function(node, button){
     if(button.textContent == "«"){
       this.month--;
       if(this.month == 0){
@@ -202,13 +214,13 @@ Calendar.prototype = {
     this.show(node);
   },
 
-  setDate: function(button, span){
+  setDate: function(node, button){
     var input, day;
 
     day = button.textContent;
-    input = span.nextElementSibling;
+    input = node.nextElementSibling;
 
-    span.innerHTML = this.callDate[day].span;
+    node.innerHTML = this.callDate[day].span;
     input.value = Date.parse(this.callDate[day].input) / 1000;
 
     this.node.style.visibility = "hidden";
@@ -253,5 +265,6 @@ Calendar.prototype = {
  * @returns {Calendar}
  */
 module.exports = function (){
+  setStyle('calendar.js', '@include: ./../../css/calendar.css, true');
   return new Calendar();
 };
