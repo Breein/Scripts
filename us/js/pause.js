@@ -56,7 +56,6 @@ Pause.prototype = {
 
   /**
    * @param {Function} callback
-   * @param {*=} c
    * @returns {boolean}
    */
   isStop: function(callback){
