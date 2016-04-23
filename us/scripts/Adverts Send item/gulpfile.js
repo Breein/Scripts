@@ -25,7 +25,7 @@ gulp.task('wrap', function(){
     `// ==UserScript==
 // @name        Adverts. Send item [GW]
 // @author      гном убийца
-// @description Упрощенная передача предметов [модуль для ADFD] (${nowDate})
+// @description Упрощенная передача предметов [модуль для ACFD] (${nowDate})
 // @include     http://www.ganjawars.ru/sms-read.php?type=1&id=*
 // @include     http://www.ganjawars.ru/home.senditem.php*
 // @version     ${userScriptVersion}
