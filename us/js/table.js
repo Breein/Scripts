@@ -76,20 +76,21 @@ Table.prototype = {
     content = render == null ? this.renderContent : this.content;
     this.onIndexContent = content[index];
 
-    return this.onIndexContent;
+    return [this.onIndexContent];
   },
 
   /**
+   * @param {boolean=} all
    * @returns {Array}
    */
-  getCheckedContent: function(){
+  getCheckedContent: function(all){
     var result = [];
 
     this.getChecked().forEach((tr)=>{
       result.push(this.renderContent[tr.rowIndex]);
     });
 
-    return !result.length ? [this.onIndexContent] : result;
+    return all && result.length == 0 ? [this.onIndexContent] : result;
   },
 
   /**
