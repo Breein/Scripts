@@ -2,6 +2,9 @@
     visibility: hidden;
     z-index: -1;
 }
+.hidden{
+    display: none;
+}
 
 /* Окна */
 .window-content{
