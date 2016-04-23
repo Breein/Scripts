@@ -8,7 +8,6 @@ function Filter(id, table, td, f, key){
   this.table = table;
   this.settings = table.setups.filters;
   this.cell = td;
-  this.cp = td.getBoundingClientRect();
   this.column = key;
   this.types = this.getTypes(f);
   this.text = this.getText(f);
@@ -118,16 +117,16 @@ Filter.prototype = {
   },
 
   show: function(){
-    var w, wp, cp;
+    var wp, cp, bw;
 
-    w = this.fw;
-    wp = w.getBoundingClientRect();
-    cp = this.cp;
+    wp = this.fw.getBoundingClientRect();
+    cp = this.cell.getBoundingClientRect();
+    bw = document.body.getBoundingClientRect().width - 15;
 
-    this.setPositionWindow(w, wp, cp);
-    this.setPositionSpace(w, wp, cp);
+    this.setPositionWindow(this.fw, wp, cp, bw);
     $(this.cell).attr("style", "background-color: #defadc");
     this.fw.style.visibility = "visible";
+    this.table.openFilter = this;
   },
 
   hide: function(){
@@ -138,6 +137,7 @@ Filter.prototype = {
 
     if(cell) cell.removeAttribute("style");
     this.fw.style.visibility = "hidden";
+    this.table.openFilter = null;
 
     return close;
   },
@@ -219,20 +219,22 @@ Filter.prototype = {
     }
   },
 
-  setPositionWindow: function(w, wp, cp){
+  setPositionWindow: function(w, wp, cp, bw){
     var halfWidth, offsetLeft, offsetRight;
 
     halfWidth = (wp.width - cp.width) / 2;
     offsetLeft = cp.left - halfWidth - 2;
 
     offsetRight = wp.width + offsetLeft;
-    if(offsetRight > 1890) offsetLeft = 1890 - wp.width;
+    if(offsetRight > bw) offsetLeft = bw - wp.width;
 
     w.style.left = offsetLeft < 0 ? 15 + "px" : offsetLeft + "px";
     w.style.top = cp.top - wp.height - 12 + document.body.scrollTop;
+
+    this.setPositionSpace(w, wp, cp, bw);
   },
 
-  setPositionSpace: function(w, wp, cp){
+  setPositionSpace: function(w, wp, cp, bw){
     var space, sp, offset, width;
 
     space =  $(w).find('div').node(-1);
@@ -242,7 +244,7 @@ Filter.prototype = {
     width = cp.width - 2;
 
     if(width > wp.width) width = wp.width - 50;
-    if(wp.left == 15 || wp.left + wp.width == 1890){
+    if(wp.left == 15 || wp.left + wp.width == bw){
       offset = cp.left - sp.left - 1;
     }else{
       offset = wp.width / 2 - width / 2;
