@@ -17,8 +17,10 @@ function Table(nodesID, settingsKey, settings, icons, sortKey){
   this.structure = {};
   this.content = [];
   this.renderContent = [];
+  this.onIndexContent = null;
   this.size = [];
   this.filters = {};
+  this.openFilter = null;
   this.sort = {
     cell: null,
     type: null
@@ -69,8 +71,12 @@ Table.prototype = {
    * @returns {object}
    */
   getContentOnIndex: function(index, render){
-    var content = render == null ? this.renderContent : this.content;
-    return content[index];
+    var content;
+
+    content = render == null ? this.renderContent : this.content;
+    this.onIndexContent = content[index];
+
+    return this.onIndexContent;
   },
 
   /**
@@ -83,7 +89,7 @@ Table.prototype = {
       result.push(this.renderContent[tr.rowIndex]);
     });
 
-    return result;
+    return !result.length ? [this.onIndexContent] : result;
   },
 
   /**
