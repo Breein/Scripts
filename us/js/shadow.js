@@ -8,7 +8,6 @@ function Shadow(){
   this._height = 0;
 
   this._insert();
-  this._getSize();
 }
 
 Shadow.prototype = {
@@ -33,6 +32,7 @@ Shadow.prototype = {
   },
 
   open: function(){
+    this._getSize();
     this._layer.style.display = "block";
     this._layer.style.width = this._width + "px";
     this._layer.style.height = this._height + "px";
