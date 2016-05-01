@@ -1,15 +1,17 @@
 var $ = require('./../../../js/dom.js');
+var ajax = require('./../../../js/request.js');
 
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var $adverts, $items, $data, $expire, $password;
+var $answer, $adverts, $items, $data, $expire, $password;
 
 $expire = 180;
 $password = "";
 $items = $ls.load("gk_acfd_items");
 $adverts = $ls.load("gk_acfd_adverts");
+$answer = $('<span>').node();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(location.pathname == "/sms-read.php"){
@@ -22,7 +24,7 @@ if(location.pathname == "/home.senditem.php"){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getAdvertIntoMail(){
-  var subject, name, itemName, sendName, sp, ep, id, advert, action;
+  var subject, name, itemName, sendName, sp, ep, id, advert, action, url, island;
 
   subject = $('div:contains("~Тема:")').find('b').text();
   subject = subject.replace(/&quot;|&quot|&quo|&qu|&q|&/g, '"');
@@ -42,7 +44,9 @@ function getAdvertIntoMail(){
     advert = $adverts[`${id}-${action}`];
     if(advert == null) return;
 
-    name = $('td:contains("От:")').next('td').find('b').text();
+    name = $('td:contains("От:")').next('td').find('a');
+    url = name.node().href;
+    name = name.text();
 
     $data = {
       action: advert.action,
@@ -56,6 +60,11 @@ function getAdvertIntoMail(){
 
     $ls.save("gk_asi_data", $data);
     $('td:contains("~Тема:")').up('table').html('@include: ./html/sendRow.html, true', true);
+
+    ajax(url, "GET", null).then((r)=>{
+      island = $($answer).html(r.text).find('b:contains("Район:")').next('a').node();
+      $('#asi_island').node().appendChild(island);
+    });
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,8 +107,6 @@ function insertData(){
 
   function selectItem(text, key){
     var select = false;
-
-    console.log(text);
 
     options.each((option)=>{
       if(text.test(option[key])){
