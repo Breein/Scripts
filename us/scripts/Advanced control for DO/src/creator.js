@@ -13,6 +13,7 @@ GeneratorData.prototype = {
       durability: i.durability,
       level: i.level,
       cost: i.cost,
+      renew: i.cost - i.refund,
       refund: i.refund,
       sell: a[`${i.id}-sell`] != null,
       buy: a[`${i.id}-buy`] != null,
