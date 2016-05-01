@@ -1,6 +1,5 @@
 <div style="left: 0; top: 0; visibility: hidden;" id="contextMenu">
   <ul type="items">
-    <li><span action='["setCostEUN"]'>Установить курс EUN</span></li>
     <li class="parent"><span>Объявление</span>
       <ul>
         <li><span action='["addAdvert", "sell", "продажа"]'>Продать</span></li>
@@ -11,7 +10,6 @@
     <li><span action='["updateItems"]'>Обновить данные</span></li>
   </ul>
   <ul type="adverts">
-    <li><span action='["setCostEUN"]'>Установить курс EUN</span></li>
     <li class="parent"><span>Доска объявлений</span>
       <ul>
         <li><span action='["board", "add"]'>Подать</span></li>
@@ -20,12 +18,23 @@
       </ul>
     </li>
     <li class="parent"><span>Авто-продление</span>
+    <ul>
+      <li><span action='["setAutoPost", 1]'>Поставить</span></li>
+      <li><span action='["setAutoPost", 0]'>Убрать</span></li>
+    </ul>
+    </li>
+    <li class="parent"><span>Изменить</span>
       <ul>
-        <li><span action='["setAutoPost", 1]'>Поставить</span></li>
-        <li><span action='["setAutoPost", 0]'>Убрать</span></li>
+        <li><span action='["editAdvert"]'>Индивидуально</span></li>
+        <li class="parent"><span>Перерасчет цен</span>
+          <ul>
+            <li><span action='["reCalcPrice", "sell"]'>По курсу продажи</span></li>
+            <li><span action='["reCalcPrice", "buy"]'>По курсу покукпи</span></li>
+            <li><span action='["reCalcPrice", "rent"]'>По курсу аренды</span></li>
+          </ul>
+        </li>
       </ul>
     </li>
-    <li><span action='["editAdvert"]'>Изменить</span></li>
     <li><span action='["removeAdvert"]'>Удалить</span></li>
   </ul>
 </div>
