@@ -40,6 +40,7 @@ loadData();
 addStyle();
 createButton();
 extensionAdverts();
+//createGUI();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addStyle(){
@@ -78,7 +79,7 @@ function createButton(){
   button = $('<span>').html('@include: ./html/startButton.html, true').node();
 
   node.parentNode.insertBefore(button, node.nextSibling);
-  bindEvent(button, "onclick", createGUI);
+  bindEvent(button.firstElementChild, "onclick", createGUI);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -99,8 +100,10 @@ function createGUI(){
     bindEvent(tab, 'onclick', selectTabTable);
   });
 
+  bindEvent($('#setCostEUN').class("remove", "hidden"), "onclick", openSetCostEunWindow);
   bindEvent($("#acfd_addAdvert"), "onclick", addAdvert);
   bindEvent($("#acfd_editAdvert"), "onclick", editAdvert);
+  bindEvent($("#acfd_getDurItems"), "onclick", getDurItems);
   bindEvent($('#acfd_saveCostEun'), "onclick", saveCostEun);
 
   renderBaseHTML();
@@ -136,6 +139,10 @@ function bindMoneyInputs(){
   });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function openSetCostEunWindow(){
+  shadow.open();
+  $('#acfd_costEunWindow').class("remove", "hide");
+}
 
 function saveCostEun(){
   $('#acfd_costEunWindow').find('input[type="hidden"]').each((input)=>{
@@ -152,11 +159,6 @@ function bindActionsContextMenu(){
   menu = $('#contextMenu').node();
 
   actions = {
-    setCostEUN: ()=>{
-      shadow.open();
-      $('#acfd_costEunWindow').class("remove", "hide");
-    },
-
     addAdvert: (mode, text, list)=>{
       openAdvertWindow(mode, text, list);
     },
@@ -193,6 +195,27 @@ function bindActionsContextMenu(){
       openEditAdvertWindow(list[0]);
     },
 
+    reCalcPrice: (type, list)=>{
+      var count = list.length;
+
+      switch(type){
+        case "sell":
+          progress.start("Перерасчет цен по курсу продажи", count, 50);
+          advertsAction("reCalc", 0, count, list, {key: "cost", value: $data.sellEun});
+          break;
+
+        case "buy":
+          progress.start("Перерасчет цен по курсу покупки", count, 50);
+          advertsAction("reCalc", 0, count, list, {key: "refund", value: $data.buyEun});
+          break;
+
+        case "rent":
+          progress.start("Перерасчет цен по курсу аренды", count, 50);
+          advertsAction("reCalc", 0, count, list, null);
+          break;
+      }
+    },
+
     removeAdvert: (list)=>{
       progress.start("Удаление объялений из базы", list.length, 50);
       advertsAction("remove", 0, list.length, list);
@@ -213,7 +236,7 @@ function bindActionsContextMenu(){
 
     index = Number($(menu).attr('index'));
     array = table.getCheckedContent();
-    if(array.length == 0) array = [table.getContentOnIndex(index)];
+    if(array.length == 0) array = table.getContentOnIndex(index);
 
     args = JSON.parse($(item).attr("action"));
     func = args.shift();
@@ -284,7 +307,7 @@ function addAdvert(){
   window = $("#acfd_advertWindow").class("add", "hide").node();
   data = getValues(window);
 
-  $t.items.getCheckedContent().forEach((item)=>{
+  $t.items.getCheckedContent(true).forEach((item)=>{
     if(!$adverts[`${item.id}-${data.action}`]){
       list.push(item);
     }
@@ -296,40 +319,48 @@ function addAdvert(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function advertsAction(action, now, max, list, data){
-  var item, durability, aid, price;
+  var record, durability, aid, price;
 
   if(progress.isWork(advertsAction, arguments)) return;
   if(now < max){
-    item = list[now];
+    record = list[now];
 
-    if(action == "add"){
-      durability = data.durability == "new" ? [item.durability, item.durability] : [0, 1];
-      aid = `${item.id}-${data.action}`;
+    switch(action){
+      case "add":
+        durability = data.durability == "new" ? [record.durability, record.durability] : [0, 1];
+        aid = `${record.id}-${data.action}`;
 
-      if(data.price != "0"){
-        price = data.price == "sellEun" ? item.cost * $data.sellEun : item.refund * $data.buyEun;
-      }else{
-        price = 0;
-      }
+        if(data.price != "0"){
+          price = data.price == "sellEun" ? record.cost * $data.sellEun : record.refund * $data.buyEun;
+        }else{
+          price = 0;
+        }
 
-      $adverts[aid] = {
-        id: item.id,
-        did: 0,
-        mod: 0,
-        action: data.action,
-        island: Number(data.island),
-        durNow: durability[0],
-        durMax: durability[1],
-        termPost: Number(data.termPost),
-        termRent: Number(data.termRent),
-        update: $c.getTimeNow(),
-        price: price,
-        autoPost: 0,
-        expire: 0
-      };
-    }
-    if(action == "remove"){
-      delete $adverts[`${item.id}-${item.action}`];
+        $adverts[aid] = {
+          id: record.id,
+          did: 0,
+          mod: 0,
+          action: data.action,
+          island: Number(data.island),
+          durNow: durability[0],
+          durMax: durability[1],
+          termPost: Number(data.termPost),
+          termRent: Number(data.termRent),
+          update: $c.getTimeNow(),
+          price: price,
+          autoPost: 0,
+          expire: 0
+        };
+        break;
+
+      case "remove":
+        delete $adverts[`${record.id}-${record.action}`];
+        break;
+
+      case "reCalc":
+        aid = `${record.id}-${record.action}`;
+        $adverts[aid].price = $items.item[record.id][data.key] * data.value;
+        break;
     }
 
     $ls.save("gk_acfd_adverts", $adverts);
@@ -404,19 +435,28 @@ function boardDelete(now, max, list){
   if(now < max){
     advert = $adverts[list[now].aid];
 
-    ajax("http://www.ganjawars.ru/market-l.php?del=" + advert.did, "GET", null).then((r)=>{
-      if(/Объявление успешно удалено/.test(r.text)){
-        advert.did = 0;
-        advert.expire = 0;
+    if(advert.did != 0){
+      ajax("http://www.ganjawars.ru/market-l.php?del=" + advert.did, "GET", null).then((r)=>{
+        if(/Объявление успешно удалено/.test(r.text)){
+          advert.did = 0;
+          advert.expire = 0;
 
-        $ls.save("gk_acfd_adverts", $adverts);
-        console.log(`Success advert deleted! [${advert.id}]`);
-      }
+          $ls.save("gk_acfd_adverts", $adverts);
+          console.log(`Success advert deleted! [${advert.id}]`);
+        }
 
-      progress.work(false, r.time);
+        progress.work(false, r.time);
+        now++;
+        boardDelete.gkDelay(1250, null, [now, max, list]);
+      });
+    }else
+      advert.did = 0;{
+      advert.expire = 0;
+
+      progress.work(false, 0);
       now++;
       boardDelete.gkDelay(1250, null, [now, max, list]);
-    });
+    }
   }else{
     progress.done();
     renderTables();
@@ -512,8 +552,45 @@ function extensionAdverts(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function getDurItems(){
+  var window, advert, item, name, mod, durability;
+
+  window = $("#acfd_editAdvertWindow").node();
+  advert = $adverts[$(window).find('input[name="aid"]').node().value];
+  item = $items.item[advert.id];
+  mod = $(window).find(`select[name="mod"]`).find("option:checked").text();
+
+  if(mod != "Без модификатора"){
+    mod = mod.split(" ")[0];
+    name = `${item.name} ${mod}`;
+  }else{
+    name = item.name;
+  }
+
+  ajax("http://www.ganjawars.ru/items.php", "GET", null).then((r)=>{
+    durability = $($answer).html(r.text)
+      .find(`tr[bgcolor="#e0eee0"],tr[bgcolor="#e0eee0"]:contains("~${name}")`);
+
+    if(durability.length != 0){
+      if(durability.attr("id")){
+        durability = durability.next('tr').text();
+        durability = durability.split(' • ')[2];
+      }else{
+        durability = durability.find('li:contains("~Прочность предмета:")').text();
+      }
+      durability = durability.match(/Прочность предмета: (\d+)\/(\d+) \((\d+)\)/);
+
+      $(window).find('[name="durNow"]').node().value = durability[1];
+      $(window).find('[name="durMax"]').node().value = durability[2];
+    }else{
+      alert("Предмет не найден");
+    }
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function selectTabTable(tab){
-  var active, tabs, table;
+  var active, tabs, table, t;
 
   if(tab.className == "tab tabActive") return;
 
@@ -529,6 +606,11 @@ function selectTabTable(tab){
 
   table.rows[tab.cellIndex - 1].className = "tabRow";
   table.rows[active.cellIndex - 1].className = "tabRowHide";
+
+  for(t in $t){
+    if($t[t].openFilter)
+      $t[t].openFilter.hide();
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -639,12 +721,13 @@ function renderBaseHTML(){
 
   t = $t.items;
   t.setStructure({
-    section: [200, "check", "Тип предмета"],
-    level: [50, "number", "Минимальный уровень"],
+    section: [150, "check", "Тип предмета"],
+    level: [28, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
-    durability: [100, "number", "Прочность"],
-    cost: [125, "number", "Стоимость предмета"],
-    refund: [125, "number", "Возврат с продажи"],
+    durability: [50, "number", "Прочность"],
+    cost: [100, "number", "Стоимость предмета"],
+    renew: [115, "number", "Обновление предмета"],
+    refund: [100, "number", "Возврат с продажи"],
     sell: [75, "boolean", "Объявление, продажа|добавленные|тех что добавлены"],
     buy: [75, "boolean", "Объявление, покупка|добавленные|тех что добавлены"],
     rent: [75, "boolean", "Объявление, аредна|добавленные|тех что добавлены"],
@@ -661,19 +744,19 @@ function renderBaseHTML(){
 
   t = $t.adverts;
   t.setStructure({
-    section: [200, "check", "Тип предмета"],
-    level: [50, "number", "Минимальный уровень"],
+    section: [150, "check", "Тип предмета"],
+    level: [28, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
-    mod: [175, "check|boolean", "Модификтор|с модом|что с модом"],
-    action: [125, "multiple", "Тип объявления"],
-    island: [140, "multiple", "Остров"],
-    durNow: [90, "number|boolean", "Прочность (текущая)|новые предметы|новых предметов"],
-    termPost: [75, "number", "Срок размещения"],
-    termRent: [75, "number", "Срок аредны"],
-    update: [80, "date", "Дата изменения"],
-    price: [100, "number", "Цена предмета"],
-    posted: [40, "boolean", "Размещенные на доске|размещенные|не размещенные"],
-    autoPost: [40, "boolean", "Авто-продление объявления|с продлением|тех что с продлением"],
+    mod: [165, "check|boolean", "Модификтор|с модом|что с модом"],
+    action: [80, "multiple", "Тип объявления"],
+    island: [130, "multiple", "Остров"],
+    durNow: [50, "number|boolean", "Прочность (текущая)|новые предметы|новых предметов"],
+    termPost: [50, "number", "Срок размещения"],
+    termRent: [50, "number", "Срок аредны"],
+    update: [60, "date", "Дата изменения"],
+    price: [75, "number", "Цена предмета"],
+    posted: [28, "boolean", "Размещенные на доске|размещенные|не размещенные"],
+    autoPost: [28, "boolean", "Авто-продление объявления|с продлением|тех что с продлением"],
     check: [45, null, null]
   });
 
@@ -801,12 +884,21 @@ function showTable(t){
   }
   /////////////////////////////
 
+  function getNameLink(row){
+    var href;
+
+    href = `http://www.ganjawars.ru/item.php?item_id=${row.id}`;
+    if(row.mod != 0) href += "&m=" + row.mod;
+    return `<a target="_blank" href="${href}">${row.name}</a>`;
+  }
+  /////////////////////////////
+
   function getMod(row){
     var m;
 
     if(row.mod == 0) return "";
     m = $mods(row.section)[row.mod];
-    return m.name + " " + m.fn;
+    return `<span title="Эффект: ${m.d}, вероятность выпадения: ${m.f}">${m.name} ${m.fn}</span>`;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
