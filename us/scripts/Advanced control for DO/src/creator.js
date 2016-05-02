@@ -52,7 +52,7 @@ GeneratorData.prototype = {
       level: i.level,
       name: i.name,
       mod: p.mod,
-      cost: i.cost,
+      refund: i.refund,
       price: p.price,
       rate: p.rate,
       durNow: p.dur[0],
