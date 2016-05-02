@@ -14,7 +14,7 @@ const $mods = require('./../src/mods.js');
 const Create = require('./../src/creator.js')();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var $answer, $items, $adverts, $t, $texts, $data;
+var $answer, $items, $adverts, $prices, $t, $texts, $data;
 
 $answer = $('<span>').node();
 
@@ -90,7 +90,8 @@ function createGUI(){
 
   $t = {
     items: createTable(["#header-items", "#content-items", "#footer-items", "#contextMenu"], "items", "gk_acfd_settings", $ico, "level"),
-    adverts: createTable(["#header-adverts", "#content-adverts", "#footer-adverts", "#contextMenu"], "adverts", "gk_acfd_settings", $ico, "section")
+    adverts: createTable(["#header-adverts", "#content-adverts", "#footer-adverts", "#contextMenu"], "adverts", "gk_acfd_settings", $ico, "section"),
+    stats: createTable(["#header-stats", "#content-stats", "#footer-stats", "#contextMenu"], "stats", "gk_acfd_settings", $ico, "name")
   };
 
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td');
@@ -162,6 +163,16 @@ function bindActionsContextMenu(){
     addAdvert: (mode, text, list)=>{
       openAdvertWindow(mode, text, list);
     },
+
+    analyzePrice: (add, list)=>{
+      $prices = {
+        time: $c.getTimeNow(),
+        list: {}
+      };
+      progress.start("Аналази цен доски объвлений", list.length, 1500);
+      analyzePrice(0, list.length, list, add);
+    },
+
     updateItems: ()=>{
       getItemsData(true);
     },
@@ -269,7 +280,121 @@ function getValues(element){
   return result;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function analyzePrice(now, max, list, all){
+  var index, record, price, value, item, cell;
 
+  if(progress.isWork(analyzePrice, arguments)) return;
+  if(now < max){
+    item = list[now];
+    ajax(`http://www.ganjawars.ru/market.php?buy=1&item_id=${item.id}`, "GET", null).then((r)=>{
+      cell = $($answer).html(r.text).find('td:contains("Цена ")');
+      if(cell.length != 0){
+        cell.up('table').find('tr').each((tr, n)=>{
+          if(/предложений других игроков не найдено/.test(tr.textContent)) return;
+          price = getPrice(tr);
+          value = price <= $data.buyEun * item.cost;
+
+          if(value || all){
+            index = `${n - 2}-${list[now].id}`;
+            $prices.list[index] = {};
+
+            record = $prices.list[index];
+            record.price = price;
+            record.rate = getRate(price, item.cost);
+            record.dur = getDurability(tr);
+            record.mod = getMod(tr);
+            record.island = getIsland(tr);
+            record.seller = getSeller(tr);
+            record.fast = getFast(tr);
+          }
+        }, 3);
+
+        $ls.save("gk_acfd_stats", $prices);
+      }else{
+        console.log(item.id);
+      }
+      progress.work(false, r.time);
+      now++;
+      analyzePrice.gkDelay(1500, null, [now, max, list, all]);
+    });
+  }else{
+    renderStatsTable();
+    selectTabTable("Анализ цен");
+    progress.done();
+  }
+
+  function getPrice(row){
+    var price;
+
+    price = row.cells[0].textContent;
+    price = price.replace(/,|\$/g, "");
+    price = Number(price);
+
+    return price;
+  }
+
+  function getRate(price, cost){
+    return parseInt(price / cost, 10);
+  }
+
+  function getSeller(row){
+    var seller, id;
+
+    seller = $(row).find('a[href*="info.php"]').node();
+    id = seller.href.match(/(\d+)/)[0];
+    id = Number(id);
+
+    return [id, seller.textContent];
+  }
+
+  function getDurability(row){
+    var durability;
+
+    durability = row.cells[1].textContent;
+    durability = durability.split("/");
+    durability = [Number(durability[0]), Number(durability[1])];
+
+    return durability;
+  }
+
+  function getIsland(row){
+    var island, isl;
+
+    isl = {"[G]": 0, "[Z]": 1, "[P]": 4, "[G,Z,P]": -1};
+    island = row.cells[3].textContent;
+
+    return isl[island];
+  }
+
+  function getMod(row){
+    var mod;
+
+    mod = $(row.cells[2]).find('a').node();
+    if(mod){
+      mod = mod.href.match(/(\d+)/g);
+      mod = mod[mod.length - 1];
+      mod = Number(mod);
+    }else{
+      mod = 0;
+    }
+
+    return mod;
+  }
+
+  function getFast(row){
+    var fast;
+
+    fast = $(row.cells[4]).find('a[href*="market-i.php"]').node();
+    if(fast){
+      fast = fast.href.match(/(\d+)/g)[1];
+      fast = Number(fast);
+    }else{
+      fast = 0;
+    }
+    return fast;
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function editAdvert(){
   var window, data, advert, item;
 
@@ -592,6 +717,7 @@ function getDurItems(){
 function selectTabTable(tab){
   var active, tabs, table, t;
 
+  if(typeof tab == "string") tab = $(`td[class="tab"]:contains("${tab}")`).node();
   if(tab.className == "tab tabActive") return;
 
   active = $('td[class="tab tabActive"]').node();
@@ -667,43 +793,19 @@ function openEditAdvertWindow(advert){
 
   /////////////////////////////
   function createModList(){
-    var code, m1, m2;
+    var code, mods, mid, m;
 
-    switch(advert.section){
-      case "Штурмовые винтовки":
-      case "Пулемёты":
-      case "Снайперские винтовки":
-      case "Пистолеты-пулемёты":
-      case "Дробовики":
-      case "Гранатометы":
-        m2 = $mods("weapon");
-        break;
-      case "Броня":
-      case "Шлемы":
-      case "Броня ног":
-        m2 = $mods("armor");
-        break;
-    }
-
-    m1 = $mods(advert.section);
-
+    mods = $mods(advert.section);
     code = '<option value="0">Без модификатора</option>';
-    code+= getOptions(m1);
-    code+= getOptions(m2);
 
-    $(window).find('[name="mod"]').html(code);
-
-    /////////////////////////////
-    function getOptions(mods){
-      var mid, m, html = "";
-      if(!mods) return html;
-
+    if(mods){
       for(mid in mods){
         m = mods[mid];
-        html += `<option title="Эффект: ${m.d}, вероятность выпадения: ${m.f}" value="${mid}">${m.name} ${m.fn}</option>`;
+        code += `<option title="Эффект: ${m.d}, вероятность выпадения: ${m.f}" value="${mid}">${m.name} ${m.fn}</option>`;
       }
-      return html;
     }
+
+    $(window).find('[name="mod"]').html(code);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -767,11 +869,45 @@ function renderBaseHTML(){
   t.setSorts(renderAdvertsTable);
   t.setFilters(renderAdvertsTable);
   t.bindCheckAll();
+
+  t = $t.stats;
+  t.setStructure({
+    section: [150, "check", "Тип предмета"],
+    level: [28, "number", "Минимальный уровень"],
+    name: [-1, "check", "Название предмета"],
+    mod: [50, "check|boolean", "Модификтор|с модом|что с модом"],
+    cost: [50, "number", "Стоимость предмета"],
+    price: [75, "number", "Цена предмета"],
+    rate: [65, "number", "Цена предмета"],
+    durMax: [60, "number", "Прочность максимальная"],
+    fast: [50, "boolean", "Мнгновенная продажа|с быстрой продажей|быстрой продажи"],
+    island: [130, "multiple", "Остров"],
+    seller: [150, "check", "Имя продавца"],
+    actions: [50, null, null],
+    check: [45, null, null]
+  });
+
+  $('#header-stats').html('@include: ./html/statsTableHeader.html, true');
+  $('#footer-stats').html('@include: ./html/statsTableFooter.html, true');
+
+  t.setSizes();
+  t.setSorts(renderStatsTable);
+  t.setFilters(renderStatsTable);
+  t.bindCheckAll();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderItemsTable(mode){
-  var table, items;
+  var table, items, missing;
+
+  // Их нет на доске, скрываем.
+  missing = {
+    oldcompass: 1,
+    bottleopener: 1,
+    ganjacup: 1,
+    pendant: 1,
+    flashlight: 1
+  };
 
   table = $t.items;
 
@@ -781,6 +917,7 @@ function renderItemsTable(mode){
     items = Object.keys($items.item);
 
     items.forEach((id)=>{
+      if(missing[id]) return;
       table.pushContent(Create.item($items.item[id], $adverts));
     });
   }
@@ -814,9 +951,36 @@ function renderAdvertsTable(mode){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function renderStatsTable(mode){
+  var table, prices, data, date;
+
+  table = $t.stats;
+
+  if(mode == null){
+    mode = "filter";
+    table.clearContent();
+    prices = Object.keys($prices.list);
+
+    prices.forEach((id)=>{
+      data = id.split("-");
+      table.pushContent(Create.stats($prices.list[id], $items.item[data[1]], Number(data[0])));
+    });
+  }
+
+  table.prepare(mode);
+  showTable(table).then(()=>{
+    table.bindClickRow(false);
+
+    date = $c.getNormalDate($prices.time);
+    $('#acfd_time-update').text(`${date.d} ${date.t}`);
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function renderTables(){
   renderItemsTable();
   renderAdvertsTable();
+  renderStatsTable();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -870,6 +1034,9 @@ function showTable(t){
       case "adverts":
         return '@include: ./html/advertsTableRow.html, true';
         break;
+      case "stats":
+        return '@include: ./html/statsTableRow.html, true';
+        break;
     }
   }
   /////////////////////////////
@@ -893,12 +1060,35 @@ function showTable(t){
   }
   /////////////////////////////
 
-  function getMod(row){
+  function getMod(row, short){
     var m;
 
     if(row.mod == 0) return "";
     m = $mods(row.section)[row.mod];
-    return `<span title="Эффект: ${m.d}, вероятность выпадения: ${m.f}">${m.name} ${m.fn}</span>`;
+    if(m == null) return "";
+
+    if(short == null){
+      return `<span title="Эффект: ${m.d}, вероятность выпадения: ${m.f}">${m.name} ${m.fn}</span>`;
+    }else{
+      return `<span title="${m.fn}, эффект: ${m.d}, вероятность выпадения: ${m.f}">${m.name}</span>`;
+    }
+  }
+
+  function getActionsLink(row){
+    var url, mod, style, title;
+
+    if(row.fast != 0){
+      url = `http://www.ganjawars.ru/market-i.php?stage=2&sell_id=${row.fast}`;
+      style = "fast-buy";
+      title = "Купить сейчас";
+    }else{
+      mod = row.mod == 0 ? "" : "+" + $mods(row.section)[row.mod].name;
+      url = `http://www.ganjawars.ru/sms-create.php?mailto=${row.seller[1]}&subject=[+Покупка+]+${row.name}${mod}+${row.durNow}/${row.durMax}`;
+      style = "send-mail";
+      title = "Написать письмо";
+    }
+
+    return `<a href="${url}" target="_blank" class="no-line ${style}" title="${title}">»»»</a>`;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1049,6 +1239,7 @@ function getItemsData(update){
 
 function loadData(){
   $data = $ls.load("gk_acfd_data");
+  $prices = $ls.load("gk_acfd_stats");
 
   if($data.time == null){
     $data = {
@@ -1058,5 +1249,14 @@ function loadData(){
     };
 
     $ls.save("gk_acfd_data", $data);
+  }
+
+  if($prices.time == null){
+    $prices = {
+      time: $c.getTimeNow(),
+      list: {}
+    };
+
+    $ls.save("gk_acfd_stats", $prices);
   }
 }
