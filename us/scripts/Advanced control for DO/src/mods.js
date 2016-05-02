@@ -157,6 +157,7 @@ module.exports = function(section){
     case "Броня":
     case "Шлемы":
     case "Броня ног":
+    case "Тепловизоры":
       m = mods.armor;
       break;
   }
