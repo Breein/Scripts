@@ -60,7 +60,6 @@ div.tab{
     height: 100%;
 }
 div.content{
-    height: 531px;
     overflow-y: scroll;
 }
 
