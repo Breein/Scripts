@@ -26,6 +26,7 @@ $texts = {
     "-1": "Не имеет значения",
     "0": "[G] Ganja Island",
     "1": "[Z] Z-Land",
+    "3": "[O] Outland",
     "4": "[P] Palm Island"
   },
   action:{
@@ -360,7 +361,7 @@ function analyzePrice(now, max, list, all){
   function getIsland(row){
     var island, isl;
 
-    isl = {"[G]": 0, "[Z]": 1, "[P]": 4, "[G,Z,P]": -1};
+    isl = {"[G]": 0, "[Z]": 1, "[P]": 4, "[G,Z,P]": -1, "[O]": 3};
     island = row.cells[3].textContent;
 
     return isl[island];
@@ -674,6 +675,8 @@ function extensionAdverts(){
     $data.time = date;
     $ls.save("gk_acfd_data", $data);
   }
+
+  extensionAdverts.gkDelay(1800000, null, []);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
