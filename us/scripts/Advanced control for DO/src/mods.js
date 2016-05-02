@@ -1,5 +1,7 @@
 module.exports = function(section){
-  var mods = {
+  var m, mods, mod, result = {};
+
+  mods = {
     "Снайперские винтовки":{
       "1":{fn:"Damage Multiplier Light",name:"[DM]",d:"Повреждение: +8",f:"1/10"},
       "2":{fn:"Barrel Greaser",name:"[BG]",d:"Повреждение: +13",f:"1/70"},
@@ -143,5 +145,27 @@ module.exports = function(section){
     }
   };
 
-  return mods[section];
+  switch(section){
+    case "Штурмовые винтовки":
+    case "Пулемёты":
+    case "Снайперские винтовки":
+    case "Пистолеты-пулемёты":
+    case "Дробовики":
+    case "Гранатометы":
+      m = mods.weapon;
+      break;
+    case "Броня":
+    case "Шлемы":
+    case "Броня ног":
+      m = mods.armor;
+      break;
+  }
+
+  if(mods[section] && m != null){
+    for(mod in mods[section]) result[mod] = mods[section][mod];
+    for(mod in m) result[mod] = m[mod];
+    return result;
+  }else{
+    return mods[section] != null ? mods[section] : m;
+  }
 };
