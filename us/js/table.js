@@ -431,14 +431,15 @@ Table.prototype = {
     $(this.body)
       .find('tr')
       .each((node)=>{
-        bindEvent(node, 'onclick', leftClick);
+        bindEvent(node, 'onclick', leftClick, [], null, true);
         if(!contextMenu) return;
         bindEvent(node, "contextmenu", rightClick, [], null, true);
       });
 
-    function leftClick(node){
+    function leftClick(node, event){
       var box, action;
 
+      if(event.target.nodeName == "A") return;
       if($(table.ctxMenu).node().style.visibility == "visible")
         return;
 
@@ -456,7 +457,6 @@ Table.prototype = {
 
       elem = event.target;
       if(elem.nodeName != "TD") return;
-      //if(table.getKeysOnCell(elem) != "name") return;
       event.preventDefault();
 
       menu = $(table.ctxMenu).class("set", table.name).attr("index", node.rowIndex).node();
