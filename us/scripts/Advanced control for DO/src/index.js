@@ -85,7 +85,7 @@ function createButton(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var td;
+  var td, lines, height;
 
   if(!getItemsData()) return;
 
@@ -96,7 +96,14 @@ function createGUI(){
   };
 
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td');
-  td = td.html('@include: ./html/baseGUI.html, true').node();
+  td = td.html('@include: ./html/baseGUI.html, true');
+
+  lines = parseInt((innerHeight - document.body.getBoundingClientRect().height) / 28, 10) - 4;
+  height = lines * 28;
+
+  td.find('div[class="tab content"]').each((div)=>{
+    div.style.height = height + "px";
+  });
 
   $('td[class="tab"],[class="tab tabActive"]').each((tab)=>{
     bindEvent(tab, 'onclick', selectTabTable);
@@ -301,7 +308,7 @@ function analyzePrice(now, max, list, all){
 
             record = $prices.list[index];
             record.price = price;
-            record.rate = getRate(price, item.cost);
+            record.rate = getRate(price, item.refund);
             record.dur = getDurability(tr);
             record.mod = getMod(tr);
             record.island = getIsland(tr);
@@ -335,6 +342,7 @@ function analyzePrice(now, max, list, all){
   }
 
   function getRate(price, cost){
+    if(cost == 0) return 0;
     return parseInt(price / cost, 10);
   }
 
@@ -879,7 +887,7 @@ function renderBaseHTML(){
     level: [28, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
     mod: [50, "check|boolean", "Модификтор|с модом|что с модом"],
-    cost: [50, "number", "Стоимость предмета"],
+    refund: [50, "number", "Возврат с продажи"],
     price: [75, "number", "Цена предмета"],
     rate: [65, "number", "Цена предмета"],
     durMax: [60, "number", "Прочность максимальная"],
