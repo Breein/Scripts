@@ -44,6 +44,26 @@ GeneratorData.prototype = {
     };
   },
 
+  stats: function(p, i, pos){
+    return {
+      id: i.id,
+      position: pos,
+      section: i.section,
+      level: i.level,
+      name: i.name,
+      mod: p.mod,
+      cost: i.cost,
+      price: p.price,
+      rate: p.rate,
+      durNow: p.dur[0],
+      durMax: p.dur[1],
+      fast: p.fast,
+      island: p.island,
+      seller: [p.seller[0], p.seller[1]],
+      check: false
+    }
+  },
+
   board: function(a){
     var action = {sell: 1, buy: 2, rent: 3};
     return a.action == "rent" ?
