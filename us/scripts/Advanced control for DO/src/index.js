@@ -45,31 +45,9 @@ extensionAdverts();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addStyle(){
-  var css;
-
-  css = `
-    tr.light div[type="checkbox"]{
-      background-image: url(${$ico.boxOff});
-    }
-    tr.checked div[type="checkbox"]{
-      background-image: url(${$ico.boxOn});
-    }
-    td[filter]{
-      background-position: center center;
-      background-repeat: no-repeat;
-    }
-    td[filter].disable{
-      background-image: url(${$ico.boxOff});
-    }
-    td[filter].enable{
-      background-image: url(${$ico.boxOn});
-      background-color: #cfe5cf;
-    }`;
-
-  css += '@include: ./html/index.css, true';
   setStyle('common.js', '@include: ./../../css/common.css, true');
-  setStyle('advanced control for do.js', css);
   setStyle('filter.js', '@include: ./../../css/filter.css, true');
+  setStyle('acfd.js', '@include: ./html/index.css, true');
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -85,7 +63,7 @@ function createButton(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var td, lines, height;
+  var td, height, ih, bh, ch;
 
   if(!getItemsData()) return;
 
@@ -98,12 +76,10 @@ function createGUI(){
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td');
   td = td.html('@include: ./html/baseGUI.html, true');
 
-  lines = parseInt((innerHeight - document.body.getBoundingClientRect().height) / 28, 10) - 4;
-  height = lines * 28;
-
-  td.find('div[class="tab content"]').each((div)=>{
-    div.style.height = height + "px";
-  });
+  ih = window.innerHeight;
+  bh = $('center').node(-1).offsetTop;
+  ch = (parseInt((ih - bh - 140) / 28, 10)) * 28;
+  setStyle('adfd-content.js ', `div.content{height: ${ch}px; overflow-y: scroll;}`);
 
   $('td[class="tab"],[class="tab tabActive"]').each((tab)=>{
     bindEvent(tab, 'onclick', selectTabTable);
@@ -172,11 +148,14 @@ function bindActionsContextMenu(){
       openAdvertWindow(mode, text, list);
     },
 
-    analyzePrice: (add, list)=>{
+    analyzePrice: (add, all, list)=>{
       $prices = {
         time: $c.getTimeNow(),
         list: {}
       };
+
+      if(all) list = $t.items.getContent();
+
       progress.start("Аналази цен доски объвлений", list.length, 1500);
       analyzePrice(0, list.length, list, add);
     },
