@@ -8,7 +8,7 @@
   <td ${t.getWidth("rate")} align="center">${$c.convertID(tr.rate)}</td>
   <td ${t.getWidth("durMax")} align="center">${tr.durNow}/${tr.durMax}</td>
   <td ${t.getWidth("island")} align="center">${$texts.island[tr.island]}</td>
-  <td ${t.getWidth("seller")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/item.php?item_id=${tr.seller[0]}">${tr.seller[1]}</a></td>
+  <td ${t.getWidth("seller")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.seller[0]}">${tr.seller[1]}</a></td>
   <td ${t.getWidth("fast")} align="center">${tr.fast ? '√' : ''}</td>
   <td ${t.getWidth("actions")} align="center">${getActionsLink(tr)}</td>
   <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
