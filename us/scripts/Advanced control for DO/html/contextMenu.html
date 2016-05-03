@@ -9,8 +9,18 @@
     </li>
     <li class="parent"><span>Анализ цен</span>
       <ul>
-        <li><span action='["analyzePrice", false]'>По формуле</span></li>
-        <li><span action='["analyzePrice", true]'>Все объявления</span></li>
+        <li class="parent"><span>Отмеченные</span>
+          <ul>
+            <li><span action='["analyzePrice", false, false]'>По формуле</span></li>
+            <li><span action='["analyzePrice", true, false]'>Все найденные</span></li>
+          </ul>
+        </li>
+        <li class="parent"><span>Все предметы</span>
+          <ul>
+            <li><span action='["analyzePrice", false, true]'>По формуле</span></li>
+            <li><span action='["analyzePrice", true, true]'>Все найденные</span></li>
+          </ul>
+        </li>
       </ul>
     </li>
     <li><span action='["updateItems"]'>Обновить данные</span></li>
