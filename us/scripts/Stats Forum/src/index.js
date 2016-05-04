@@ -678,7 +678,7 @@ function openBlackListWindow(action, text, desc, table){
 function openStatusWindow(){
   $("#sf_shadowLayer").node().style.visibility = "visible";
   $("#sf_controlPanelWindow").node().style.visibility = "hidden";
-  $("#sf_filtersWindow").node().style.visibility = "hidden";
+  $("#filtersWindow").node().style.visibility = "hidden";
   $("#sf_messageWindow").node().style.visibility = "hidden";
 
   $("#sf_statusWindow").node().style.visibility = "visible";
