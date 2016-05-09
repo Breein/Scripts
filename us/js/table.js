@@ -5,14 +5,13 @@ const bindEvent = require('./events.js');
 const $ls = require('./ls.js');
 const $c = require('./common.js')();
 
-function Table(node, name, settings, icons, sortKey){
+function Table(node, name, settings, sortKey){
   this._header = null;
   this._body = null;
   this._footer = null;
   this._ctxMenu = $('#contextMenu').node();
 
   this._name = name;
-  this._icons = icons;
   this._sortKey = sortKey ? sortKey : "id";
 
   this._structure = {};
@@ -32,6 +31,12 @@ function Table(node, name, settings, icons, sortKey){
   this._rows = 0;
   this._renderRows = 0;
   this._indexedKeys = [];
+
+  this._icons = {
+    sortDown: "data:image/gif;base64,R0lGODlhBwAUAIABAARrAf///yH5BAEAAAEALAAAAAAHABQAAAIQjI+py+0BogRwHpno27yzAgA7",
+    sortUp: "data:image/gif;base64,R0lGODlhBwAUAIABAARrAf///yH5BAEAAAEALAAAAAAHABQAAAIQjI+py+0IEphn2mDz27yrAgA7",
+    sortNull: "data:image/gif;base64,R0lGODlhBwAUAIABAARrAf///yH5BAEAAAEALAAAAAAHABQAAAIUjI+pywYJ4ok00NvglXtK9GTiiBQAOw=="
+  };
 
   this._ini(node);
 }
@@ -524,10 +529,9 @@ Table.prototype = {
  * @param node
  * @param {string} name
  * @param {object} settings
- * @param {object} icons
  * @param {string=} sortKey
  * @returns {Table}
  */
-module.exports = function (node, name, settings, icons, sortKey){
-  return new Table(node, name, settings, icons, sortKey);
+module.exports = function (node, name, settings, sortKey){
+  return new Table(node, name, settings, sortKey);
 };
