@@ -5,234 +5,139 @@ const bindEvent = require('./events.js');
 const $ls = require('./ls.js');
 const $c = require('./common.js')();
 
-function Table(nodesID, settingsKey, settings, icons, sortKey){
-  this.header = nodesID[0];
-  this.body = nodesID[1];
-  this.footer = nodesID[2];
-  this.ctxMenu = nodesID[3];
-  this.name = settingsKey;
-  this.icons = icons;
-  this.sortKey = sortKey ? sortKey : "id";
+function Table(node, name, settings, icons, sortKey){
+  this._header = null;
+  this._body = null;
+  this._footer = null;
+  this._ctxMenu = $('#contextMenu').node();
 
-  this.structure = {};
-  this.content = [];
-  this.renderContent = [];
-  this.onIndexContent = null;
-  this.size = [];
-  this.filters = {};
-  this.openFilter = null;
-  this.sort = {
+  this._name = name;
+  this._icons = icons;
+  this._sortKey = sortKey ? sortKey : "id";
+
+  this._structure = {};
+  this._content = [];
+  this._renderContent = [];
+  this._onIndexContent = null;
+  //this._size = [];
+  this._filters = {};
+  this._openFilter = null;
+  this._sort = {
     cell: null,
     type: null
   };
-  this.settingsKey = settings;
-  this.settings = $ls.load(this.settingsKey);
-  this.setups = this.settings[this.name];
-  this.rows = 0;
-  this.renderRows = 0;
-  this.indexedKeys = [];
+  this._settingsKey = settings;
+  this._settings = $ls.load(this._settingsKey);
+  this._setups = this._settings[this._name];
+  this._rows = 0;
+  this._renderRows = 0;
+  this._indexedKeys = [];
 
-  this.ini();
+  this._ini(node);
 }
 
 Table.prototype = {
-  ini: function(){
-    if(this.setups == null){
-      this.settings[this.name] = {
+  _ini: function(node){
+    var h, b, f;
+
+    if(typeof node == "number")
+      node = $('table[class="tabs-content"]').node().rows[node];
+
+    h = $('<div>')
+      .class("set", "tab-content")
+      .node();
+
+    b = $('<div>')
+      .class("set", "tab-content-scroll")
+      .html('<table align="center" type="padding" width="100%"></table>')
+      .node();
+
+    f = $('<div>')
+      .class("set", "tab-content")
+      .node();
+
+    node.cells[0].appendChild(h);
+    node.cells[0].appendChild(b);
+    node.cells[0].appendChild(f);
+
+    this._header = h;
+    this._body = b.firstElementChild;
+    this._footer = f;
+
+    if(this._setups == null){
+      this._settings[this._name] = {
         sort: {
           type: 1,
           cell: "id"
         },
         filters: {}
       };
-      this.setups = this.settings[this.name];
-      this.saveSettings();
+      this._setups = this._settings[this._name];
+      this._saveSettings();
     }
   },
 
-  /**
-   * @returns {string}
-   */
-  getName: function(){
-    return this.name;
-  },
-
-  /**
-   * @param {boolean=} render
-   * @returns {Array}
-   */
-  getContent: function(render){
-    return render ? this.renderContent : this.content;
-  },
-
-  /**
-   * @param {number} index
-   * @param {boolean=} render
-   * @returns {object}
-   */
-  getContentOnIndex: function(index, render){
-    var content;
-
-    content = render == null ? this.renderContent : this.content;
-    this.onIndexContent = content[index];
-
-    return [this.onIndexContent];
-  },
-
-  /**
-   * @param {boolean=} all
-   * @returns {Array}
-   */
-  getCheckedContent: function(all){
-    var result = [];
-
-    this.getChecked().forEach((tr)=>{
-      result.push(this.renderContent[tr.rowIndex]);
-    });
-
-    return all && result.length == 0 ? [this.onIndexContent] : result;
-  },
-
-  /**
-   * @returns {Array}
-   */
-  getChecked: function(){
-    return $(this.body).find('tr[class="light checked"]').nodeArr();
-  },
-
-  /**
-   * @param {boolean=} render
-   * @returns {number}
-   */
-  getLastRowContent: function(render){
-    return render ? this.renderRows - 1 : this.rows - 1;
-  },
-
-  /**
-   * @param {object} element
-   * @param {boolean=} render
-   */
-  pushContent: function(element, render){
-    if(render){
-      this.renderContent.push(element);
-      this.renderRows++;
-    }else{
-      this.content.push(element);
-      this.rows++;
-    }
-  },
-
-  /**
-   * @param {boolean=} render
-   */
-  clearContent: function(render){
-    if(render){
-      this.renderContent = [];
-      this.renderRows = 0;
-      $(this.footer).find('span[type="checkAll"]').html("[отметить всё]");
-      $(this.footer).find('b[type="countCheck"]').html(0);
-    }else{
-      this.content = [];
-      this.rows = 0;
-    }
-  },
-
-  /**
-   * @returns {object}
-   */
-  getStructure: function(){
-    return this.structure;
-  },
-
-  /**
-   * @param {string} key
-   * @param {boolean|null} check
-   * @returns {string}
-   */
-  getWidth: function(key, check){
-    var width;
-
-    if(this.structure[key]){
-      width = check ? this.structure[key].width - 17 : this.structure[key].width;
-      return width != -1 ? `width="${width}"` : "";
-    }
-  },
-
-  /**
-   * @param {number} index
-   * @param {string} key
-   * @param {*} value
-   */
-  setContentValue: function(index, key, value){
-    this.renderContent[index][key] = value;
-  },
-
-  /**
-   */
-  changeSortImage: function(){
+  _changeSortImage: function(){
     var value, type, oldImg, newImg;
 
-    value = this.setups.sort.cell;
-    type = this.setups.sort.type;
+    value = this._setups.sort.cell;
+    type = this._setups.sort.type;
 
-    if(value != this.sort.cell){
-      oldImg = $(this.header).find(`td[sort="${this.sort.cell}"]`).node().lastChild;
-      oldImg.src = this.icons.sortNull;
+    if(value != this._sort.cell){
+      oldImg = $(this._header).find(`td[sort="${this._sort.cell}"]`).node().lastElementChild;
+      oldImg.src = this._icons.sortNull;
     }
 
-    newImg = $(this.header).find(`td[sort="${value}"]`).node().lastChild;
-    newImg.src = type ? this.icons.sortDown : this.icons.sortUp;
+    newImg = $(this._header).find(`td[sort="${value}"]`).node().lastElementChild;
+    newImg.src = type ? this._icons.sortDown : this._icons.sortUp;
   },
 
-  /**
-   * @param {string} td
-   * @param {string} cell
-   */
-  setSortImage: function(td, cell){
+  _setSortImage: function(td, cell){
     var img = $(td).find('img').node();
 
-    if(this.setups.sort.cell != cell){
-      img.src = this.icons.sortNull;
+    if(this._setups.sort.cell != cell){
+      img.src = this._icons.sortNull;
     }else{
-      img.src = this.setups.sort.type ? this.icons.sortDown : this.icons.sortUp;
+      img.src = this._setups.sort.type ? this._icons.sortDown : this._icons.sortUp;
     }
   },
 
-  setSort: function(){
-    this.sort.cell = this.setups.sort.cell;
-    this.sort.type = this.setups.sort.type;
+  _setSort: function(){
+    this._sort.cell = this._setups.sort.cell;
+    this._sort.type = this._setups.sort.type;
   },
 
-  /**
-   */
-  setCountRows: function(){
-    $(this.footer).find('b[type="countRows"]').html(this.renderRows + '/' + this.rows);
+  _setStructureIndex: function(index, key){
+    this._indexedKeys[index] = key;
   },
 
-  /**
-   */
-  setCountCheck: function(){
-    $(this.footer).find('b[type="countCheck"]').html(
-      this.getChecked().length
+  _setCountCheck: function(){
+    $(this._footer).find('b[type="countCheck"]').html(
+      $(this._body).find('tr[class="light checked"]').length
     );
   },
 
-  /**
-   */
-  sorting: function(){
+  _setContentValue: function(index, key, value){
+    this._renderContent[index][key] = value;
+  },
+
+  _setCountRows: function(){
+    $(this._footer).find('b[type="countRows"]').html(this._renderRows + '/' + this._rows);
+  },
+
+  _sorting: function(){
     var value, type, array, sKey;
 
     array = this.getContent(true);
-    value = this.setups.sort.cell;
-    type = this.setups.sort.type;
-    sKey = this.sortKey;
+    value = this._setups.sort.cell;
+    type = this._setups.sort.type;
+    sKey = this._sortKey;
 
     array.sort(
       function(e1, e2){
-        var p1, p2, res, i1, i2;
+        var p1, p2, res;
 
         p1 = e1[value]; p2 = e2[value];
-        i1 = e1[sKey]; i2 = e2[sKey];
 
         if(typeof p1 == "object"){
           p1 = p1[1];
@@ -240,8 +145,9 @@ Table.prototype = {
         }
 
         res = compare(p1, p2);
-        if(res == 0) res = compare(i1, i2);
+        if(res == 0) res = compare(e1[sKey], e2[sKey]);
         if(type) res = res == -1 ? 1 : -1;
+
         return res;
       }
     );
@@ -253,140 +159,33 @@ Table.prototype = {
     }
   },
 
-  /**
-   * @param {Function} callback
-   */
-  setSorts: function(callback){
+  _setSizes: function(){
     var table = this;
 
-    $(table.header).find('td[sort]').each(function(td){
-      var value;
-
-      value = td.getAttribute("sort");
-      table.setSortImage(td, value);
-      bindEvent(td, 'onclick', ()=>{
-        var cell;
-
-        table.setSort();
-
-        cell = td.getAttribute("sort");
-        if(cell == table.setups.sort.cell){
-          table.setups.sort.type = table.setups.sort.type == 0 ? 1 : 0;
-        }else{
-          table.setups.sort.cell = cell;
-          table.setups.sort.type = 1;
-        }
-
-        table.changeSortImage();
-        table.saveSettings();
-        callback("sort");
-      });
-    });
-  },
-
-  /**
-   * @param {{key:[width, type, text]}, ...} v
-   */
-  setStructure: function(v){
-    var table = this;
-
-    Object.keys(v).forEach(function(key, index){
-      var value, type = null, text = null;
-
-      value = v[key];
-      table.setStructureIndex(index, key);
-
-      if(value[1]) type = /\|/.test(value[1]) ? value[1].split(/\|/) : [value[1]];
-      if(value[2]) text = /\|/.test(value[2]) ? value[2].split(/\|/) : [value[2]];
-
-      table.structure[key] = {
-        width: value[0],
-        filter: type ? {
-          type: type,
-          header: text[0],
-          rTrue: text[1],
-          rFalse: text[2]
-        } : null
-      };
-    });
-  },
-
-  setStructureIndex: function(index, key){
-    this.indexedKeys[index] = key;
-  },
-
-  /**
-   * @param td
-   * @returns {string}
-   */
-  getKeysOnCell: function(td){
-    return this.indexedKeys[td.cellIndex];
-  },
-
-  /**
-   *
-   */
-  setSizes: function(){
-    var table = this;
-
-    $(this.header).find('td[sort]').each((cell)=>{
-      table.setWidth(cell, "sort");
+    $(this._header).find('td[sort]').each((cell)=>{
+      setWidth(cell, "sort");
     });
 
-    $(this.footer).find('td[filter]').each((cell)=>{
-      table.setWidth(cell, "filter");
+    $(this._footer).find('td[filter]').each((cell)=>{
+      setWidth(cell, "filter");
     });
-  },
 
-  /**
-   * @param cell
-   * @param {string} type
-   */
-  setWidth: function(cell, type){
-    var width, key;
+    function setWidth(cell, type){
+      var width, key;
 
-    key = $(cell).attr(type);
-    width = this.structure[key].width;
+      key = $(cell).attr(type);
+      width = table._structure[key].width;
 
-    if(width > 0){
-      cell.width = width;
+      if(width > 0){
+        cell.width = width;
+      }
     }
   },
 
-  /**
-   * @param {Function} callback
-   */
-  setFilters: function(callback){
-    var table = this;
-
-    $(table.footer).find('td[filter]').each(function(td){
-      var value, ft;
-
-      value = $(td).attr("filter");
-      ft = table.structure[value].filter;
-
-      if(table.setups.filters[value]){
-        $(td).class("set", "enable");
-      }
-
-      bindEvent(td, 'onclick', function(){
-        if(table.filters[value] == null){
-          table.filters[value] = filter("#filtersWindow", table, td, ft, value);
-        }
-        table.filters[value].activate(callback);
-      });
-
-    });
-  },
-
-  /**
-   * @param {object} row
-   * @returns {boolean}
-   */
-  filtering: function(row){
+  _filtering: function(row){
     var filter, value, fv, rv, length, list;
 
-    filter = this.setups.filters;
+    filter = this._setups.filters;
     list = Object.keys(filter);
     length = list.length;
 
@@ -422,63 +221,74 @@ Table.prototype = {
     }
   },
 
-  /**
-   * @param {boolean=} contextMenu
-   */
-  bindClickRow: function(contextMenu){
-    var table = this;
+  _bindSorting: function(callback){
+    var value, table = this;
 
-    $(this.body)
-      .find('tr')
-      .each((node)=>{
-        bindEvent(node, 'onclick', leftClick, [], null, true);
-        if(!contextMenu) return;
-        bindEvent(node, "contextmenu", rightClick, [], null, true);
-      });
+    $(table._header).find('td[sort]').each(function(td){
+      value = td.getAttribute("sort");
+      table._setSortImage(td, value);
 
-    function leftClick(node, event){
-      var box, action;
+      bindEvent(td, 'onclick', sorting);
+    });
+    /////////////////////////////
 
-      if(event.target.nodeName == "A") return;
-      if($(table.ctxMenu).node().style.visibility == "visible")
-        return;
+    function sorting(td){
+      var cell;
 
-      box = $(node).find('input[type="checkbox"]').node();
-      box.checked = !box.checked;
-      action = box.checked ? "add" : "remove";
-      $(node).class(action, "checked");
+      table._setSort();
+      cell = td.getAttribute("sort");
 
-      table.setContentValue(node.rowIndex, "check", box.checked);
-      table.setCountCheck();
-    }
+      if(cell == table._setups.sort.cell){
+        table._setups.sort.type = table._setups.sort.type == 0 ? 1 : 0;
+      }else{
+        table._setups.sort.cell = cell;
+        table._setups.sort.type = 1;
+      }
 
-    function rightClick(node, event){
-      var menu, elem;
-
-      elem = event.target;
-      if(elem.nodeName != "TD") return;
-      event.preventDefault();
-
-      menu = $(table.ctxMenu).class("set", table.name).attr("index", node.rowIndex).node();
-      menu.style.left = event.clientX;
-      menu.style.top = event.clientY + document.body.scrollTop;
-      menu.style.visibility = "visible";
+      table._changeSortImage();
+      table._saveSettings();
+      callback("sort");
     }
   },
 
-  /**
-   */
-  bindCheckAll: function(){
+  _bindFilters: function(callback){
     var table = this;
-    var button = $(table.footer).find('span[type="checkAll"]').node();
 
-    bindEvent(button, 'onclick', ()=>{
+    $(table._footer).find('td[filter]').each(function(td){
+      var value, ft;
+
+      value = $(td).attr("filter");
+      ft = table._structure[value].filter;
+      if(ft == null) return;
+
+      if(table._setups.filters[value]){
+        $(td).class("set", "enable");
+      }
+
+      bindEvent(td, 'onclick', filtering, [ft, value]);
+    });
+    /////////////////////////////
+
+    function filtering(ft, value, td){
+      if(table._filters[value] == null){
+        table._filters[value] = filter("#filtersWindow", table, td, ft, value);
+      }
+      table._filters[value].activate(callback);
+    }
+  },
+
+  _bindCheckAll: function(){
+    var table = this;
+
+    bindEvent($(table._footer).find('span[type="checkAll"]'), 'onclick', click);
+
+    function click(button){
       var b = $(button), status;
 
       status = b.text() == "[отметить всё]";
       b.text(status ? "[снять всё]" : "[отметить всё]");
 
-      $(table.body)
+      $(table._body)
         .find('input[type="checkbox"]')
         .each(
           function(box, index){
@@ -490,13 +300,196 @@ Table.prototype = {
           }
         );
 
-      table.setCountCheck();
+      table._setCountCheck();
+
+      function action(box, name, check, index){
+        $(box).up('tr').class("set", name);
+        box.checked = check;
+        table._setContentValue(index, "check", check);
+      }
+    }
+  },
+
+  _saveSettings: function(){
+    $ls.save(this._settingsKey, this._settings);
+  },
+
+  ////////////////////// Public Methods ////////////////////////////////////////////////////////////////////////////////
+  /**
+   * @returns {string}
+   */
+  getName: function(){
+    return this._name;
+  },
+
+  /**
+   * @param {boolean=} render
+   * @returns {Array}
+   */
+  getContent: function(render){
+    return render ? this._renderContent : this._content;
+  },
+
+  /**
+   * @param {boolean=} all
+   * @returns {[object, object, ...]}
+   */
+  getCheckedContent: function(all){
+    var result = [];
+
+    $(this._body).find('tr[class="light checked"]').each((tr)=>{
+      result.push(this._renderContent[tr.rowIndex]);
     });
 
-    function action(box, name, check, index){
-      $(box).up('tr').class("set", name);
-      box.checked = check;
-      table.setContentValue(index, "check", check);
+    return all && result.length == 0 ? [this._onIndexContent] : result;
+  },
+
+  /**
+   * @param {string} key
+   * @param {boolean=} check
+   * @returns {string}
+   */
+  getWidth: function(key, check){
+    var width;
+
+    if(this._structure[key]){
+      width = check ? this._structure[key].width - 17 : this._structure[key].width;
+      return width != -1 ? `width="${width}"` : "";
+    }
+  },
+
+  /**
+   * @param td
+   * @returns {string|null}
+   */
+  getKeysOnCell: function(td){
+    return this._indexedKeys[td.cellIndex];
+  },
+
+  /**
+   * @param {object} element
+   * @param {boolean=} render
+   */
+  pushContent: function(element, render){
+    if(render){
+      this._renderContent.push(element);
+      this._renderRows++;
+    }else{
+      this._content.push(element);
+      this._rows++;
+    }
+  },
+
+  /**
+   * @param {boolean=} render
+   */
+  clearContent: function(render){
+    if(render){
+      this._renderContent = [];
+      this._renderRows = 0;
+      $(this._footer).find('span[type="checkAll"]').html("[отметить всё]");
+      $(this._footer).find('b[type="countCheck"]').html(0);
+    }else{
+      this._content = [];
+      this._rows = 0;
+    }
+  },
+
+  /**
+   * @param {{key:[width, type, text]}, ...} array
+   */
+  setStructure: function(array){
+    var table = this;
+
+    Object.keys(array).forEach(function(key, index){
+      var value, type = null, text = null;
+
+      value = array[key];
+      table._setStructureIndex(index, key);
+
+      if(value[1]) type = /\|/.test(value[1]) ? value[1].split(/\|/) : [value[1]];
+      if(value[2]) text = /\|/.test(value[2]) ? value[2].split(/\|/) : [value[2]];
+
+      table._structure[key] = {
+        width: value[0],
+        filter: type ? {
+          type: type,
+          header: text[0],
+          rTrue: text[1],
+          rFalse: text[2]
+        } : null
+      };
+    });
+  },
+
+  /**
+   * @param {string} html
+   */
+  setHeader: function(html){
+    this._header.innerHTML = html;
+    console.log(this._header);
+  },
+
+  /**
+   * @param {string} html
+   */
+  setFooter: function(html){
+    this._footer.innerHTML = html;
+  },
+
+  /**
+   * @param {function} callback
+   * @param {boolean=} sizes
+   * @param {boolean=} sorting
+   * @param {boolean=} filtering
+   */
+  setControls: function(callback, sizes, sorting, filtering){
+    if(sizes) this._setSizes();
+    if(sorting) this._bindSorting(callback);
+    if(filtering) this._bindFilters(callback);
+    this._bindCheckAll();
+  },
+
+  bindClickRow: function(contextMenu){
+    var table = this;
+
+    $(this._body)
+      .find('tr')
+      .each((node)=>{
+        bindEvent(node, 'onclick', leftClick, [], null, true);
+        if(!contextMenu) return;
+        bindEvent(node, "contextmenu", rightClick, [], null, true);
+      });
+    /////////////////////////////
+
+    function leftClick(node, event){
+      var box, action;
+
+      if(event.target.nodeName == "A") return;
+      if($(table._ctxMenu).node().style.visibility == "visible")
+        return;
+
+      box = $(node).find('input[type="checkbox"]').node();
+      box.checked = !box.checked;
+      action = box.checked ? "add" : "remove";
+      $(node).class(action, "checked");
+
+      table._setContentValue(node.rowIndex, "check", box.checked);
+      table._setCountCheck();
+    }
+    /////////////////////////////
+
+    function rightClick(node, event){
+      var menu, elem;
+
+      elem = event.target;
+      if(elem.nodeName != "TD") return;
+      event.preventDefault();
+
+      menu = $(table._ctxMenu).class("set", table.name).attr("index", node.rowIndex).node();
+      menu.style.left = event.clientX;
+      menu.style.top = event.clientY + document.body.scrollTop;
+      menu.style.visibility = "visible";
     }
   },
 
@@ -504,37 +497,37 @@ Table.prototype = {
    * @param {string} mode
    */
   prepare: function(mode){
+    var table = this;
+
     if(mode == "filter"){
       this.clearContent(true);
       this.getContent().forEach((row)=>{
         row.check = false;
-        if(this.filtering(row)) this.pushContent(row, true);
+        if(table._filtering(row)) table.pushContent(row, true);
       });
     }
-    this.sorting();
-    this.setCountRows();
+    this._sorting();
+    this._setCountRows();
   },
+
   /**
    * @param {string} html
    * @param {boolean=} add
    */
   render: function(html, add){
-    $(this.body).html(html, add);
-  },
-
-  saveSettings: function(){
-    $ls.save(this.settingsKey, this.settings);
+    $(this._body).html(html, add);
   }
 };
 
+
 /**
- * @param {string[]} nodesID
- * @param {string} settingsKey
+ * @param node
+ * @param {string} name
  * @param {object} settings
  * @param {object} icons
  * @param {string=} sortKey
  * @returns {Table}
  */
-module.exports = function (nodesID, settingsKey, settings, icons, sortKey){
-  return new Table(nodesID, settingsKey, settings, icons, sortKey);
+module.exports = function (node, name, settings, icons, sortKey){
+  return new Table(node, name, settings, icons, sortKey);
 };
