@@ -91,7 +91,7 @@ Common.prototype = {
 
   /**
    * @param {number} value
-   * @returns {string}
+   * @returns {string|number}
    */
   convertID: function (value){
     var result, i, j;
