@@ -6,7 +6,7 @@ const $calendar = require('./calendar.js')();
 function Filter(id, table, td, f, key){
   this.fw = $(id).node();
   this.table = table;
-  this.settings = table.setups.filters;
+  this.settings = table._setups.filters;
   this.cell = td;
   this.column = key;
   this.types = this.getTypes(f);
@@ -27,7 +27,7 @@ Filter.prototype = {
 
   getText: function(type){
     return {
-      header: type.header,
+      _header: type._header,
       rt: type.rTrue,
       rf: type.rFalse
     }
@@ -126,18 +126,18 @@ Filter.prototype = {
     this.setPositionWindow(this.fw, wp, cp, bw);
     $(this.cell).attr("style", "background-color: #defadc");
     this.fw.style.visibility = "visible";
-    this.table.openFilter = this;
+    this.table._openFilter = this;
   },
 
   hide: function(){
     var close, cell;
 
-    cell = $(this.table.footer).find('td[filter][style]').node();
+    cell = $(this.table._footer).find('td[filter][style]').node();
     close = cell == this.cell;
 
     if(cell) cell.removeAttribute("style");
     this.fw.style.visibility = "hidden";
-    this.table.openFilter = null;
+    this.table._openFilter = null;
 
     return close;
   },
@@ -182,7 +182,7 @@ Filter.prototype = {
         code += `<div type="option" name="${arrays[this.column][value]}">${value}</div>`;
       }
     }else{
-      $(this.table.body).find('input[type="checkbox"]:checked').each((box)=>{
+      $(this.table._body).find('input[type="checkbox"]:checked').each((box)=>{
         name = $(box).up('tr').node().cells[this.cell.cellIndex].textContent;
         code += `<div type="option" class="noSelect" name="${name}">${name}</div>`;
         check = true;
@@ -361,7 +361,7 @@ Filter.prototype = {
         $(this.cell).class("set", "disable");
       }
       this.hide();
-      this.table.saveSettings();
+      this.table._saveSettings();
       callback("filter");
     });
   },
