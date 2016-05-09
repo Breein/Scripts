@@ -6,6 +6,7 @@ var createTable = require('./../../../js/table.js');
 var setStyle = require('./../../../js/style.js');
 var progress = require('./../../../js/progress.js')(renderTables);
 var shadow = require('./../../../js/shadow.js')();
+var tabs = require('./../../../js/tabs.js');
 
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
@@ -14,7 +15,7 @@ const $mods = require('./../src/mods.js');
 const Create = require('./../src/creator.js')();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var $answer, $items, $adverts, $prices, $t, $texts, $data;
+var $answer, $tabs, $items, $adverts, $prices, $t, $texts, $data;
 
 $answer = $('<span>').node();
 
@@ -63,27 +64,30 @@ function createButton(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var td, height, ih, bh, ch;
+  var td, height, ih, bh, ch, settings, gui;
 
   if(!getItemsData()) return;
 
+  settings = "gk_acfd_settings";
+  gui = $('<span>').attr("type", "gui").html('@include: ./html/baseGUI.html, true').node();
+  td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td').html('').node();
+
+  $tabs = tabs(["Предметы", "Объявления", "Анализ цен"], 1);
+  $tabs.append(td);
+  document.body.appendChild(gui);
+
   $t = {
-    items: createTable(["#header-items", "#content-items", "#footer-items", "#contextMenu"], "items", "gk_acfd_settings", $ico, "level"),
-    adverts: createTable(["#header-adverts", "#content-adverts", "#footer-adverts", "#contextMenu"], "adverts", "gk_acfd_settings", $ico, "section"),
-    stats: createTable(["#header-stats", "#content-stats", "#footer-stats", "#contextMenu"], "stats", "gk_acfd_settings", $ico, "name")
+    items: createTable(0, "items", settings, $ico, "level"),
+    adverts: createTable(1, "adverts", settings, $ico, "section"),
+    stats: createTable(2, "stats", settings, $ico, "name")
   };
 
-  td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td');
-  td = td.html('@include: ./html/baseGUI.html, true');
+  renderBaseHTML();
 
   ih = window.innerHeight;
   bh = $('center').node(-1).offsetTop;
-  ch = (parseInt((ih - bh - 140) / 28, 10)) * 28;
-  setStyle('adfd-content.js ', `div.content{height: ${ch}px; overflow-y: scroll;}`);
-
-  $('td[class="tab"],[class="tab tabActive"]').each((tab)=>{
-    bindEvent(tab, 'onclick', selectTabTable);
-  });
+  ch = (parseInt((ih - bh) / 28, 10)) * 28;
+  setStyle('adfd-content.js ', `div.tab-content-scroll{height: ${ch}px; overflow-y: scroll; margin: auto}`);
 
   bindEvent($('#setCostEUN').class("remove", "hidden"), "onclick", openSetCostEunWindow);
   bindEvent($("#acfd_addAdvert"), "onclick", addAdvert);
@@ -91,9 +95,7 @@ function createGUI(){
   bindEvent($("#acfd_getDurItems"), "onclick", getDurItems);
   bindEvent($('#acfd_saveCostEun'), "onclick", saveCostEun);
 
-  renderBaseHTML();
   renderTables();
-
   bidHideContextMenu();
   bindActionsContextMenu();
   bindMoneyInputs();
@@ -306,7 +308,7 @@ function analyzePrice(now, max, list, all){
     });
   }else{
     renderStatsTable();
-    selectTabTable("Анализ цен");
+    $tabs.select("Анализ цен");
     progress.done();
   }
 
@@ -704,32 +706,6 @@ function getDurItems(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function selectTabTable(tab){
-  var active, tabs, table, t;
-
-  if(typeof tab == "string") tab = $(`td[class="tab"]:contains("${tab}")`).node();
-  if(tab.className == "tab tabActive") return;
-
-  active = $('td[class="tab tabActive"]').node();
-  tabs = $(active).up('table').node();
-  table = $('table[class="mainTable"]').node();
-
-  tabs.rows[0].cells[active.cellIndex].className = "tabTop";
-  active.className = "tab";
-
-  tabs.rows[0].cells[tab.cellIndex].className = "tabTop tabTopActive";
-  tab.className = "tab tabActive";
-
-  table.rows[tab.cellIndex - 1].className = "tabRow";
-  table.rows[active.cellIndex - 1].className = "tabRowHide";
-
-  for(t in $t){
-    if($t[t].openFilter)
-      $t[t].openFilter.hide();
-  }
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function openAdvertWindow(mode, text, list){
   var window, hide;
 
@@ -823,16 +799,12 @@ function renderBaseHTML(){
     sell: [75, "boolean", "Объявление, продажа|добавленные|тех что добавлены"],
     buy: [75, "boolean", "Объявление, покупка|добавленные|тех что добавлены"],
     rent: [75, "boolean", "Объявление, аредна|добавленные|тех что добавлены"],
-    check: [45, null, null]
+    check: [45, null]
   });
 
-  $('#header-items').html('@include: ./html/itemsTableHeader.html, true');
-  $('#footer-items').html('@include: ./html/itemsTableFooter.html, true');
-
-  t.setSizes();
-  t.setSorts(renderItemsTable);
-  t.setFilters(renderItemsTable);
-  t.bindCheckAll();
+  t.setHeader('@include: ./html/itemsTableHeader.html, true');
+  t.setFooter('@include: ./html/itemsTableFooter.html, true');
+  t.setControls(renderItemsTable, true, true, true);
 
   t = $t.adverts;
   t.setStructure({
@@ -849,16 +821,12 @@ function renderBaseHTML(){
     price: [75, "number", "Цена предмета"],
     posted: [28, "boolean", "Размещенные на доске|размещенные|не размещенные"],
     autoPost: [28, "boolean", "Авто-продление объявления|с продлением|тех что с продлением"],
-    check: [45, null, null]
+    check: [45, null]
   });
 
-  $('#header-adverts').html('@include: ./html/advertsTableHeader.html, true');
-  $('#footer-adverts').html('@include: ./html/advertsTableFooter.html, true');
-
-  t.setSizes();
-  t.setSorts(renderAdvertsTable);
-  t.setFilters(renderAdvertsTable);
-  t.bindCheckAll();
+  t.setHeader('@include: ./html/advertsTableHeader.html, true');
+  t.setFooter('@include: ./html/advertsTableFooter.html, true');
+  t.setControls(renderAdvertsTable, true, true, true);
 
   t = $t.stats;
   t.setStructure({
@@ -873,17 +841,13 @@ function renderBaseHTML(){
     fast: [50, "boolean", "Мнгновенная продажа|с быстрой продажей|быстрой продажи"],
     island: [130, "multiple", "Остров"],
     seller: [150, "check", "Имя продавца"],
-    actions: [50, null, null],
-    check: [45, null, null]
+    actions: [50, null],
+    check: [45, null]
   });
 
-  $('#header-stats').html('@include: ./html/statsTableHeader.html, true');
-  $('#footer-stats').html('@include: ./html/statsTableFooter.html, true');
-
-  t.setSizes();
-  t.setSorts(renderStatsTable);
-  t.setFilters(renderStatsTable);
-  t.bindCheckAll();
+  t.setHeader('@include: ./html/statsTableHeader.html, true');
+  t.setFooter('@include: ./html/statsTableFooter.html, true');
+  t.setControls(renderStatsTable, true, true, true);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

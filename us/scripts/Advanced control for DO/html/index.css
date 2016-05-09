@@ -1,65 +1,6 @@
 span.start-button{
     cursor: pointer;
 }
-
-/* Вкладки */
-table.tabs {
-    width: 98%;
-    border-style: none;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-table.mainTable {
-    width: 98%;
-    border-style: none;
-    border-collapse: collapse;
-}
-td.tabTop {
-    height: 5px;
-}
-td.tabTopActive{
-    border: solid #339933 1px;
-    border-bottom-style: none;
-    background-color: #f0fff0;
-}
-td.tab{
-    font-weight: bold;
-    height: 25px;
-    width: 160px;
-    border: solid #339933 1px;
-    text-align: center;
-    background-color: #d0efd0;
-    cursor: pointer;
-}
-td.tab:hover{
-    background-color: #defadc;
-}
-td.tab.tabActive{
-    border-top-style: none;
-    border-bottom-style: none;
-    background-color: #f0fff0;
-}
-td.tabBegin-End{
-    border-bottom: solid #339933 1px;
-}
-td.tabContent{
-    width: 99%;
-    border: solid #339933 1px;
-    border-top-style: none;
-    background-color: #f0fff0;
-    padding: 15px 15px;
-}
-tr.tabRow{
-    display: table-row;
-}
-tr.tabRowHide{
-    display: none;
-}
-div.tab{
-    margin: auto;
-    height: 100%;
-}
-
 /* Конеткстное меню */
 #contextMenu{
     position: absolute;
