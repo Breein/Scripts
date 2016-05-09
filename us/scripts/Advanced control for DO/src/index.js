@@ -77,9 +77,9 @@ function createGUI(){
   document.body.appendChild(gui);
 
   $t = {
-    items: createTable(0, "items", settings, $ico, "level"),
-    adverts: createTable(1, "adverts", settings, $ico, "section"),
-    stats: createTable(2, "stats", settings, $ico, "name")
+    items: createTable(0, "items", settings, "level"),
+    adverts: createTable(1, "adverts", settings, "section"),
+    stats: createTable(2, "stats", settings, "name")
   };
 
   renderBaseHTML();
