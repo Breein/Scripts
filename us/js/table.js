@@ -433,7 +433,6 @@ Table.prototype = {
    */
   setHeader: function(html){
     this._header.innerHTML = html;
-    console.log(this._header);
   },
 
   /**
