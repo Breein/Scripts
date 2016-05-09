@@ -57,7 +57,7 @@ Api.prototype = {
     length = end && end < this.length ? end : this.length;
 
     while(i < length){
-      callback(this.nodeList[i], i, length);
+      callback(this.nodeList[i], i, length, this.nodeList);
       i++;
     }
 
@@ -103,7 +103,7 @@ Api.prototype = {
 
   /**
    * @param {string} attribute
-   * @param {string=} value
+   * @param {string|number=} value
    * @returns {Api|string}
    */
   attr: function(attribute, value){
