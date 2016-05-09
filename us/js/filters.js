@@ -27,7 +27,7 @@ Filter.prototype = {
 
   getText: function(type){
     return {
-      _header: type._header,
+      header: type.header,
       rt: type.rTrue,
       rf: type.rFalse
     }

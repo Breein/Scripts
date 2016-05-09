@@ -420,8 +420,8 @@ Table.prototype = {
         filter: type ? {
           type: type,
           header: text[0],
-          rTrue: text[1],
-          rFalse: text[2]
+          rTrue: text[1] ? text[1] : null,
+          rFalse: text[2] ? text[2] : null
         } : null
       };
     });
