@@ -491,7 +491,7 @@ Table.prototype = {
       if(elem.nodeName != "TD") return;
       event.preventDefault();
 
-      menu = $(table._ctxMenu).class("set", table.name).attr("index", node.rowIndex).node();
+      menu = $(table._ctxMenu).class("set", table._name).attr("index", node.rowIndex).node();
       menu.style.left = event.clientX;
       menu.style.top = event.clientY + document.body.scrollTop;
       menu.style.visibility = "visible";
