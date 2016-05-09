@@ -171,7 +171,7 @@ Table.prototype = {
       setWidth(cell, "sort");
     });
 
-    $(this._footer).find('td[filter]').each((cell)=>{
+    $(this._footer).find('td[filter], td[cell]').each((cell)=>{
       setWidth(cell, "filter");
     });
 
@@ -179,6 +179,7 @@ Table.prototype = {
       var width, key;
 
       key = $(cell).attr(type);
+      if(!key) key = $(cell).attr("cell");
       width = table._structure[key].width;
 
       if(width > 0){
