@@ -337,6 +337,20 @@ Table.prototype = {
   },
 
   /**
+   * @param {number} index
+   * @param {boolean=}render
+   * @returns {*[]}
+   */
+  getContentOnIndex: function(index, render){
+    var content;
+
+    content = render == null ? this._renderContent : this._content;
+    this._onIndexContent = content[index];
+
+    return [this._onIndexContent];
+    },
+
+  /**
    * @param {boolean=} all
    * @returns {[object, object, ...]}
    */
@@ -402,15 +416,15 @@ Table.prototype = {
   },
 
   /**
-   * @param {{key:[width, type, text]}, ...} array
+   * @param {{}} object
    */
-  setStructure: function(array){
+  setStructure: function(object){
     var table = this;
 
-    Object.keys(array).forEach(function(key, index){
+    Object.keys(object).forEach(function(key, index){
       var value, type = null, text = null;
 
-      value = array[key];
+      value = object[key];
       table._setStructureIndex(index, key);
 
       if(value[1]) type = /\|/.test(value[1]) ? value[1].split(/\|/) : [value[1]];
