@@ -1,0 +1,10 @@
+<tr height="28" class="${getClass(tr)}" ${border}>
+  <td ${t.getWidth("section")} align="center">${tr.section}</td>
+  <td ${t.getWidth("name")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/item.php?item_id=${tr.id}">${tr.name}</a></td>
+  <td ${t.getWidth("price")} align="center">${$c.convertID(tr.price)}</td>
+  <td ${t.getWidth("sell")} align="center">${$c.convertID(tr.sell)}</td>
+  <td ${t.getWidth("profit")} align="center">${$c.convertID(tr.profit)}</td>
+  <td ${t.getWidth("date")} align="center">${$c.getNormalDate(tr.date).d}</td>
+  <td ${t.getWidth("seller")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.seller[0]}">${tr.seller[1]}</a></td>
+  <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+</tr>

@@ -1,0 +1,8 @@
+<tr height="28" class="${getClass(tr)}" ${border}>
+  <td ${t.getWidth("id")} align="center">${$c.convertID(tr.id)}</td>
+  <td ${t.getWidth("level")} align="center">${$c.convertID(tr.level)}</td>
+  <td ${t.getWidth("name")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/item.php?item_id=${tr.id}">${tr.name}</a></td>
+  <td ${t.getWidth("sid")} class="a-item"><a href="http://www.ganjawars.ru/syndicate.php?id=${tr.sid[0]}">${tr.sid[1]}</a></td>
+  <td ${t.getWidth("island")} align="center">${$texts.island[tr.island]}</td>
+  <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+</tr>
