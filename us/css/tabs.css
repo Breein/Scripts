@@ -25,6 +25,14 @@ td.tab-text{
     background-color: #d0efd0;
     cursor: pointer;
 }
+td.tab-button{
+    font-weight: bold;
+    height: 25px;
+    border: solid #339933 1px;
+    text-align: center;
+    background-color: #f0fff0;
+    cursor: pointer;
+}
 td.tab-text.active{
     border-top-style: none;
     border-bottom-style: none;
@@ -32,6 +40,9 @@ td.tab-text.active{
 }
 td[class="tab-text"]:hover{
     background-color: #defadc;
+}
+td.tab-button:hover{
+    background-color: rgba(225, 247, 225, 1.0);
 }
 
 td.tab-begin-end{
@@ -53,4 +64,51 @@ tr.tab-row.none-active{
 div.tab-content{
     margin: auto;
     height: 100%;
+}
+
+div.tab-menu{
+    position: absolute;
+}
+
+div.tab-menu > div{
+    width: 100%;
+}
+
+div.tab-menu > div div:first-child{
+    width: 70px;
+    height: 7px;
+    background-color: #f0fff0;
+    border-left: solid #339933 1px;
+    border-right: solid #339933 1px;
+    float: left;
+}
+div.tab-menu > div div:last-child{
+    height: 6px;
+    border-bottom: solid #339933 1px;
+}
+
+div.tab-menu ul{
+    margin: 0;
+    padding: 0 0 0 0;
+    cursor: context-menu;
+    box-shadow: 3px 3px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+    background-color: #f0fff0;
+    border: solid #339933 1px;
+    border-top: none;
+}
+
+div.tab-menu li{
+    border-top: solid 1px #c0c0c0;
+    padding: 0 15px 0 15px;
+    list-style: none;
+    height: 28px;
+    line-height: 28px;
+    cursor: pointer;
+}
+div.tab-menu li:first-child{
+    border-top: none;
+}
+div.tab-menu li:hover{
+    background-color: rgba(225, 247, 225, 1.0);
 }
