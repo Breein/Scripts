@@ -111,13 +111,13 @@ ProgressDisplay.prototype = {
 
   /**
    * @param {string} text
-   * @param {Number|Number[]} count
+   * @param {Number|string|Number[]} count
    * @param {Number} interval
    * @param {Number=} max
    * @param {boolean=} extra
    */
   start: function(text, count, interval, max, extra){
-    if(count[0] == null) count = [0, count];
+    if(count[0] == null || isNaN(count)) count = [0, count];
     if(!extra){
       $(this._window).class("remove", "hide").attr("state", "work");
       shadow.open();
