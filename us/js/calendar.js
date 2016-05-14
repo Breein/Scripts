@@ -112,8 +112,8 @@ Calendar.prototype = {
   render: function(node){
     var size, left, top, date;
 
-    if(this.node.style.visibility == "visible"){
-      this.node.style.visibility = 'hidden';
+    if(!/hide/.test(this.node.className)){
+      $(this.node).class("add", "hide");
       return;
     }
     if(node.nextElementSibling.disabled){
@@ -121,12 +121,15 @@ Calendar.prototype = {
     }
 
     size = node.getBoundingClientRect();
-    left = size.left + size.width + 10;
-    top = size.top - 5;
+    left = size.left + size.width / 2 - 128;
+    top = size.top + size.height + 10;
+
+    if(left + 255 > window.innerWidth) left = window.innerWidth - 255;
+    if(top + 240 > window.innerHeight) top = size.top - 270;
 
     this.node.style.left = left + 'px';
     this.node.style.top = top + document.body.scrollTop + 'px';
-    this.node.style.visibility = 'visible';
+    $(this.node).class("remove", "hide");
 
     date = Number(node.nextElementSibling.value);
 
@@ -223,13 +226,13 @@ Calendar.prototype = {
     node.innerHTML = this.callDate[day].span;
     input.value = Date.parse(this.callDate[day].input) / 1000;
 
-    this.node.style.visibility = "hidden";
+    $(this.node).class("add", "hide");
   },
 
   getDate: function(date){
-    if(date == null){
-      date = this.date;
-    }
+    if(date == null) date = this.date;
+    if(date == 0) date = 1;
+
     date = $c.getNormalDate(date, true);
     date = date.d.split('.');
 
