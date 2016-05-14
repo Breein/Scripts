@@ -24,7 +24,7 @@ gulp.task('wrap', function(){
   userScriptHeader =
     `// ==UserScript==
 // @name
-// @author
+// @author      гном убийца
 // @description (${nowDate})
 // @include
 // @version     ${userScriptVersion}
