@@ -173,7 +173,7 @@ Filter.prototype = {
 
     arrays = {
       status: {"Необработан": 0, "В порядке": 1, "Торговый": 2, "Арестован": 3, "Форумный": 4, "Общий бан": 5, "Заблокирован": 6},
-      island: {"Не имеет значения": -1, "[G] Ganja Island": 0, "[Z] Z-Land": 1, "[P] Palm Island": 4},
+      island: {"Не имеет значения": -1, "[G] Ganja Island": 0, "[Z] Z-Land": 1, "[S] Santa Maria": 2, "[O] Outland": 3, "[P] Palm Island": 4},
       action: {"Продажа": "sell", "Покупка": "buy", "Аренда": "rent"}
     };
 
@@ -295,12 +295,8 @@ Filter.prototype = {
 
   bindRowDateCall: function(){
     $(this.fw)
-      .find('span[type="calendarCall"]')
-      .nodeArr()
-      .forEach(
-        function(node){
-          $calendar.bind(node);
-        }
+      .find('span[type="calendarCall"]').each(
+        function(node){$calendar.bind(node);}
       );
   },
 
