@@ -121,6 +121,7 @@ Tabs.prototype = {
 
     filter = $('#filtersWindow').node();
     if(filter) filter.style.visibility = "hidden";
+    this.closeMenu();
   },
 
   _showMenu: function(){
@@ -172,7 +173,10 @@ Tabs.prototype = {
   },
 
   closeMenu: function(){
-    this._showMenu();
+    if(this._menuOpen){
+      $(this._menu).class("add", "hidden");
+      this._menuOpen = false;
+    }
   }
 };
 
