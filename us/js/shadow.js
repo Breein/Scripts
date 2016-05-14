@@ -15,7 +15,10 @@ Shadow.prototype = {
     this._layer = $('#shadow-layer').node();
     if(this._layer) return;
 
-    this._layer = $('<div>').attr('id', 'shadow-layer').node();
+    this._layer = $('<div>')
+      .attr('id', 'shadow-layer')
+      .attr("title", "Клик закроет окно")
+      .node();
     document.body.appendChild(this._layer);
 
     bindEvent(this._layer, 'onclick', this.close, [], this);
