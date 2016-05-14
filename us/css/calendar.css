@@ -1,3 +1,6 @@
+#calendar{
+    z-index: 3;
+}
 #calendar tr{
     border: none;
 }

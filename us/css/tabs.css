@@ -30,8 +30,8 @@ td.tab-button{
     height: 25px;
     border: solid #339933 1px;
     text-align: center;
-    background-color: #f0fff0;
     cursor: pointer;
+    background: #f0fff0 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAYCAMAAAD08pwfAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAAeUExURY2xjbDMsOn56dbq1jBqMGiTaBNSEzhvOABEAAAAANG6c20AAAAKdFJOU////////////wCyzCzPAAAAZ0lEQVR42kzPUQ7AIAgD0IJWyv0vPOY2ph/mBYFUZB+0/Kf9jKZPpPN5v6sOL3I3iM2477npWpbr2RBS6l2mxc2aN6nGDMBICVX1EOlh8xsjsTms2nbIKmqB6GBNjiaO6CePH+clwACVlQbg/cqANwAAAABJRU5ErkJggg==) no-repeat 3px center;
 }
 td.tab-text.active{
     border-top-style: none;

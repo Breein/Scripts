@@ -1,7 +1,4 @@
-.hide{
-    visibility: hidden;
-    z-index: -1;
-}
+.hide,
 .hidden{
     display: none;
 }
