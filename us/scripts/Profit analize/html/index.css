@@ -7,6 +7,7 @@
 }
 
 #contextMenu.items > ul[type="items"],
+#contextMenu.stats > ul[type="stats"],
 #contextMenu.sellers > ul[type="sellers"]{
     display: block;
 }
@@ -182,4 +183,20 @@ td[filter].enable{
 
 a.no-line{
     text-decoration: none;
+}
+span.date-analyze{
+    font-size: 9px;
+    padding-left: 5px;
+}
+#pa_sell-sum{
+    display: inline-block;
+    width: 100px;
+    font-weight: bold;
+    padding-right: 10px;
+}
+#pa_profit-sum{
+    display: inline-block;
+    width: 100px;
+    font-weight: bold;
+    padding-right: 10px;
 }

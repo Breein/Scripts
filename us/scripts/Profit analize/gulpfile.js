@@ -25,8 +25,9 @@ gulp.task('wrap', function(){
     `// ==UserScript==
 // @name        Profit analysis [GW]
 // @author      гном убийца
-// @description (${nowDate})
-// @include     http://www.ganjawars.ru/home.friends.php
+// @description Анализ прибыли по протоколам продавцов. (${nowDate})
+// @include     http://www.ganjawars.ru/home.friends.php?profit=true
+// @include     http://www.ganjawars.ru/me/
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==

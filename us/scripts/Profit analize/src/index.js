@@ -1,5 +1,10 @@
-require('./../../../js/protoDelay.js')();
 var $ = require('./../../../js/dom.js');
+
+if(location.pathname == "/me/") addStartButton();
+//if(location.search != "?profit=true") return;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+require('./../../../js/protoDelay.js')();
 var bindEvent = require('./../../../js/events.js');
 var ajax = require('./../../../js/request.js');
 var setStyle = require('./../../../js/style.js');
@@ -7,54 +12,56 @@ var progress = require('./../../../js/progress.js')(renderTables);
 var shadow = require('./../../../js/shadow.js')();
 var tabs = require('./../../../js/tabs.js');
 var createTable = require('./../../../js/table.js');
+var calendar = require('./../../../js/calendar.js')();
 
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
 const Create = require('./../src/creator.js')();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var $answer, $tabs, $log, $items, $t, $sellers, $texts;
-
+var $answer, $tabs, $data, $items, $t, $sellers, $texts;
 
 $texts = {
   island: {
     "-1": "Не имеет значения",
     "0": "[G] Ganja Island",
     "1": "[Z] Z-Land",
+    "2": "[S] Santa Maria",
     "3": "[O] Outland",
     "4": "[P] Palm Island"
   }
 };
 
-$items = $ls.load("gk_pa_items");
-$sellers = {
-  '676157':{
-    a: "Bad Dron",
-    b: 47,
-    c: [411, "S.O.L."],
-    d: 1
-  }
-};
 
-$log = {};
-
-
-$answer = $('<span>').node();
-
-var s = Date.parse("05/06/2016 00:00") / 1000;
+loadData();
 
 setStyle('common.js', '@include: ./../../css/common.css, true');
 setStyle('filter.js', '@include: ./../../css/filter.css, true');
 setStyle('pa.js', '@include: ./html/index.css, true');
 
 createGUI();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//getItemsData(true);
+function addStartButton(){
+  var node, button, link;
 
-//console.log($c.getNormalDate(s).d);
-//getLog("get", 0, s, true);
+  link = "http://www.ganjawars.ru/home.friends.php?profit=true";
+
+  node =  $('a[href*="iski.php"]').node(-1);
+  button = $('<span>').html(`
+    <br>
+    <br>
+    <a href="${link}"><img width="12" border="0" height="10" src="http://images.ganjawars.ru/i/home/cashlog.gif" /></a>
+    <a href="${link}">Анализ продаж</a>
+  `).node();
+
+  node.parentNode.insertBefore(button, node.nextElementSibling);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
   var td, gui, settings, ih, bh, ch, menu;
+  var date = $c.getTimeNow();
 
   if(!getItemsData()) return;
 
@@ -72,14 +79,13 @@ function createGUI(){
   $tabs = tabs(["Предметы", "Анализ продаж", "Продавцы"], 1, menu);
   $tabs.append(td);
   document.body.appendChild(gui);
+  calendar.bind($('span[type="calendarCall"]').node());
 
   $t = {
     items: createTable(0, "items", settings, "level"),
     stats: createTable(1, "stats", settings, "seller"),
     sellers: createTable(2, "sellers", settings, "level")
   };
-
-  $tabs.select("Анализ продаж");
 
   renderBaseHTML();
 
@@ -93,18 +99,14 @@ function createGUI(){
   bidHideContextMenu();
   bindActionsContextMenu();
   bindMoneyInputs();
+  bindAddSellers();
 
-  bindEvent($('#pa_openAddSeller'), "onclick", ()=>{
-    shadow.open();
-    $('#pa_addSellers').class("remove", "hide");
-    $tabs.closeMenu();
-  });
-
-  //progress.start("Аанализ протоколов продавцов", 1, 1250);
-  //analyzeSellers(0, 1, [676157], s);
-
-  //console.log($items);
+  bindEvent($('#pa_openAddSeller'), "onclick", openAddSellersWindow);
+  bindEvent($('#pa_openAnalyze'), "onclick", openAnalyzeWindow, ["all"]);
+  bindEvent($('#pa_doAnalyze'), "onclick", prepareAnalyzeSellers, [date]);
+  bindEvent($('#pa_setMinPrice'), "onclick", setMinPriceItem);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function bidHideContextMenu(){
   bindEvent(document.body, 'onclick', ()=>{
@@ -115,6 +117,7 @@ function bidHideContextMenu(){
     }
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function bindActionsContextMenu(){
   var actions, menu, table;
@@ -124,17 +127,48 @@ function bindActionsContextMenu(){
   actions = {
     updateItems: ()=>{
       getItemsData(true);
+    },
+
+    setPrice: (type, list)=>{
+      if(type == "add"){
+        openMinPriceWindow(list[0]);
+      }else{
+        list.forEach((item)=>{
+          $items.item[item.id].d = 0;
+        });
+
+        $ls.save("gk_pa_items", $items);
+        renderItemsTable();
+        renderStatsTable();
+      }
+    },
+
+    removeSellers: (list)=>{
+      if(!confirm(`Вы уверены что хотите убрать этих продавцов? (${list.length} шт.)`)) return;
+
+      list.forEach((seller)=>{
+        delete $sellers[seller.id];
+      });
+
+      $ls.save("gk_pa_sellers", $sellers);
+      renderSellersTable();
+    },
+
+    analyzeSellers: ()=>{
+      openAnalyzeWindow("checked");
     }
   };
+  /////////////////////////////
 
-  $(menu).find('ul[type]').nodeArr().forEach((ul)=>{
+  $(menu).find('ul[type]').each((ul)=>{
     ul = $(ul);
     table = $t[ul.attr("type")];
 
-    ul.find('span[action]').nodeArr().forEach((item)=>{
+    ul.find('span[action]').each((item)=>{
       bindEvent(item, "onclick", action, [table]);
     });
   });
+  /////////////////////////////
 
   function action(table, item){
     var func, args, index, array;
@@ -150,6 +184,7 @@ function bindActionsContextMenu(){
     actions[func].apply(null, args);
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function bindMoneyInputs(){
   var hidden, value;
@@ -163,19 +198,181 @@ function bindMoneyInputs(){
     });
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function bindAddSellers(){
+  var list, count, value, w;
+
+  bindEvent($('#pa_addSeller'), 'onclick', ()=>{
+    list = [];
+    w = $('#pa_addSellersWindow').node();
+
+    $(w).find('input[type="hidden"]').each((input)=>{
+      value = Number(input.value);
+      if(value != 0) list.push(value);
+    });
+
+    count = list.length;
+    $(w).class("add", "hide");
+    progress.start("Добавление продавцов", count, 750);
+    addSellers(0, count, list);
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function addSellers(now, max, list){
+  var id;
+
+  if(now < max){
+    id = list[now];
+    ajax('http://www.ganjawars.ru/info.php?id=' + id, "GET", null).then((r)=>{
+      if(!/Internal error/.test(r.text)){
+        $answer.innerHTML = r.text;
+
+        $sellers[id] = {
+          a: getName(),
+          b: getLevel(),
+          c: getSindicate(),
+          d: getIsland()
+        };
+
+        $ls.save("gk_pa_sellers", $sellers);
+      }
+      progress.work(false, r.time);
+      now++;
+      addSellers.gkDelay(750, null, [now, max, list]);
+    });
+  }else{
+    //$tabs.select("Продавцы");
+    renderSellersTable();
+    progress.done();
+  }
+  /////////////////////////////
+
+  function getName(){
+    return $($answer).find('#namespan').text();
+  }
+  /////////////////////////////
+
+  function getLevel(){
+    var level;
+
+    level = $($answer)
+      .find('tr:contains("~Боевой:")')
+      .find("font")
+      .text();
+    level = Number(level);
+
+    return level;
+  }
+  /////////////////////////////
+
+  function getSindicate(){
+    var sid, name;
+
+    sid = $($answer).find('b:contains("Основной синдикат:")');
+    if(sid.length == 0) return [0, "-"];
+
+    sid = sid.next('a').node();
+    name = sid.textContent;
+    sid = sid.href.match(/(\d+)/)[1];
+    sid = Number(sid);
+
+    return [sid, name];
+  }
+  /////////////////////////////
+
+  function getIsland(){
+    var island;
+
+    island = $($answer).find('b:contains("Район:")').next('a').text();
+
+    if(/\[G]/.test(island)) return 0;
+    if(/\[Z]/.test(island)) return 1;
+    if(/\[S]/.test(island)) return 2;
+    if(/\[P]/.test(island)) return 4;
+    if(/Ejection|Overlord/.test(island)) return 3;
+    return -1;
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function openMinPriceWindow(item){
+  var w = $('#pa_minPriceWindow').node();
+
+  shadow.open("#pa_minPriceWindow");
+  $tabs.closeMenu();
+
+  $(w).find('td[name="item-name"]').text(item.name);
+  $(w).find('input[type="hidden"]').node().value = item.id;
+  $(w).find('input[type="text"]').node().value = $c.convertID(item.price);
+  $(w).find('input[type="hidden"]').node(-1).value = item.price;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function openAddSellersWindow(){
+  shadow.open("#pa_addSellersWindow");
+  $tabs.closeMenu();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function openAnalyzeWindow(type){
+  var text = type == "all" ? "Все" : "Выбранные";
+  $('#pa_sellers-type').text(text);
+  shadow.open("#pa_timeAnalyzeWindow");
+  $tabs.closeMenu();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function setMinPriceItem(){
+  var data;
+
+  data = getValues($('#pa_minPriceWindow').node());
+  $items.item[data.id].d = Number(data.price);
+  $ls.save("gk_pa_items", $items);
+
+  renderItemsTable();
+  renderStatsTable();
+  shadow.close();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function prepareAnalyzeSellers(date){
+  var w, data, stop, type, list = [];
+
+  w = $('#pa_timeAnalyzeWindow').node();
+  type = $('#pa_sellers-type').text() == "Все";
+  data = getValues(w);
+  stop = Number(data[data.type]);
+  if(data.type == "period") stop = date - stop;
+
+  if(type){
+    list = Object.keys($sellers);
+  }else{
+    $t.sellers.getCheckedContent(true).forEach((seller)=>{
+      list.push(seller.id);
+    });
+  }
+
+  $data.time = date;
+  $(w).class("add", "hide");
+  progress.start("Аанализ протоколов продавцов", list.length, 1250);
+  analyzeSellers(0, list.length, list, stop);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function analyzeSellers(now, max, list, stop){
-
   if(progress.isWork(analyzeSellers, arguments)) return;
   if(now < max){
     progress.start(`<b>Продавец:</b> ${$sellers[list[now]].a}, страница протокола: `, "?", 1250, null, true);
     getLog(0, true, [now, max, list, stop]);
   }else{
     progress.done();
-    console.log($log);
+    $tabs.select("Анализ продаж");
     renderStatsTable();
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getLog(page, next, data){
   var url, id, stop;
@@ -200,14 +397,16 @@ function getLog(page, next, data){
         log = text.match(/(.+)Передано \$(\d+) от (.+) : Приобретение предмета (.+)/);
 
         if(log){
-          if($log[id] == null) $log[id] = [];
+          if($data.log[id] == null) $data.log[id] = [];
           if($items.names[log[4]]){
-            $log[id].push({
-              id: $items.names[log[4]], // id
-              a: log[2],                // money
-              b: date                   // date
+            $data.log[id].push({
+              id: $items.names[log[4]],         // id
+              a: Number(log[2]),                // money
+              b: date                           // date
             });
           }
+
+          $ls.save("gk_pa_data", $data);
         }
 
         if(date < stop){
@@ -222,12 +421,12 @@ function getLog(page, next, data){
       getLog.gkDelay(1250, null, [page, next, data]);
     }else{
       progress.work(false, r.time);
-      console.log("Next seller");
       data[0]++;
       analyzeSellers.gkDelay(1250, null, data);
     }
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderBaseHTML(){
   var t;
@@ -247,11 +446,13 @@ function renderBaseHTML(){
   t.setFooter('@include: ./html/itemsTableFooter.html, true');
   t.setControls(renderItemsTable, true, true, true);
 
+  /////////////////////////////
+
   t = $t.stats;
   t.setStructure({
     section: [150, "check", "Тип предмета"],
     name: [-1, "check", "Название предмета"],
-    price: [75, "number", "Минимальная цена предмета"],
+    price: [75, "number|boolean", "Минимальная цена предмета|с минимальной ценой|тех что с ценой"],
     sell: [75, "number", "Цена продажи предмета"],
     profit: [75, "number", "Прибыль"],
     seller: [120, "check", "Имя продавца"],
@@ -262,6 +463,8 @@ function renderBaseHTML(){
   t.setHeader('@include: ./html/statsTableHeader.html, true');
   t.setFooter('@include: ./html/statsTableFooter.html, true');
   t.setControls(renderStatsTable, true, true, true);
+
+  /////////////////////////////
 
   t = $t.sellers;
   t.setStructure({
@@ -277,24 +480,17 @@ function renderBaseHTML(){
   t.setFooter('@include: ./html/sellerTableFooter.html, true');
   t.setControls(()=>{}, true, true, true);
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderTables(){
   renderItemsTable();
   renderStatsTable();
   renderSellersTable();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderItemsTable(mode){
-  var table, items, missing;
-
-  // Их нет на доске, скрываем.
-  //missing = {
-  //  oldcompass: 1,
-  //  bottleopener: 1,
-  //  ganjacup: 1,
-  //  pendant: 1,
-  //  flashlight: 1
-  //};
+  var table, items;
 
   table = $t.items;
 
@@ -304,7 +500,6 @@ function renderItemsTable(mode){
     items = Object.keys($items.item);
 
     items.forEach((id)=>{
-      //if(missing[id]) return;
       table.pushContent(Create.item($items.item[id], $items.sections));
     });
   }
@@ -314,9 +509,11 @@ function renderItemsTable(mode){
     table.bindClickRow(true);
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderStatsTable(mode){
-  var table, id;
+  var table, id, date;
+  var sells = 0, profits = 0;
 
   table = $t.stats;
 
@@ -324,18 +521,29 @@ function renderStatsTable(mode){
     mode = "filter";
     table.clearContent();
 
-    for(id in $log){
-      $log[id].forEach((log)=>{
-        table.pushContent(Create.log($items.item[log.id], log, $items.sections, [id, $sellers[id].name]));
+    for(id in $data.log){
+      $data.log[id].forEach((log)=>{
+        table.pushContent(Create.log($items.item[log.id], log, $items.sections, [id, $sellers[id].a]));
       });
     }
   }
 
   table.prepare(mode);
   showTable(table).then(()=>{
-    table.bindClickRow(false);
+    table.bindClickRow(true);
+
+    table.getContent(true).forEach((row)=>{
+      sells += row.sell;
+      profits += row.profit;
+    });
+
+    date = $c.getNormalDate($data.time);
+    $('#pa_time-update').text(`${date.d} ${date.t}`);
+    $('#pa_sell-sum').text("$" + $c.convertID(sells));
+    $('#pa_profit-sum').text("$" + $c.convertID(profits));
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderSellersTable(mode){
   var table, sellers;
@@ -357,6 +565,7 @@ function renderSellersTable(mode){
     table.bindClickRow(true);
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function showTable(t){
   var code, rows, html, first = 1, n = 0, b;
@@ -424,7 +633,7 @@ function showTable(t){
     return row.check ? "checked" : "";
   }
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getItemsData(update){
   var sections, name;
@@ -557,3 +766,44 @@ function getItemsData(update){
     }
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getValues(element){
+  var result = {};
+
+  $(element).find('input[type="text"],input[type="hidden"]').each((input)=>{
+    result[input.name] = input.value;
+  });
+  $(element).find('input[type="checkbox"]').each((input)=>{
+    result[input.name] = input.checked;
+  });
+  $(element).find('input[type="radio"]:checked').each((input)=>{
+    result[input.name] = input.value;
+  });
+  $(element).find('select').each((select)=>{
+    result[select.name] = $(select).find('option:checked').node().value;
+  });
+  $(element).find('textarea').each((textarea)=>{
+    result[textarea.name] = textarea.value;
+  });
+
+  return result;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function loadData(){
+  $answer = $('<span>').node();
+  $items = $ls.load("gk_pa_items");
+  $sellers = $ls.load("gk_pa_sellers");
+  $data = $ls.load("gk_pa_data");
+
+  if($data.time == null){
+    $data = {
+      time: $c.getTimeNow(),
+      log: {}
+    };
+
+    $ls.save("gk_pa_data", $data);
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,34 @@
+<div class="window center-screen hide" id="pa_minPriceWindow">
+  <table width="320" class="no-border window-content" type="padding">
+    <tr type="header" height="35">
+      <td style="color: #990000;" colspan="2">Установить минимальную стоимость</td>
+    </tr>
+
+    <tr height="28">
+      <td align="right" width="155">Предмет:</td>
+      <td name="item-name" style="font-weight: bold;"></td>
+      <input type="hidden" name="id" value="">
+    </tr>
+
+    <tr>
+      <td align="right">Стоимость:</td>
+      <td>
+        <span class="money-input">
+          <input type="text" name="price" value=0 maxlength="9" style="width: 80px;" />
+          <input type="hidden" name="price" value="0">
+        </span>
+         гб.
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" colspan="2" height="35">
+        <input type="button" id="pa_setMinPrice" value="Установить">
+      </td>
+    </tr>
+
+    <tr height="5" bgcolor="#d0eed0">
+      <td colspan="2"></td>
+    </tr>
+  </table>
+</div>
