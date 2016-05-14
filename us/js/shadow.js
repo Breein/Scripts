@@ -31,11 +31,15 @@ Shadow.prototype = {
     this._width = s.width;
   },
 
-  open: function(){
+  /**
+   * @param {string=} window
+   */
+  open: function(window){
     this._getSize();
     this._layer.style.display = "block";
     this._layer.style.width = this._width + "px";
     this._layer.style.height = this._height + "px";
+    if(window) $(window).class("remove", "hide");
   },
 
   close: function(){
