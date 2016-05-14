@@ -257,7 +257,7 @@ function getValues(element){
     result[input.name] = input.checked;
   });
   $(element).find('input[type="radio"]:checked').each((input)=>{
-    result[input.name] = input.checked;
+    result[input.name] = input.value;
   });
   $(element).find('select').each((select)=>{
     result[select.name] = $(select).find('option:checked').node().value;
