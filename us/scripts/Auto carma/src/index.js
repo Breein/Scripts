@@ -40,11 +40,25 @@ function update(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addCallReset(){
-  bindEvent(document.body, "onkeyup", call, [], this, true);
+  var pressed = {};
 
-  function call(n, e){
-    if(e.keyCode == 82 && confirm("     Auto carma [GW]:\n\nЗапустить настройки?"))
-      loadData(true);
+  bindEvent(document.body, "onkeydown", record, [], this, true);
+  bindEvent(document.body, "onkeyup", clear, [], this, true);
+
+  function record(n, e){
+    pressed[e.keyCode] = true;
+    if(pressed['65'] && pressed['67'] && pressed['13']){
+      pressed = {};
+      if(confirm("     Auto carma [GW]:\n\nЗапустить настройки?")){
+        loadData(true);
+      }
+    }
+  }
+
+  function clear(n, e){
+    if(pressed[e.keyCode]){
+      delete  pressed[e.keyCode];
+    }
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
