@@ -1,0 +1,91 @@
+<div class="window center-screen hide" id="mt_settingsWindow">
+  <table width="700" class="no-border window-content" type="padding">
+    <tr class="header" height="35">
+      <td style="color: #990000;" colspan="2">Mechanical trader [GW]: Настройки</td>
+    </tr>
+
+    <tr height="30" class="header">
+      <td align="center" width="270">Интервалы</td>
+      <td align="center">Склады</td>
+    </tr>
+
+    <tr>
+      <td align="center">
+        <table>
+          <tr>
+            <td align="right">Цикл ожидания: </td>
+            <td>от <input type="text" class="interval" maxlength="3" value="${$i.main[0]}"/> до <input type="text" class="interval" maxlength="3" value="${$i.main[1]}" /></td>
+          </tr>
+          <tr>
+            <td align="right">Запрос цены: </td>
+            <td>от <input type="text" class="interval" maxlength="2" value="${$i.getCost[0]}" /> до <input type="text" class="interval" maxlength="2" value="${$i.getCost[1]}" /></td>
+          </tr>
+          <tr>
+            <td align="right">Удаление с доски: </td>
+            <td>от <input type="text" class="interval" maxlength="2" value="${$i.removeAdvert[0]}" /> до <input type="text" class="interval" maxlength="2" value="${$i.removeAdvert[1]}" /></td>
+          </tr>
+          <tr>
+            <td align="right">Переход к подаче: </td>
+            <td>от <input type="text" class="interval" maxlength="2" value="${$i.goSell[0]}"/> до <input type="text" class="interval" maxlength="2" value="${$i.goSell[1]}" /></td>
+          </tr>
+          <tr>
+            <td align="right">Просмотр склада: </td>
+            <td>от <input type="text" class="interval" maxlength="2" value="${$i.openStorage[0]}"/> до <input type="text" class="interval" maxlength="2" value="${$i.openStorage[1]}" /></td>
+          </tr>
+          <tr>
+            <td align="right">Взятие со склада: </td>
+            <td>от <input type="text" class="interval" maxlength="2" value="${$i.getItem[0]}"/> до <input type="text" class="interval" maxlength="2" value="${$i.getItem[1]}" /></td>
+          </tr>
+          <tr>
+            <td align="right">Подача на доску: </td>
+            <td>от <input type="text" class="interval" maxlength="2" value="${$i.postSell[0]}"/> до <input type="text" class="interval" maxlength="2" value="${$i.postSell[1]}" /></td>
+          </tr>
+        </table>
+      </td>
+      <td align="center">
+        <div style="width: 100%">
+          <table width="100%" class="padding">
+            <tr class="header" height="28">
+              <td width="120">Объект</td>
+              <td>Сектор</td>
+              <td width="45">Х</td>
+            </tr>
+          </table>
+        </div>
+        <div style="width: 100%; height: 175px; overflow-y: scroll">
+          <table width="100%" class="padding" id="mt_storage-table"></table>
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" colspan="2">
+        <div style="width: 100%">
+          <table width="100%" class="padding">
+            <tr class="header" height="28">
+              <td>Название</td>
+              <td width="100">Мин.цена</td>
+              <td width="50">Кол-во</td>
+              <td width="130">Интервал (мин.)</td>
+              <td width="28">@</td>
+              <td width="45">Х</td>
+            </tr>
+          </table>
+        </div>
+        <div style="width: 100%; height: 175px; overflow-y: scroll">
+          <table width="100%" class="padding" id="mt_items-table"></table>
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" colspan="2" height="35">
+        <input type="button" id="pa_saveSettings" value="Сохранить">
+      </td>
+    </tr>
+
+    <tr height="5" bgcolor="#d0eed0">
+      <td colspan="2"></td>
+    </tr>
+  </table>
+</div>
