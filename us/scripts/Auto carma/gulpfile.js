@@ -16,17 +16,17 @@ var babel = require("babel-core");
 gulp.task('wrap', function(){
   var userScriptHeader, userScriptFooter, userScriptName, userScriptDir, userScriptVersion, nowDate;
 
-  userScriptDir = '';
-  userScriptName = '.user.js';
+  userScriptDir = 'Auto_carma_[GW]';
+  userScriptName = 'Auto_carma_[GW].user.js';
   userScriptVersion = '1.00';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
     `// ==UserScript==
-// @name
+// @name        Auto carma [GW]
 // @author      гном убийца
-// @description (${nowDate})
-// @include
+// @description Автоматический установщик кармы (${nowDate})
+// @include     http://www.ganjawars.ru/me/
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==

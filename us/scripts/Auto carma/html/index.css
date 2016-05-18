@@ -1,0 +1,31 @@
+#AC_tooltip{
+    position: absolute;
+    width: 250px;
+    background-color: #F0FFF0;
+    border: solid 1px #339933;
+    padding: 8px 10px;
+    z-index: 5;
+    box-shadow: 0 0 5px black;
+    border-radius: 10px;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+#AC_tooltip div.info-header{
+    width: 100%;
+    text-align: center;
+    color: #990000;
+    font-weight: bold;
+}
+#AC_tooltip div.character-info{
+    margin: 10px 0 10px 0;
+}
+
+#AC_tooltip div.carma-info{
+    margin: 10px 0 10px 0;
+    text-align: center;
+    width: 100%;
+    color: #000099;
+}
+body.scroll-hide{
+    overflow-y: hidden;
+}
