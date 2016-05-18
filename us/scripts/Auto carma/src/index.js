@@ -177,17 +177,18 @@ function setCarma(url){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function loadData(reset){
-  var id, min, max;
+  var id, min, max, time;
 
   $data = $ls.load("gk_ac_data");
   if($data.id == null || reset){
     id = getValue(true, "              Auto carma [GW]\n\nВведите начальный ID игрока:", "id", reset);
     min = getValue(false, "                Auto carma [GW]\n\nВведите минимальный порог кармы:", "min", reset);
     max = getValue(false, "                 Auto carma [GW]\n\nВведите максимальный порог кармы:", "max", reset);
+    time = reset ? $data.time : 0;
 
     $data = {
       id: id,
-      time: reset ? $data.time : 0,
+      time: time,
       carma: {
         min: min,
         max: max
