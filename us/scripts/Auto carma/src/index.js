@@ -118,21 +118,28 @@ function getPlayerInfo(){
 
         if(carma.length != 0){
           carma = carma.up('tr').find('div');
+          level = Number(level);
 
-          if(carma.length != 0){
-            go = carma.find('a[title="Отправить Ваш голос: 3"]').node();
-            carma = carma.up('tr').find('b:contains("Карма:")').next('font').text();
-            carma = Number(carma);
+          if(level > 11){
 
-            if($data.carma.min <= carma && carma <= $data.carma.max){
-              showTooltip(name, level, `<span style="color: #009900;">${carma} [подходит]</span>`);
-              setCarma.gkDelay($c.randomNumber(3200, 3500), null, [go]);
+            if(carma.length != 0){
+              go = carma.find('a[title="Отправить Ваш голос: 3"]').node();
+              carma = carma.up('tr').find('b:contains("Карма:")').next('font').text();
+              carma = Number(carma);
+
+              if($data.carma.min <= carma && carma <= $data.carma.max){
+                showTooltip(name, level, `<span style="color: #009900;">${carma} [подходит]</span>`);
+                setCarma.gkDelay($c.randomNumber(3200, 3500), null, [go]);
+              }else{
+                showTooltip(name, level, `<span style="color: #990000;">${carma} [не в заданных пределах]</span>`);
+                next();
+              }
             }else{
-              showTooltip(name, level, `<span style="color: #990000;">${carma} [не в заданных пределах]</span>`);
+              showTooltip(name, level, `<span style="color: #009900;">[нельзя поставить]</span>`);
               next();
             }
           }else{
-            showTooltip(name, level, `<span style="color: #009900;">[нельзя поставить]</span>`);
+            showTooltip(name, level, `<span style="color: #dda829;">[не подходит уровень]</span>`);
             next();
           }
         }else{
