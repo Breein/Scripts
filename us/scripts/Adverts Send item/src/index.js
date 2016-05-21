@@ -60,12 +60,15 @@ function getAdvertIntoMail(){
 
     $ls.save("gk_asi_data", $data);
     $('td:contains("~Тема:")').up('table').html('@include: ./html/sendRow.html, true', true);
-
-    ajax(url, "GET", null).then((r)=>{
-      island = $($answer).html(r.text).find('b:contains("Район:")').next('a').node();
-      $('#asi_island').node().appendChild(island);
-    });
+  }else{
+    url = $('td:contains("От:")').next('td').find('a').node().href;
+    $('td:contains("~Тема:")').up('table').html('@include: ./html/islandRow.html, true', true);
   }
+
+  ajax(url, "GET", null).then((r)=>{
+    island = $($answer).html(r.text).find('b:contains("Район:")').next('a').node();
+    $('#asi_island').node().appendChild(island);
+  });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
