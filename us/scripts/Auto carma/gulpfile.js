@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Auto_carma_[GW]';
   userScriptName = 'Auto_carma_[GW].user.js';
-  userScriptVersion = '1.00';
+  userScriptVersion = '1.01';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
