@@ -355,6 +355,7 @@ function prepareAnalyzeSellers(date){
   }
 
   $data.time = date;
+  $data.log = {};
   $(w).class("add", "hide");
   progress.start("Аанализ протоколов продавцов", list.length, 1250);
   analyzeSellers(0, list.length, list, stop);
