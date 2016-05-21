@@ -96,3 +96,13 @@ img.icon-1{
     margin-right: 8px;
     margin-left: 3px;
 }
+
+td.switch-mode-button{
+    width: 44px;
+    cursor: pointer;
+    text-align: center;
+    background: #afd1af url("data:image/gif;base64,R0lGODlhIgAYAJECAEdfRwAzAAAAAAAAACH5BAEAAAIALAAAAAAiABgAAAJclI+py+0CnmwgxIlPtRP4D4ZfQF7URqbqupqKZ4nyWDqVl23ucmcQ9+j5dhCcBuh7IX/EJBMhdEKXn1cySllKsLwaBtY8lmazWJaFRhvPMbKs45XatHJe/Y7PFwAAOw==") no-repeat center;
+}
+td.switch-mode-button:hover{
+    background-color: #a1b8a1;
+}

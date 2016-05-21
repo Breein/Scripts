@@ -1,5 +1,6 @@
 var $ = require('./../../../js/dom');
 var bindEvent = require('./../../../js/events');
+var setStyle = require('./../../../js/style.js');
 
 var $ls = require('./../../../js/ls.js');
 
@@ -9,16 +10,16 @@ $div = {
   get: "#extract_items_div",
   put: "#store_items_div"
 };
-
-$settings = $ls.load("gk_CIA_settings");
-if($settings.mode == null){
-  $settings = {
-    mode: "new"
-  };
-  $ls.save("gk_CIA_settings", $settings);
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(isPrivateRealty()){
+  $settings = $ls.load("gk_CIA_settings");
+  if($settings.mode == null){
+    $settings = {
+      mode: "new"
+    };
+    $ls.save("gk_CIA_settings", $settings);
+  }
+
   addStyle();
   addTooltip();
   getData("get");
@@ -31,6 +32,7 @@ if(isPrivateRealty()){
     restyleTableOld();
   }
   addButtons();
+  addModeButton();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -39,13 +41,28 @@ function addStyle(){
 
   code = $settings.mode == "new" ? "" : "#extract_items_div div tr:hover, #store_items_div div tr:hover {background-color: #bbe2bb;}";
   code += '@include: ./html/index.css, true';
-  css = $("style")
-    .attr("type", "text/css")
-    .attr("script", "true")
-    .html(code)
-    .node();
+  setStyle("check_it_all.js", code);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  document.head.appendChild(css);
+function addModeButton(){
+  var table, node;
+
+  node = $('<td>').class("set", "switch-mode-button").attr("title", "Сменить режим отображения").node();
+  table = $('a:contains("Забрать предметы из дома")').up('table').node();
+
+  table.rows[0].insertBefore(node, table.rows[0].cells[1]);
+  table.rows[1].cells[0].colSpan = "3";
+
+  bindEvent(node, "onclick", switchMode);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function switchMode(){
+  $settings.mode = $settings.mode == "new" ? "old" : "new";
+  $ls.save("gk_CIA_settings", $settings);
+
+  location.href = location.href + "";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -105,8 +122,8 @@ function restyleTableNew(type){
     .find('div')
     .html(`<table align='center' width='100%'>${code}</table>`)
     .find('td[class="icon"]').nodeArr().forEach((td, index)=>{
-      bindEvent(td, 'onmouseover', showTooltip, [index, type]);
-      bindEvent(td, 'onmouseout', hideTooltip);
+      bindEvent(td, 'onmouseenter', showTooltip, [index, type]);
+      bindEvent(td, 'onmouseleave', hideTooltip);
       bindEvent(td, 'onclick', checkingOne);
       bindEvent(td, 'ondblclick', checkingNew, [type]);
   });
