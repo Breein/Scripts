@@ -195,6 +195,15 @@ function bindActionsContextMenu(){
       openEditAdvertWindow(list[0]);
     },
 
+    //termPostEditAdvert:(list)=>{
+    //  list.forEach((advert)=>{
+    //    if(advert.termPost == 3)
+    //      $adverts[advert.aid].termPost = 365;
+    //  });
+    //  $ls.save("gk_acfd_adverts", $adverts);
+    //  renderAdvertsTable();
+    //},
+
     reCalcPrice: (type, list)=>{
       var count = list.length;
 
@@ -498,6 +507,8 @@ function boardAdd(now, max, list, ext){
         advert = $adverts[list[now].aid];
         advert.expire = $c.getTimeNow() + 600 + Number(advert.termPost) * 86400;
 
+        console.log($c.getNormalDate(advert.expire).d);
+
         $ls.save("gk_acfd_adverts", $adverts);
         console.log(`Success advert posted! [${advert.id}]`);
       }
@@ -523,6 +534,9 @@ function checkAdverts(list, update){
     if(list[length].posted) deleteList.push(list[length]);
   }
   count[1] = deleteList.length;
+
+  //console.log(list);
+  //console.log(deleteList);
 
   if(key){
     progress.addTask(boardDelete, [0, count[1], deleteList], "удаление объявлений", ["Удаление объявлений", count[1], 1250]);
@@ -564,8 +578,8 @@ function boardDelete(now, max, list){
         now++;
         boardDelete.gkDelay(1250, null, [now, max, list]);
       });
-    }else
-      advert.did = 0;{
+    }else{
+      advert.did = 0;
       advert.expire = 0;
 
       progress.work(false, 0);
