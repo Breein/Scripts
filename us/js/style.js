@@ -7,7 +7,7 @@ var $ = require('./dom.js');
 module.exports = function(name, code){
   if($(`style[script="${name}"]`).length) return;
 
-  document.head.appendChild(
+  $('head').node().appendChild(
     $("<style>")
       .attr("type", "text/css")
       .attr("script", name)
