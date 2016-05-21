@@ -174,7 +174,7 @@ function setCarma(url){
       .node();
 
     if(success){
-      name = $(success).up('center').next('a').text();
+      name = $(success).up('center').next('center').find('a').text();
       top =  parseInt($tooltip.style.top, 10) + document.body.scrollTop;
       $tooltip.innerHTML = '@include: ./html/tooltip-carma.html, true';
       show(0, 23, top);
