@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Auto_carma_[GW]';
   userScriptName = 'Auto_carma_[GW].user.js';
-  userScriptVersion = '1.01';
+  userScriptVersion = '1.04';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
@@ -26,7 +26,7 @@ gulp.task('wrap', function(){
 // @name        Auto carma [GW]
 // @author      гном убийца
 // @description Автоматический установщик кармы (${nowDate})
-// @include     http://www.ganjawars.ru/me/
+// @include     http://www.ganjawars.ru/sites.php
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==
