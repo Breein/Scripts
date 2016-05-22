@@ -7,8 +7,9 @@ var $ls = require('./../../../js/ls.js');
 var $div, $timer, $settings, $tooltip, $data = {};
 
 $div = {
-  get: "#extract_items_div",
-  put: "#store_items_div"
+  get:    $("#extract_items_div").node(),
+  put:    $("#store_items_div").node(),
+  other:  $('b:contains("Владелец")').node()
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(isPrivateRealty()){
@@ -20,19 +21,27 @@ if(isPrivateRealty()){
     $ls.save("gk_CIA_settings", $settings);
   }
 
-  addStyle();
-  addTooltip();
-  getData("get");
-  getData("put");
+  if($div.other || $div.get || $div.put){
+    addStyle();
+    addTooltip();
 
-  if($settings.mode == "new"){
-    restyleTableNew("get");
-    restyleTableNew("put");
-  }else{
-    restyleTableOld();
+    if($div.other){
+      getOtherData();
+      restyleTableNew("other");
+    }else{
+      getData("get");
+      getData("put");
+
+      if($settings.mode == "new"){
+        restyleTableNew("get");
+        restyleTableNew("put");
+      }else{
+        restyleTableOld();
+      }
+      addButtons();
+      addModeButton();
+    }
   }
-  addButtons();
-  addModeButton();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -89,19 +98,23 @@ function restyleTableOld(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function restyleTableNew(type){
-  var code, index, colspan, url, count;
+  var code, index, colspan, url, count, height, color;
   var rows, cells , length;
 
   count = 8;
   index = 0;
   code = "";
 
+  color = false;
   length = $data[type].length;
   rows = parseInt(length / count, 10);
+  height = type == "other" ? " other" : "";
   if($data[type].length % count) rows++;
 
   while(rows--){
-    code += `<tr class="${rows % 2 ? 'greengreenbg' : 'greenlightbg'}">`;
+    code += `<tr class="${color ? 'greengreenbg' : 'greenlightbg'}">`;
+    color = !color;
+
     if(length - index > count){
       cells = count;
       colspan = null;
@@ -118,15 +131,31 @@ function restyleTableNew(type){
     code += '</tr>';
   }
 
-  $($div[type])
-    .find('div')
-    .html(`<table align='center' width='100%'>${code}</table>`)
-    .find('td[class="icon"]').nodeArr().forEach((td, index)=>{
-      bindEvent(td, 'onmouseenter', showTooltip, [index, type]);
-      bindEvent(td, 'onmouseleave', hideTooltip);
-      bindEvent(td, 'onclick', checkingOne);
-      bindEvent(td, 'ondblclick', checkingNew, [type]);
-  });
+  if(!$div.other){
+    $($div[type])
+      .find('div')
+      .html(`<table align='center' width='100%'>${code}</table>`)
+      .find('td[class="icon"]')
+      .each((td, index)=>{
+        bindEvent(td, 'onmouseenter', showTooltip, [index, type]);
+        bindEvent(td, 'onmouseleave', hideTooltip);
+        //bindEvent(td, 'onmouseover', showTooltip, [index, type]);
+        //bindEvent(td, 'onmouseout', hideTooltip);
+        bindEvent(td, 'onclick', checkingOne);
+        bindEvent(td, 'ondblclick', checkingNew, [type]);
+    });
+  }else{
+    $($div.other)
+      .up('table')
+      .html(`<tr><td colspan="8" class="items-header">Предметы (${$data.other.length} шт.)</td></tr>` + code)
+      .find('td[class="icon other"]')
+      .each((td, index)=>{
+        bindEvent(td, 'onmouseenter', showTooltip, [index, type]);
+        bindEvent(td, 'onmouseleave', hideTooltip);
+        //bindEvent(td, 'onmouseover', showTooltip, [index, type]);
+        //bindEvent(td, 'onmouseout', hideTooltip);
+    });
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -164,7 +193,11 @@ function showTooltip(index, type, td){
     $tooltip.style.top = size.top + document.body.scrollTop + 30;
     $tooltip.innerHTML = '@include: ./html/tooltip.html, true';
 
-    bindEvent($($tooltip).find('div[class="button"]').node(), 'onclick', checkingNew, [type, td]);
+    if(type == "other"){
+      $($tooltip).find('div[class="button"]').node().style.display = "none";
+    }else{
+      bindEvent($($tooltip).find('div[class="button"]').node(), 'onclick', checkingNew, [type, td]);
+    }
   }, 1100);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -207,8 +240,15 @@ function getData(type){
     var item, id, color, durability, mod;
 
     item = $(node).find('a[href*="item_id"]').node();
-    durability = node.textContent.match(/\[(\d+)\/(\d+)]/);
-    durability = durability[1] + "/" + durability[2];
+
+    durability = item.nextElementSibling;
+    if(durability){
+      durability = durability.textContent;
+    }else{
+      durability = item.nextSibling.textContent;
+      durability = durability.match(/(.+)\[(.+)\/(.+)]/);
+      durability = durability[2] + "/" + durability[3];
+    }
     mod = node.textContent.match(/\[(\w+)]/g);
     mod = mod ? mod.join(" ") : "";
     color = item.style.color;
@@ -241,6 +281,60 @@ function getData(type){
       href: owner.href,
       sid: sid
     }
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getOtherData(){
+  if($data.other == null)
+    $data.other = [];
+
+  $($div.other).up('table').find('tr').each((row)=>{
+    $data.other.push({
+      item: getItem(row),
+      owner: getOwner(row.cells[1]),
+      box: '<input type="checkbox" />'
+    });
+  }, 1);
+  /////////////////////////////
+
+  function getItem(tr){
+    var item, id, color, durability, mod;
+
+    item = $(tr.cells[0]).find('a[href*="item_id"]').node();
+    durability = tr.cells[2].textContent;
+    mod = tr.cells[0].textContent.match(/\[(\w+)]/g);
+    mod = mod ? mod.join(" ") : "";
+    color = "#990000";
+    id = item.href;
+    if(/&/.test(id)) id = id.split(/&/)[0];
+    id = id.split(/item_id=/)[1];
+
+    return {
+      name: item.textContent,
+      href: item.href,
+      id: id,
+      color: color,
+      durability: durability,
+      mod: mod
+    };
+  }
+  /////////////////////////////
+
+  function getOwner(node){
+    var owner, id, sid;
+
+    owner = $(node).find('a[href*="info.php"]').node();
+    id = Number(owner.href.split(/id=/)[1]);
+    sid = $(node).find('a[href*="syndicate.php"]').node();
+    if(sid) sid = Number(sid.href.split(/id=/)[1]);
+
+    return {
+      id: id,
+      name: owner.textContent,
+      href: owner.href,
+      sid: sid
+    };
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -335,7 +429,7 @@ function isPrivateRealty(){
   name = $('font[color="#990000"]:contains("Частный дом")');
   if(name.length) return true;
   name = $('font[color="#990000"]:contains("Банк")');
-  return !!name.length;
+  return name.length != 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
