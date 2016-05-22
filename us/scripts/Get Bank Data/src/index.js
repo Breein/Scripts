@@ -74,9 +74,8 @@ function collectData(){
   $('b:contains("~Изменение счета")')
     .up('table')
     .find('tr')
-    .nodeArr()
-    .forEach((row, index)=>{
-      if(index == 0) return;
+    .each((row, index)=>{
+      if(/счет персонажа не менялся/.test(row.textContent)) return;
       text = row.cells[1].textContent;
       time = row.cells[0].textContent;
       time = time.match(/(\d+)/g);
@@ -104,7 +103,7 @@ function collectData(){
         [id, name],
         sum
       ]);
-    });
+    }, 1);
 
   data = JSON.stringify(data);
   data = encodeURIComponent(data);
