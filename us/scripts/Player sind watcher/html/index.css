@@ -1,0 +1,9 @@
+tr.white-row{
+    background-color: #FFFFFF;
+}
+tr.no-white-row{
+    background-color: #F5FFF5;
+}
+tr.watch-row{
+    background-color: #f6e5e5;
+}
