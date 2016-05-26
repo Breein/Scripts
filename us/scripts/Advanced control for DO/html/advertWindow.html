@@ -1,75 +1,76 @@
 <div class="window center-screen hide" id="acfd_advertWindow">
-    <table width="450" class="no-border window-content" type="padding">
-        <tr type="header" height="35">
-            <td style="color: #990000;" colspan="2">
-                Объявление:
-                <span name="action"></span>
-                <input type="hidden" value="" name="action" />
-            </td>
-        </tr>
-        <tr>
-            <td align="right">Предметы:</td>
-            <td><select style="width: 200px;" name="iid"></select> Всего: <span type="count"></span></td>
-        </tr>
-        <tr>
-            <td align="right">Остров:</td>
-            <td>
-                <select style="width: 200px;" name="island">
-                    <option value="-1">Не имеет значения</option>
-                    <option value="0">[G] Ganja Island</option>
-                    <option value="1">[Z] Z-Land</option>
-                    <option value="4">[P] Palm Island</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">Время размещения:</td>
-            <td>
-                <select style="width: 200px;" name="termPost">
-                    <option value="1">Один день</option>
-                    <option value="2">Два дня</option>
-                    <option value="3">Тря дня</option>
-                </select>
-            </td>
-        </tr>
+  <table width="450" class="no-border window-content" type="padding">
+    <tr type="header" height="35">
+        <td style="color: #990000;" colspan="2">
+            Объявление:
+            <span name="action"></span>
+            <input type="hidden" value="" name="action" />
+        </td>
+    </tr>
+    <tr>
+      <td align="right">Предметы:</td>
+      <td><select style="width: 200px;" name="iid"></select> Всего: <span type="count"></span></td>
+    </tr>
+    <tr>
+      <td align="right">Остров:</td>
+      <td>
+        <select style="width: 200px;" name="island">
+          <option value="-1">Не имеет значения</option>
+          <option value="0">[G] Ganja Island</option>
+          <option value="1">[Z] Z-Land</option>
+          <option value="4">[P] Palm Island</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td align="right">Время размещения:</td>
+      <td>
+        <select style="width: 200px;" name="termPost">
+          <option value="1">Один день</option>
+          <option value="2">Два дня</option>
+          <option value="3">Тря дня</option>
+          <option value="365">Один год (3 дня)</option>
+        </select>
+      </td>
+    </tr>
 
-        <tr type="rent">
-            <td align="right">Срок аренды:</td>
-            <td>
-                <select style="width: 200px;" name="termRent">
-                    <option value="0">0 дней</option><option value="1">1 день</option><option value="2">2 дня</option><option value="3">3 дня</option><option value="4">4 дня</option><option value="5">5 дней</option><option value="6">6 дней</option><option value="7">7 дней</option><option value="8">8 дней</option><option value="9">9 дней</option><option value="10">10 дней</option><option value="11">11 дней</option><option value="12">12 дней</option><option value="13">13 дней</option><option value="14">14 дней</option><option value="15">15 дней</option><option value="16">16 дней</option><option value="17">17 дней</option><option value="18">18 дней</option><option value="19">19 дней</option><option value="20">20 дней</option><option value="21">21 день</option><option value="22">22 дня</option><option value="23">23 дня</option><option value="24">24 дня</option><option value="25">25 дней</option><option value="26">26 дней</option><option value="27">27 дней</option><option value="28">28 дней</option><option value="29">29 дней</option>
-                </select>
-            </td>
-        </tr>
+    <tr type="rent">
+      <td align="right">Срок аренды:</td>
+      <td>
+        <select style="width: 200px;" name="termRent">
+          <option value="0">0 дней</option><option value="1">1 день</option><option value="2">2 дня</option><option value="3">3 дня</option><option value="4">4 дня</option><option value="5">5 дней</option><option value="6">6 дней</option><option value="7">7 дней</option><option value="8">8 дней</option><option value="9">9 дней</option><option value="10">10 дней</option><option value="11">11 дней</option><option value="12">12 дней</option><option value="13">13 дней</option><option value="14">14 дней</option><option value="15">15 дней</option><option value="16">16 дней</option><option value="17">17 дней</option><option value="18">18 дней</option><option value="19">19 дней</option><option value="20">20 дней</option><option value="21">21 день</option><option value="22">22 дня</option><option value="23">23 дня</option><option value="24">24 дня</option><option value="25">25 дней</option><option value="26">26 дней</option><option value="27">27 дней</option><option value="28">28 дней</option><option value="29">29 дней</option>
+        </select>
+      </td>
+    </tr>
 
-        <tr>
-            <td align="right">Прочность:</td>
-            <td>
-                <select style="width: 200px;" name="durability">
-                    <option value="new">Новый</option>
-                    <option value="broken">Сломанный</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td align="right">Цена:</td>
-            <td>
-                <select style="width: 200px;" name="price">
-                  <option value="sellEun">По курсу продажи</option>
-                  <option value="buyEun">По курсу покупки</option>
-                  <option value="0">Не устанавливать</option>
-                </select>
-            </td>
-        </tr>
+    <tr>
+      <td align="right">Прочность:</td>
+      <td>
+        <select style="width: 200px;" name="durability">
+            <option value="new">Новый</option>
+            <option value="broken">Сломанный</option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td align="right">Цена:</td>
+      <td>
+        <select style="width: 200px;" name="price">
+          <option value="sellEun">По курсу продажи</option>
+          <option value="buyEun">По курсу покупки</option>
+          <option value="0">Не устанавливать</option>
+        </select>
+      </td>
+    </tr>
 
-        <tr>
-            <td align="center" colspan="2" height="35">
-                <input type="button" id="acfd_addAdvert" value="Добавить">
-            </td>
-        </tr>
+    <tr>
+      <td align="center" colspan="2" height="35">
+        <input type="button" id="acfd_addAdvert" value="Добавить">
+      </td>
+    </tr>
 
-        <tr height="5" bgcolor="#d0eed0">
-            <td colspan="2"></td>
-        </tr>
-    </table>
+    <tr height="5" bgcolor="#d0eed0">
+      <td colspan="2"></td>
+    </tr>
+  </table>
 </div>
