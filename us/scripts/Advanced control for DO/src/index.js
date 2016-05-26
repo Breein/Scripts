@@ -698,7 +698,7 @@ function getDurItems(){
 
   ajax("http://www.ganjawars.ru/items.php", "GET", null).then((r)=>{
     durability = $($answer).html(r.text)
-      .find(`tr[bgcolor="#e0eee0"],tr[bgcolor="#e0eee0"]:contains("~${name}")`);
+      .find(`tr[bgcolor="#e0eee0"],tr[bgcolor="#d0f5d0"]:contains("~${name}")`);
 
     if(durability.length != 0){
       if(durability.attr("id")){
