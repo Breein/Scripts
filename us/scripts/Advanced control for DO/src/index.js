@@ -507,8 +507,6 @@ function boardAdd(now, max, list, ext){
         advert = $adverts[list[now].aid];
         advert.expire = $c.getTimeNow() + 600 + Number(advert.termPost) * 86400;
 
-        console.log($c.getNormalDate(advert.expire).d);
-
         $ls.save("gk_acfd_adverts", $adverts);
         console.log(`Success advert posted! [${advert.id}]`);
       }
@@ -707,6 +705,9 @@ function getDurItems(){
         durability = durability.next('tr').text();
         durability = durability.split(' • ')[2];
       }else{
+        if(/Взять/.test(durability.text())){
+          durability = durability.next('tr');
+        }
         durability = durability.find('li:contains("~Прочность предмета:")').text();
       }
       durability = durability.match(/Прочность предмета: (\d+)\/(\d+) \((\d+)\)/);
@@ -1197,7 +1198,7 @@ function getItemsData(update){
       /////////////////////////////
     }else{
       $ls.save("gk_acfd_items", $items);
-      console.log(update);
+      //console.log(update);
       update ? renderItemsTable() : createGUI();
       progress.done();
     }
