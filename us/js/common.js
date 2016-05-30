@@ -62,13 +62,14 @@ Common.prototype = {
   /**
    *
    * @param {number} t
+   * @param {boolean} s
    * @returns {string}
    */
-  getNormalTime: function (t){
+  getNormalTime: function (t, s){
     var result, hh, mm, ss;
 
     hh = 0;
-    t = parseInt(t / 1000, 10);
+    if(!s) t = parseInt(t / 1000, 10);
 
     if(t > 3600){
       hh = parseInt(t / 3600, 10);
