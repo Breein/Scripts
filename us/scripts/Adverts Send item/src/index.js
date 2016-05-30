@@ -1,5 +1,6 @@
 var $ = require('./../../../js/dom.js');
 var ajax = require('./../../../js/request.js');
+var bindEvent = require('./../../../js/events.js');
 
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
@@ -89,7 +90,7 @@ function getAdvertIntoMail(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function insertData(){
-  var name, options;
+  var name, options, ot, cost;
 
   $data = $ls.load("gk_asi_data");
 
@@ -106,16 +107,25 @@ function insertData(){
   }
 
   $('#username').node().value = $data.name;
-  $('#for_money_id').node().value = $data.price;
+  cost = $('#for_money_id').node();
+  cost.value = $data.price;
 
   if($data.price != 0){
     if($data.action == "sell"){
       $('#send1').node().checked = true;
     }else{
       $('#noreturn').node().checked = true;
-      $('input[name="owned_time"]').node().value = $data.termRent;
+      ot = $('input[name="owned_time"]').node();
+      ot.value = $data.termRent;
+
+      if($data.termRent != 0)
+        cost.value = $data.price * $data.termRent;
+
+      bindEvent(ot, 'onkeyup', reCalcCost, [cost]);
     }
   }
+
+  //owned_time
 
   if($password != ""){
     $('input[name="sendkey"]').node().value = $password;
@@ -135,6 +145,15 @@ function insertData(){
     });
 
     return select;
+  }
+  /////////////////////////////
+
+  function reCalcCost(cost, input){
+    var time;
+
+    time = parseFloat(input.value);
+    if(isNaN(time)) return;
+    cost.value = $data.price * time;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
