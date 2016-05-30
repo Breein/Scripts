@@ -1,0 +1,11 @@
+<tr height="28" class="${getClass(tr)}" ${border}>
+  <td ${t.getWidth("island")} align="center">${$texts.island[tr.island]}</td>
+  <td ${t.getWidth("sector")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/map.php?sx=${tr.x}&sy=${tr.y}">${tr.sector}</a></td>
+  <td ${t.getWidth("object")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/object.php?id=${tr.object[0]}">${tr.object[1]}</a></td>
+  <td ${t.getWidth("owner")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/search.php?key=${tr.owner}">${tr.owner}</a></td>
+  <td ${t.getWidth("count")} align="center">${$c.convertID(tr.count)}</td>
+  <td ${t.getWidth("price")} align="center">${$c.convertID(tr.price)}</td>
+  <td ${t.getWidth("time")} align="center">${$c.getNormalTime(tr.time, true)}</td>
+  <td ${t.getWidth("go")} align="center"><a class="no-line" target="_blank" href="http://www.ganjawars.ru/map.move.php?gps=1&sxy=${tr.xy}">»»»</a></td>
+  <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+</tr>
