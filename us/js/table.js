@@ -46,7 +46,7 @@ Table.prototype = {
     var h, b, f;
 
     if(typeof node == "number")
-      node = $('table[class="tabs-content"]').node().rows[node];
+      node = $('table[class="tabs-content"]').node().rows[node].cells[0];
 
     h = $('<div>')
       .class("set", "tab-content")
@@ -61,9 +61,9 @@ Table.prototype = {
       .class("set", "tab-content")
       .node();
 
-    node.cells[0].appendChild(h);
-    node.cells[0].appendChild(b);
-    node.cells[0].appendChild(f);
+    node.appendChild(h);
+    node.appendChild(b);
+    node.appendChild(f);
 
     this._header = h;
     this._body = b.firstElementChild;
@@ -167,7 +167,7 @@ Table.prototype = {
   _setSizes: function(){
     var table = this;
 
-    $(this._header).find('td[sort]').each((cell)=>{
+    $(this._header).find('td[sort], td[cell]').each((cell)=>{
       setWidth(cell, "sort");
     });
 
@@ -485,8 +485,7 @@ Table.prototype = {
       var box, action;
 
       if(event.target.nodeName == "A") return;
-      if($(table._ctxMenu).node().style.visibility == "visible")
-        return;
+      if(table._ctxMenu && table._ctxMenu.style.visibility == "visible") return;
 
       box = $(node).find('input[type="checkbox"]').node();
       box.checked = !box.checked;
