@@ -8,7 +8,9 @@ const setStyle = require('./../../../js/style.js');
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
 
-var $data;
+var $data, $answer;
+
+$answer = $('<span>').node();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 setStyle('common.js', '@include: ./../../css/common.css, true');
@@ -43,15 +45,44 @@ function addButton(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function setState(button){
+  $data.list = [];
+
   if(!$data.state){
     button.value = "Стоп наблюдение";
     $data.state = true;
-    watching();
+
+    if(confirm("Наблюдение по списку из рейтинга?")){
+      $data.rating = true;
+      getSindicateList();
+    }else{
+      $data.rating = false;
+      watching();
+    }
   }else{
     button.value = "Начать наблюдение";
     $data.state = false;
   }
   saveData();
+}
+
+function getSindicateList(){
+  var id;
+
+  ajax("http://www.ganjawars.ru/srating.php", "GET", null).then((r)=>{
+    $($answer).html(r.text)
+      .find('b:contains("Синдикат")')
+      .up('table')
+      .find('a:contains("[i]")')
+      .each((a)=>{
+        id = a.href.match(/id=(\d+)/)[1];
+        id = Number(id);
+
+        $data.list.push(id);
+      });
+
+    saveData();
+    nextSindicate.gkDelay($c.randomNumber(1000, 2000));
+  });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -96,13 +127,28 @@ function watching(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function nextSindicate(){
-  var id;
+  var id, button;
 
   id = location.search.match(/\?id=(\d+)/)[1];
   id = Number(id);
   id++;
 
   if(id < 9999 && $data.state){
+    if($data.rating){
+      if($data.list.length != 0){
+        id = $data.list.shift();
+        saveData();
+        go(id);
+      }else{
+        button = $('input[type="button"][value="Стоп наблюдение"]');
+        setState(button.node());
+      }
+    }else{
+      go(id);
+    }
+  }
+
+  function go(id){
     location.href = `http://www.ganjawars.ru/syndicate.php?id=${id}&page=online`;
   }
 }
