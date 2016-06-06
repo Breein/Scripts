@@ -132,18 +132,20 @@ function restyleTableNew(type){
   }
 
   if(!$div.other){
-    $($div[type])
-      .find('div')
-      .html(`<table align='center' width='100%'>${code}</table>`)
-      .find('td[class="icon"]')
-      .each((td, index)=>{
-        bindEvent(td, 'onmouseenter', showTooltip, [index, type]);
-        bindEvent(td, 'onmouseleave', hideTooltip);
-        //bindEvent(td, 'onmouseover', showTooltip, [index, type]);
-        //bindEvent(td, 'onmouseout', hideTooltip);
-        bindEvent(td, 'onclick', checkingOne);
-        bindEvent(td, 'ondblclick', checkingNew, [type]);
-    });
+    if($data[type].length != 0){
+      $($div[type])
+        .find('div')
+        .html(`<table align='center' width='100%'>${code}</table>`)
+        .find('td[class="icon"]')
+        .each((td, index)=>{
+          bindEvent(td, 'onmouseenter', showTooltip, [index, type]);
+          bindEvent(td, 'onmouseleave', hideTooltip);
+          //bindEvent(td, 'onmouseover', showTooltip, [index, type]);
+          //bindEvent(td, 'onmouseout', hideTooltip);
+          bindEvent(td, 'onclick', checkingOne);
+          bindEvent(td, 'ondblclick', checkingNew, [type]);
+        });
+    }
   }else{
     $($div.other)
       .up('table')
@@ -160,18 +162,20 @@ function restyleTableNew(type){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addButtons(){
-  var row, cGet, cPut;
+  var row;
 
-  row = $($div.get).find('table').node().rows[0];
-  row.innerHTML += '<td class="checkCell" title="Выбрать все / Снять все" bgcolor="#d0f5d0" id="checkAllGet">√</td>';
-  row = $($div.put).find('table').node().rows[0];
-  row.innerHTML = '<td class="checkCell" title="Выбрать все / Снять все" bgcolor="#d0f5d0" id="checkAllPut">√</td>' + row.innerHTML;
+  if($data.get.length != 0){
+    row = $($div.get).find('table').node().rows[0];
+    row.innerHTML += '<td class="checkCell" title="Выбрать все / Снять все" bgcolor="#d0f5d0" id="checkAllGet">√</td>';
 
-  cGet = $('#checkAllGet').node();
-  cPut = $('#checkAllPut').node();
+    bindEvent($('#checkAllGet'), 'onclick', checkingAll);
+  }
+  if($data.put.length != 0){
+    row = $($div.put).find('table').node().rows[0];
+    row.innerHTML = '<td class="checkCell" title="Выбрать все / Снять все" bgcolor="#d0f5d0" id="checkAllPut">√</td>' + row.innerHTML;
 
-  bindEvent(cGet, 'onclick', ()=>{checkingAll(cGet)});
-  bindEvent(cPut, 'onclick', ()=>{checkingAll(cPut)});
+    bindEvent($('#checkAllPut'), 'onclick', checkingAll);
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -196,7 +200,7 @@ function showTooltip(index, type, td){
     if(type == "other"){
       $($tooltip).find('div[class="button"]').node().style.display = "none";
     }else{
-      bindEvent($($tooltip).find('div[class="button"]').node(), 'onclick', checkingNew, [type, td]);
+      bindEvent($($tooltip).find('div[class="button"]'), 'onclick', checkingNew, [type, td]);
     }
   }, 1100);
 }
@@ -223,7 +227,9 @@ function getData(type){
   if($data[type] == null)
     $data[type] = [];
 
-  $($div[type]).find('div').find('tr').nodeArr().forEach((row)=>{
+  $($div[type]).find('tr').each((row)=>{
+    if(!row.cells[1]) return;
+
     values = type == "get" ?
       [row.cells[0], row.cells[1], row.cells[2]] :
       [row.cells[1], document.body, row.cells[0]];
@@ -347,7 +353,7 @@ function insertNodes(box, insertIndex, itemIndex, index, type){
   tr.className = tr.cells[0].className;
   table = $(tr).up('table').node();
 
-  $(tr).find('td').nodeArr().forEach((cell)=>{
+  $(tr).find('td').each((cell)=>{
     cell.removeAttribute("class");
   });
 
