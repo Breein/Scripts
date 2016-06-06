@@ -45,14 +45,13 @@ function addButton(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function setState(button){
-  $data.list = [];
-
   if(!$data.state){
     button.value = "Стоп наблюдение";
     $data.state = true;
 
     if(confirm("Наблюдение по списку из рейтинга?")){
       $data.rating = true;
+      $data.page = getPage();
       getSindicateList();
     }else{
       $data.rating = false;
@@ -63,12 +62,24 @@ function setState(button){
     $data.state = false;
   }
   saveData();
+
+  function getPage(){
+    var page;
+
+    page = prompt("С какой страницы начать?", "1");
+    page = Number(page);
+
+    return isNaN(page) ? getPage() : page - 1;
+  }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getSindicateList(){
   var id;
 
-  ajax("http://www.ganjawars.ru/srating.php", "GET", null).then((r)=>{
+  $data.list = [];
+
+  ajax("http://www.ganjawars.ru/srating.php?page_id=" + $data.page, "GET", null).then((r)=>{
     $($answer).html(r.text)
       .find('b:contains("Синдикат")')
       .up('table')
@@ -80,6 +91,7 @@ function getSindicateList(){
         $data.list.push(id);
       });
 
+    if($data.list.length == 0) $data.rating = null;
     saveData();
     nextSindicate.gkDelay($c.randomNumber(1000, 2000));
   });
@@ -137,14 +149,19 @@ function nextSindicate(){
     if($data.rating){
       if($data.list.length != 0){
         id = $data.list.shift();
-        saveData();
-        go(id);
+        go.gkDelay(150, null, [id]);
       }else{
+        $data.page++;
+        getSindicateList.gkDelay($c.randomNumber(1500, 2500));
+      }
+      saveData();
+    }else{
+      if($data.rating == null){
         button = $('input[type="button"][value="Стоп наблюдение"]');
         setState(button.node());
+      }else{
+        go(id);
       }
-    }else{
-      go(id);
     }
   }
 
