@@ -161,35 +161,35 @@ Api.prototype = {
     if(node == null) return this.nodeNull();
 
     text = param.match(/(.+):contains\("~(.+)"\)/i);
-    if (!text) {
+    if(!text){
       key = true;
       text = param.match(/(.+):contains\("(.+)"\)/);
     }
 
-    if (text) {
+    if(text){
       selector = text[1];
       text = text[2];
-    } else {
+    }else{
       selector = param;
       text = null;
     }
 
-    if (text) {
+    if(text){
       nodesArray = node.querySelectorAll(selector);
       this.nodeList = [];
 
-      for (i = 0, length = nodesArray.length; i < length; i++) {
-        if (key) {
-          if (nodesArray[i].textContent == text) {
+      for(i = 0, length = nodesArray.length; i < length; i++){
+        if(key){
+          if(nodesArray[i].textContent == text){
             this.nodeList.push(nodesArray[i]);
           }
-        } else {
-          if (nodesArray[i].textContent.search(text) != -1) {
+        }else{
+          if(nodesArray[i].textContent.indexOf(text) != -1){
             this.nodeList.push(nodesArray[i]);
           }
         }
       }
-    } else {
+    }else{
       this.nodeList = node.querySelectorAll(selector);
     }
     this.length = this.nodeList.length;
