@@ -46,7 +46,9 @@ Shadow.prototype = {
   },
 
   close: function(){
-    if($('#progress-window').attr("state") != "done") return;
+    var pw  = $('#progress-window');
+
+    if(pw.length != 0 && pw.attr("state") != "done") return;
 
     this._layer.style.display = "none";
     $('*[class~="window"]').each((window)=>{
