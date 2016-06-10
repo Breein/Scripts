@@ -62,7 +62,7 @@ Common.prototype = {
   /**
    *
    * @param {number} t
-   * @param {boolean} s
+   * @param {boolean=} s
    * @returns {string}
    */
   getNormalTime: function (t, s){
