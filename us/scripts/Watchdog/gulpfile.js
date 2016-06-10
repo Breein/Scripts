@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Watchdog_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.00';
+  userScriptVersion = '1.01';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
@@ -27,6 +27,9 @@ gulp.task('wrap', function(){
 // @author      гном убийца
 // @description Слежка за жертвами для нападения (${nowDate})
 // @include     http://www.ganjawars.ru/home.friends.php?watchdog=true
+// @include     http://www.ganjawars.ru/map.php*
+// @include     http://www.ganjawars.ru/map.moving.php
+// @include     http://www.ganjawars.ru/me/*
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==
