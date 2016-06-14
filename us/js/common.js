@@ -95,21 +95,50 @@ Common.prototype = {
    * @returns {string|number}
    */
   convertID: function (value){
-    var result, i, j;
+    var result, vs, i, j;
 
     if(value < 1000) return value;
 
-    value = value.toString();
-    j = 1; i = value.length;
+    vs = value + "";
+    j = 1; i = vs.length;
     result = "";
 
     while(i--){
-      result = value.charAt(i) + result;
+      result = vs.charAt(i) + result;
       if(j%3 == 0 && j != 0 && i != 0){
         result = ',' + result;
       }
       j++
     }
+
+    return result;
+  },
+
+  /**
+   * @param {number} value
+   * @returns {string|number}
+   */
+  convertNumber: function(value){
+    var result, d, m;
+
+    if(value < 1000 && value >= 0) return value;
+    if(value < 0){
+      m = true;
+      value = value * -1;
+    }
+
+    d = (value + "").split('.');
+
+    if(d){
+      value = Number(d[0]);
+      d = d[1];
+    }
+
+    result = this.convertID(value);
+
+    if(m) result = "-" + result;
+    if(d) result = result + "." + d;
+
     return result;
   },
 
