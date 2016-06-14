@@ -1,5 +1,13 @@
 <div style="left: 0; top: 0; visibility: hidden;" id="contextMenu">
-  <ul type="items">
+  <ul type="gosItems">
+    <li class="parent"><span>Анализ цен</span>
+      <ul>
+        <li><span action='["analyzeExp", false]'>Отмеченные</span></li>
+        <li><span action='["analyzeExp", true]'>Все</span></li>
+      </ul>
+    </li>
+  </ul>
+  <ul type="artItems">
     <li class="parent"><span>Объявление</span>
       <ul>
         <li><span action='["addAdvert", "sell", "продажа"]'>Продать</span></li>
@@ -23,7 +31,6 @@
         </li>
       </ul>
     </li>
-    <li><span action='["updateItems"]'>Обновить данные</span></li>
   </ul>
   <ul type="adverts">
     <li class="parent"><span>Доска объявлений</span>

@@ -2,7 +2,7 @@
     <td ${t.getWidth("section")} class="ct">${tr.section}</td>
     <td ${t.getWidth("level")} class="ct">${tr.level}</td>
     <td ${t.getWidth("name")} class="a-item">${getNameLink(tr)}</td>
-    <td ${t.getWidth("mod")} class="ct">${getMod(tr)}</td>
+    <td ${t.getWidth("mod")} class="ct">${getMod(tr, true)}</td>
     <td ${t.getWidth("action")} class="ct">${$texts.action[tr.action]}</td>
     <td ${t.getWidth("island")} class="ct">${$texts.island[tr.island]}</td>
     <td ${t.getWidth("durNow")} class="ct">${tr.durNow}/${tr.durMax}</td>

@@ -6,10 +6,8 @@
   <td ${t.getWidth("cost")} align="center">${$c.convertID(tr.cost)}</td>
   <td ${t.getWidth("refundNew")} align="center">${$c.convertID(tr.refundNew)}</td>
   <td ${t.getWidth("refundBroken")} align="center">${$c.convertID(tr.refundBroken)}</td>
-  <td ${t.getWidth("refundOne")} align="center">${$c.convertID(tr.refundOne)}</td>
-  <td ${t.getWidth("expNew")} align="center">${tr.expNew}</td>
-  <td ${t.getWidth("expBroken")} align="center">${tr.expBroken}</td>
-  <td ${t.getWidth("expOne")} align="center">${tr.expOne}</td>
+  <td ${t.getWidth("expNew")} align="center">${$c.convertNumber(tr.expNew)}</td>
+  <td ${t.getWidth("expBroken")} align="center">${$c.convertNumber(tr.expBroken)}</td>
   <td ${t.getWidth("sell")} align="center">${tr.sell ? '√' : ''}</td>
   <td ${t.getWidth("buy")} align="center">${tr.buy ? '√' : ''}</td>
   <td ${t.getWidth("rent")} align="center">${tr.rent ? '√' : ''}</td>

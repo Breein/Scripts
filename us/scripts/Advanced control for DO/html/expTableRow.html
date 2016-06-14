@@ -1,0 +1,16 @@
+<tr height="28" class="${getClass(tr)}" ${border}>
+  <td ${t.getWidth("section")} align="center">${tr.section}</td>
+  <td ${t.getWidth("level")} align="center">${tr.level}</td>
+  <td ${t.getWidth("name")} class="a-item">${getNameLink(tr)}</td>
+  <td ${t.getWidth("mod")} align="center">${getMod(tr, true)}</td>
+  <td ${t.getWidth("price")} align="center">${$c.convertID(tr.price)}</td>
+  <td ${t.getWidth("refund")} align="center">${$c.convertID(tr.refund)}</td>
+  <td ${t.getWidth("exp")} align="center">${$c.convertNumber(tr.exp)}</td>
+  <td ${t.getWidth("expCost")} align="center">${tr.expCost}</td>
+  <td ${t.getWidth("durMax")} align="center">${tr.durNow}/${tr.durMax}</td>
+  <td ${t.getWidth("island")} align="center">${$texts.island[tr.island]}</td>
+  <td ${t.getWidth("seller")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.seller[0]}">${tr.seller[1]}</a></td>
+  <td ${t.getWidth("fast")} align="center">${tr.fast ? '√' : ''}</td>
+  <td ${t.getWidth("actions")} align="center">${getActionsLink(tr)}</td>
+  <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+</tr>
