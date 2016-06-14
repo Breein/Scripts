@@ -5,31 +5,52 @@ function GeneratorData(){
 }
 
 GeneratorData.prototype = {
-  item: function(i, a){
+  gosItem: function(i, a, s){
     return {
-      id: i.id,
-      section: i.section,
-      name: i.name,
-      durability: i.durability,
-      level: i.level,
-      cost: i.cost,
-      renew: i.cost - i.refund,
-      refund: i.refund,
-      sell: a[`${i.id}-sell`] != null,
-      buy: a[`${i.id}-buy`] != null,
-      rent: a[`${i.id}-rent`] != null,
+      id: i[0],
+      section: s[i[2]],
+      name: i[1],
+      durability: i[6][0],
+      level: i[7],
+      cost: i[3],
+      refundNew: i[4][0],
+      refundBroken: i[4][1],
+      refundOne: i[4][2],
+      expNew: i[5][0],
+      expBroken: i[5][1],
+      expOne: i[5][2],
+      sell: a[`${i[0]}-sell`] != null,
+      buy: a[`${i[0]}-buy`] != null,
+      rent: a[`${i[0]}-rent`] != null,
+      check: false
+    }
+  },
+
+  artItem: function(i, a, s){
+    return {
+      id: i[0],
+      section: s[i[2]],
+      name: i[1],
+      durability: i[5],
+      level: i[6],
+      cost: i[3],
+      renew: i[3] - i[4],
+      refund: i[4],
+      sell: a[`${i[0]}-sell`] != null,
+      buy: a[`${i[0]}-buy`] != null,
+      rent: a[`${i[0]}-rent`] != null,
       check: false
     };
   },
 
-  advert: function(a, i){
+  advert: function(a, i, s){
     return {
-      id: i.id,
-      aid: i.id + "-" + a.action,
-      section: i.section,
-      name: i.name,
+      id: i[0],
+      aid: i[0] + "-" + a.action,
+      section: s[i[2]],
+      name: i[1],
       mod: a.mod,
-      level: i.level,
+      level: i[6],
       action: a.action,
       island: a.island,
       durNow: a.durNow,
@@ -44,22 +65,43 @@ GeneratorData.prototype = {
     };
   },
 
-  stats: function(p, i, pos){
+  stats: function(p, i, s, pos){
     return {
-      id: i.id,
+      id: i[0],
       position: pos,
-      section: i.section,
-      level: i.level,
-      name: i.name,
-      mod: p.mod,
-      refund: i.refund,
-      price: p.price,
-      rate: p.rate,
-      durNow: p.dur[0],
-      durMax: p.dur[1],
-      fast: p.fast,
-      island: p.island,
-      seller: [p.seller[0], p.seller[1]],
+      section: s[i[2]],
+      level: i[6],
+      name: i[1],
+      mod: p[2],
+      refund: i[4],
+      price: p[0],
+      rate: p[6],
+      durNow: p[1][0],
+      durMax: p[1][1],
+      fast: p[5],
+      island: p[3],
+      seller: [p[4][0], p[4][1]],
+      check: false
+    }
+  },
+
+  exp: function(p, i, s, pos){
+    return {
+      id: i[0],
+      position: pos,
+      section: s[i[2]],
+      level: i[7],
+      name: i[1],
+      mod: p[2],
+      price: p[0],
+      refund: p[6],
+      exp: p[7],
+      expCost: p[8],
+      durNow: p[1][0],
+      durMax: p[1][1],
+      fast: p[5],
+      island: p[3],
+      seller: [p[4][0], p[4][1]],
       check: false
     }
   },
