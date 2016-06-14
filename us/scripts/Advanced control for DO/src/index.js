@@ -10,12 +10,11 @@ var tabs = require('./../../../js/tabs.js');
 
 const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
-const $ico = require('./../src/icons.js');
 const $mods = require('./../src/mods.js');
 const Create = require('./../src/creator.js')();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var $answer, $tabs, $items, $adverts, $prices, $t, $texts, $data;
+var $answer, $tabs, $items, $adverts, $stats, $t, $texts, $data;
 
 $answer = $('<span>').node();
 
@@ -64,22 +63,29 @@ function createButton(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var td, height, ih, bh, ch, settings, gui;
+  var td, height, ih, bh, ch, settings, gui, menu;
 
   if(!getItemsData()) return;
+
+  menu = {
+    "Установить курс Eun": "acfd_setCostEUN",
+    "Обновить данные предметов": "acfd_updateItems"
+  };
 
   settings = "gk_acfd_settings";
   gui = $('<span>').attr("type", "gui").html('@include: ./html/baseGUI.html, true').node();
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td').html('').node();
 
-  $tabs = tabs(["Предметы", "Объявления", "Анализ цен"], 1);
+  $tabs = tabs(["Гос. предметы", "Арт. предметы", "Объявления", "Анализ цен", "Анализ эконома"], 2, menu);
   $tabs.append(td);
   document.body.appendChild(gui);
 
   $t = {
-    items: createTable(0, "items", settings, "level"),
-    adverts: createTable(1, "adverts", settings, "section"),
-    stats: createTable(2, "stats", settings, "name")
+    gosItems: createTable(0, "gos-items", settings, "level"),
+    artItems: createTable(1, "art-items", settings, "level"),
+    adverts: createTable(2, "adverts", settings, "section"),
+    stats: createTable(3, "stats", settings, "name"),
+    exp: createTable(4, "exp", settings, "name")
   };
 
   renderBaseHTML();
@@ -89,7 +95,8 @@ function createGUI(){
   ch = (parseInt((ih - bh) / 28, 10)) * 28;
   setStyle('adfd-content.js ', `div.tab-content-scroll{height: ${ch}px; overflow-y: scroll; margin: auto}`);
 
-  bindEvent($('#setCostEUN').class("remove", "hidden"), "onclick", openSetCostEunWindow);
+  bindEvent($('#acfd_setCostEUN').class("remove", "hidden"), "onclick", openSetCostEunWindow);
+  bindEvent($('#acfd_updateItems'), "onclick", getItemsData, [true]);
   bindEvent($("#acfd_addAdvert"), "onclick", addAdvert);
   bindEvent($("#acfd_editAdvert"), "onclick", editAdvert);
   bindEvent($("#acfd_getDurItems"), "onclick", getDurItems);
@@ -127,8 +134,8 @@ function bindMoneyInputs(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function openSetCostEunWindow(){
-  shadow.open();
-  $('#acfd_costEunWindow').class("remove", "hide");
+  shadow.open('#acfd_costEunWindow');
+  $tabs.closeMenu();
 }
 
 function saveCostEun(){
@@ -151,15 +158,27 @@ function bindActionsContextMenu(){
     },
 
     analyzePrice: (add, all, list)=>{
-      $prices = {
+      $stats.art = {
         time: $c.getTimeNow(),
         list: {}
       };
 
-      if(all) list = $t.items.getContent();
+      if(all) list = $t.artItems.getContent();
 
-      progress.start("Аналази цен доски объвлений", list.length, 1500);
-      analyzePrice(0, list.length, list, add);
+      progress.start("Аналази цен Hi-Tech предметов доски объвлений", list.length, 1500);
+      analyzePrice("art", 0, list.length, list, add);
+    },
+
+    analyzeExp: (all, list)=>{
+      $stats.gos = {
+        time: $c.getTimeNow(),
+        list: {}
+      };
+
+      if(all) list = $t.gosItems.getContent();
+
+      progress.start("Аналази цен и эконома Гос. предметов доски объвлений", list.length, 1500);
+      analyzePrice("gos", 0, list.length, list, true);
     },
 
     updateItems: ()=>{
@@ -210,12 +229,12 @@ function bindActionsContextMenu(){
       switch(type){
         case "sell":
           progress.start("Перерасчет цен по курсу продажи", count, 50);
-          advertsAction("reCalc", 0, count, list, {key: "cost", value: $data.sellEun});
+          advertsAction("reCalc", 0, count, list, {key: 3, value: $data.sellEun});
           break;
 
         case "buy":
           progress.start("Перерасчет цен по курсу покупки", count, 50);
-          advertsAction("reCalc", 0, count, list, {key: "refund", value: $data.buyEun});
+          advertsAction("reCalc", 0, count, list, {key: 4, value: $data.buyEun});
           break;
 
         case "rent":
@@ -278,8 +297,9 @@ function getValues(element){
   return result;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function analyzePrice(now, max, list, all){
-  var index, record, price, value, item, cell;
+function analyzePrice(type, now, max, list, all){
+  var index, value, item, cell;
+  var price, dur, mod, island, seller, fast, rate, refund, expCost;
 
   if(progress.isWork(analyzePrice, arguments)) return;
   if(now < max){
@@ -289,37 +309,50 @@ function analyzePrice(now, max, list, all){
       if(cell.length != 0){
         cell.up('table').find('tr').each((tr, n)=>{
           if(/предложений других игроков не найдено/.test(tr.textContent)) return;
+
+          index = `${n - 2}-${list[now].id}`;
           price = getPrice(tr);
-          value = price <= $data.buyEun * item.cost;
+          dur = getDurability(tr);
+          mod = getMod(tr);
+          island = getIsland(tr);
+          seller = getSeller(tr);
+          fast = getFast(tr);
 
-          if(value || all){
-            index = `${n - 2}-${list[now].id}`;
-            $prices.list[index] = {};
+          if(type == "art"){
+            rate = getRate(price, item.refund);
+            value = price <= $data.buyEun * item.cost;
 
-            record = $prices.list[index];
-            record.price = price;
-            record.rate = getRate(price, item.refund);
-            record.dur = getDurability(tr);
-            record.mod = getMod(tr);
-            record.island = getIsland(tr);
-            record.seller = getSeller(tr);
-            record.fast = getFast(tr);
+            if(value || all){
+              $stats.art.list[index] = [price, dur, mod, island, seller, fast, rate];
+            }
+          }else{
+            refund = getRefund(dur[1], item);
+            if(mod != 0) refund[1] += 2000;
+            expCost = getExpCost(price, refund[0], refund[1]);
+
+            $stats.gos.list[index] = [price, dur, mod, island, seller, fast, refund[0], refund[1], expCost];
           }
         }, 3);
-
-        $ls.save("gk_acfd_stats", $prices);
       }else{
         console.log(item.id);
       }
+
+      $ls.save("gk_acfd_stats", $stats);
       progress.work(false, r.time);
       now++;
-      analyzePrice.gkDelay(1500, null, [now, max, list, all]);
+      analyzePrice.gkDelay(1500, null, [type, now, max, list, all]);
     });
   }else{
-    renderStatsTable();
-    $tabs.select("Анализ цен");
+    if(type == "art"){
+      renderStatsTable();
+      $tabs.select("Анализ цен");
+    }else{
+      renderExpTable();
+      $tabs.select("Анализ эконома");
+    }
     progress.done();
   }
+  /////////////////////////////
 
   function getPrice(row){
     var price;
@@ -330,11 +363,7 @@ function analyzePrice(now, max, list, all){
 
     return price;
   }
-
-  function getRate(price, cost){
-    if(cost == 0) return 0;
-    return parseInt(price / cost, 10);
-  }
+  /////////////////////////////
 
   function getSeller(row){
     var seller, id;
@@ -345,6 +374,7 @@ function analyzePrice(now, max, list, all){
 
     return [id, seller.textContent];
   }
+  /////////////////////////////
 
   function getDurability(row){
     var durability;
@@ -355,6 +385,7 @@ function analyzePrice(now, max, list, all){
 
     return durability;
   }
+  /////////////////////////////
 
   function getIsland(row){
     var island, isl;
@@ -364,6 +395,7 @@ function analyzePrice(now, max, list, all){
 
     return isl[island];
   }
+  /////////////////////////////
 
   function getMod(row){
     var mod;
@@ -379,6 +411,7 @@ function analyzePrice(now, max, list, all){
 
     return mod;
   }
+  /////////////////////////////
 
   function getFast(row){
     var fast;
@@ -392,16 +425,56 @@ function analyzePrice(now, max, list, all){
     }
     return fast;
   }
+
+  function getRate(price, cost){
+    if(cost == 0) return 0;
+    return parseInt(price / cost, 10);
+  }
+  /////////////////////////////
+
+  function getRefund(dur, item){
+    var durability, durLeft;
+
+    durability = $items.gos.items[item.id][6];
+    durLeft = durability[0] - dur;
+
+    if(durLeft == 0){
+      return [item.refundNew, item.expNew];
+    }
+
+    if(durLeft < durability[2]){
+      return [
+        durLeft * item.refundOne + item.refundBroken,
+        durLeft * item.expOne + item.expNew
+      ];
+    }
+
+    if(durLeft >= durability[2]){
+      return [item.refundBroken, item.expBroken];
+    }
+  }
+  /////////////////////////////
+
+  function getExpCost(price, refund, exp){
+    var cost;
+
+    cost = price - refund;
+    cost = cost / exp;
+    cost = cost.toFixed(1);
+    cost = parseFloat(cost);
+
+    return cost;
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function editAdvert(){
-  var window, data, advert, item;
+  var window, data, advert; //, item;
 
   shadow.close();
   window = $('#acfd_editAdvertWindow').node();
   data = getValues(window);
   advert = $adverts[data.aid];
-  item = $items.item[advert.id];
+  //item = $items.item[advert.id];
 
   advert.mod = Number(data.mod);
   advert.island = Number(data.island);
@@ -419,7 +492,8 @@ function editAdvert(){
     var d  = Number(p);
 
     if(isNaN(d) || d < 0) d = v;
-    if(d > item.durability) d = item.durability;
+    //if(d > item.durability) d = item.durability;
+
     return d;
   }
 }
@@ -431,7 +505,7 @@ function addAdvert(){
   window = $("#acfd_advertWindow").class("add", "hide").node();
   data = getValues(window);
 
-  $t.items.getCheckedContent(true).forEach((item)=>{
+  $t.artItems.getCheckedContent(true).forEach((item)=>{
     if(!$adverts[`${item.id}-${data.action}`]){
       list.push(item);
     }
@@ -483,7 +557,7 @@ function advertsAction(action, now, max, list, data){
 
       case "reCalc":
         aid = `${record.id}-${record.action}`;
-        $adverts[aid].price = $items.item[record.id][data.key] * data.value;
+        $adverts[aid].price = $items.art.items[record.id][data.key] * data.value;
         break;
     }
 
@@ -505,7 +579,8 @@ function boardAdd(now, max, list, ext){
     ajax("http://www.ganjawars.ru/market-p.php", "POST", Create.board(list[now])).then((r)=>{
       if(/Ваше объявление успешно размещено/.test(r.text)){
         advert = $adverts[list[now].aid];
-        advert.expire = $c.getTimeNow() + 600 + Number(advert.termPost) * 86400;
+        advert.expire = $c.getTimeNow() + 600 + (advert.termPost + 1) * 86400;
+        advert.did = 0;
 
         $ls.save("gk_acfd_adverts", $adverts);
         console.log(`Success advert posted! [${advert.id}]`);
@@ -655,14 +730,14 @@ function boardAdverts(){
 function extensionAdverts(){
   var list, advert, count, date;
 
-  if(!$items.names) return;
+  if(!$items.art) return;
 
   date = $c.getTimeNow();
   list = [];
 
   if(date - $data.time > 3600){
     Object.keys($adverts).forEach((id)=>{
-      advert = Create.advert($adverts[id], $items.item[$adverts[id].id]);
+      advert = Create.advert($adverts[id], $items.art.items[$adverts[id].id], $items.art.sections);
       if(advert.autoPost && !advert.posted) list.push(advert);
     });
 
@@ -686,14 +761,14 @@ function getDurItems(){
 
   window = $("#acfd_editAdvertWindow").node();
   advert = $adverts[$(window).find('input[name="aid"]').node().value];
-  item = $items.item[advert.id];
+  item = $items.art.items[advert.id];
   mod = $(window).find(`select[name="mod"]`).find("option:checked").text();
 
   if(mod != "Без модификатора"){
     mod = mod.split(" ")[0];
-    name = `${item.name} ${mod}`;
+    name = `${item[1]} ${mod}`;
   }else{
-    name = item.name;
+    name = item[1];
   }
 
   ajax("http://www.ganjawars.ru/items.php", "GET", null).then((r)=>{
@@ -802,34 +877,57 @@ function checkingSelect(name, value, node){
 function renderBaseHTML(){
   var t;
 
-  t = $t.items;
+  t = $t.gosItems;
   t.setStructure({
     section: [150, "check", "Тип предмета"],
     level: [28, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
-    durability: [50, "number", "Прочность"],
+    durability: [60, "number", "Прочность"],
     cost: [100, "number", "Стоимость предмета"],
-    renew: [115, "number", "Обновление предмета"],
-    refund: [100, "number", "Возврат с продажи"],
-    sell: [75, "boolean", "Объявление, продажа|добавленные|тех что добавлены"],
-    buy: [75, "boolean", "Объявление, покупка|добавленные|тех что добавлены"],
-    rent: [75, "boolean", "Объявление, аредна|добавленные|тех что добавлены"],
+    refundNew: [75, "number", "Возврат с продажи (новый)"],
+    refundBroken: [75, "number", "Возврат с продажи (сломаный)"],
+    refundOne: [75, "number", "Возврат с продажи (одна ед.пр.)"],
+    expNew: [75, "number", "Эконом с продажи (новый)"],
+    expBroken: [75, "number", "Эконом с продажи (сломаный)"],
+    expOne: [75, "number", "Эконом с продажи (одна ед.пр.)"],
+    sell: [35, "boolean", "Объявление, продажа|добавленные|тех что добавлены"],
+    buy: [35, "boolean", "Объявление, покупка|добавленные|тех что добавлены"],
+    rent: [35, "boolean", "Объявление, аредна|добавленные|тех что добавлены"],
     check: [45, null]
   });
 
-  t.setHeader('@include: ./html/itemsTableHeader.html, true');
-  t.setFooter('@include: ./html/itemsTableFooter.html, true');
-  t.setControls(renderItemsTable, true, true, true);
+  t.setHeader('@include: ./html/gosItemsTableHeader.html, true');
+  t.setFooter('@include: ./html/gosItemsTableFooter.html, true');
+  t.setControls(renderGosItemsTable, true, true, true);
+
+  t = $t.artItems;
+  t.setStructure({
+    section: [150, "check", "Тип предмета"],
+    level: [28, "number", "Минимальный уровень"],
+    name: [-1, "check", "Название предмета"],
+    durability: [60, "number", "Прочность"],
+    cost: [100, "number", "Стоимость предмета"],
+    renew: [115, "number", "Обновление предмета"],
+    refund: [100, "number", "Возврат с продажи"],
+    sell: [35, "boolean", "Объявление, продажа|добавленные|тех что добавлены"],
+    buy: [35, "boolean", "Объявление, покупка|добавленные|тех что добавлены"],
+    rent: [35, "boolean", "Объявление, аредна|добавленные|тех что добавлены"],
+    check: [45, null]
+  });
+
+  t.setHeader('@include: ./html/artItemsTableHeader.html, true');
+  t.setFooter('@include: ./html/artItemsTableFooter.html, true');
+  t.setControls(renderArtItemsTable, true, true, true);
 
   t = $t.adverts;
   t.setStructure({
     section: [150, "check", "Тип предмета"],
     level: [28, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
-    mod: [165, "check|boolean", "Модификтор|с модом|что с модом"],
+    mod: [50, "check|boolean", "Модификтор|с модом|тех что с модом"],
     action: [80, "multiple", "Тип объявления"],
     island: [130, "multiple", "Остров"],
-    durNow: [50, "number|boolean", "Прочность (текущая)|новые предметы|новых предметов"],
+    durNow: [60, "number|boolean", "Прочность (текущая)|новые предметы|новых предметов"],
     termPost: [50, "number", "Срок размещения"],
     termRent: [50, "number", "Срок аредны"],
     update: [60, "date", "Дата изменения"],
@@ -853,20 +951,64 @@ function renderBaseHTML(){
     price: [75, "number", "Цена предмета"],
     rate: [65, "number", "Цена предмета"],
     durMax: [60, "number", "Прочность максимальная"],
-    fast: [50, "boolean", "Мнгновенная продажа|с быстрой продажей|быстрой продажи"],
     island: [130, "multiple", "Остров"],
     seller: [150, "check", "Имя продавца"],
-    actions: [50, null],
+    fast: [40, "boolean", "Мнгновенная продажа|с быстрой продажей|быстрой продажи"],
+    actions: [35, null],
     check: [45, null]
   });
 
   t.setHeader('@include: ./html/statsTableHeader.html, true');
   t.setFooter('@include: ./html/statsTableFooter.html, true');
   t.setControls(renderStatsTable, true, true, true);
+
+  t = $t.exp;
+  t.setStructure({
+    section: [150, "check", "Тип предмета"],
+    level: [28, "number", "Минимальный уровень"],
+    name: [-1, "check", "Название предмета"],
+    mod: [40, "check|boolean", "Модификтор|с модом|что с модом"],
+    price: [70, "number", "Цена предмета"],
+    refund: [60, "number", "Возврат с продажи"],
+    exp: [55, "number", "Эконом с продажи"],
+    expCost: [40, "number", "Цена за 1 ед. эконома"],
+    durMax: [60, "number", "Прочность максимальная"],
+    island: [130, "multiple", "Остров"],
+    seller: [150, "check", "Имя продавца"],
+    fast: [40, "boolean", "Мнгновенная продажа|с быстрой продажей|быстрой продажи"],
+    actions: [35, null],
+    check: [45, null]
+  });
+
+  t.setHeader('@include: ./html/expTableHeader.html, true');
+  t.setFooter('@include: ./html/expTableFooter.html, true');
+  t.setControls(renderExpTable, true, true, true);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function renderItemsTable(mode){
+function renderGosItemsTable(mode){
+  var table, items;
+
+  table = $t.gosItems;
+
+  if(mode == null){
+    mode = "filter";
+    table.clearContent();
+    items = Object.keys($items.gos.items);
+
+    items.forEach((id)=>{
+      table.pushContent(Create.gosItem($items.gos.items[id], $adverts, $items.gos.sections));
+    });
+  }
+
+  table.prepare(mode);
+  showTable(table).then(()=>{
+    table.bindClickRow(true);
+  });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function renderArtItemsTable(mode){
   var table, items, missing;
 
   // Их нет на доске, скрываем.
@@ -878,16 +1020,16 @@ function renderItemsTable(mode){
     flashlight: 1
   };
 
-  table = $t.items;
+  table = $t.artItems;
 
   if(mode == null){
     mode = "filter";
     table.clearContent();
-    items = Object.keys($items.item);
+    items = Object.keys($items.art.items);
 
     items.forEach((id)=>{
       if(missing[id]) return;
-      table.pushContent(Create.item($items.item[id], $adverts));
+      table.pushContent(Create.artItem($items.art.items[id], $adverts, $items.art.sections));
     });
   }
 
@@ -909,7 +1051,7 @@ function renderAdvertsTable(mode){
     adverts = Object.keys($adverts);
 
     adverts.forEach((id)=>{
-      table.pushContent(Create.advert($adverts[id], $items.item[$adverts[id].id]));
+      table.pushContent(Create.advert($adverts[id], $items.art.items[$adverts[id].id], $items.art.sections));
     });
   }
 
@@ -928,11 +1070,11 @@ function renderStatsTable(mode){
   if(mode == null){
     mode = "filter";
     table.clearContent();
-    prices = Object.keys($prices.list);
+    prices = Object.keys($stats.art.list);
 
     prices.forEach((id)=>{
       data = id.split("-");
-      table.pushContent(Create.stats($prices.list[id], $items.item[data[1]], Number(data[0])));
+      table.pushContent(Create.stats($stats.art.list[id], $items.art.items[data[1]], $items.art.sections, Number(data[0])));
     });
   }
 
@@ -940,16 +1082,43 @@ function renderStatsTable(mode){
   showTable(table).then(()=>{
     table.bindClickRow(false);
 
-    date = $c.getNormalDate($prices.time);
-    $('#acfd_time-update').text(`${date.d} ${date.t}`);
+    date = $c.getNormalDate($stats.art.time);
+    $('#acfd_time-update-stats').text(`${date.d} ${date.t}`);
+  });
+}
+
+function renderExpTable(mode){
+  var table, prices, data, date;
+
+  table = $t.exp;
+
+  if(mode == null){
+    mode = "filter";
+    table.clearContent();
+    prices = Object.keys($stats.gos.list);
+
+    prices.forEach((id)=>{
+      data = id.split("-");
+      table.pushContent(Create.exp($stats.gos.list[id], $items.gos.items[data[1]], $items.gos.sections, Number(data[0])));
+    });
+  }
+
+  table.prepare(mode);
+  showTable(table).then(()=>{
+    table.bindClickRow(false);
+
+    date = $c.getNormalDate($stats.gos.time);
+    $('#acfd_time-update-exp').text(`${date.d} ${date.t}`);
   });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderTables(){
-  renderItemsTable();
+  renderGosItemsTable();
+  renderArtItemsTable();
   renderAdvertsTable();
   renderStatsTable();
+  renderExpTable();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -997,14 +1166,20 @@ function showTable(t){
 
   function getRows(t, tr, border){
     switch(t.getName()){
-      case "items":
-        return '@include: ./html/itemsTableRow.html, true';
+      case "gos-items":
+        return '@include: ./html/gosItemsTableRow.html, true';
+        break;
+      case "art-items":
+        return '@include: ./html/artItemsTableRow.html, true';
         break;
       case "adverts":
         return '@include: ./html/advertsTableRow.html, true';
         break;
       case "stats":
         return '@include: ./html/statsTableRow.html, true';
+        break;
+      case "exp":
+        return '@include: ./html/expTableRow.html, true';
         break;
     }
   }
@@ -1030,16 +1205,17 @@ function showTable(t){
   /////////////////////////////
 
   function getMod(row, short){
-    var m;
+    var m, url;
 
     if(row.mod == 0) return "";
     m = $mods(row.section)[row.mod];
     if(m == null) return "";
+    url = `http://www.ganjawars.ru/item.php?item_id=${row.id}&m=${row.mod}`;
 
     if(short == null){
-      return `<span title="Эффект: ${m.d}, вероятность выпадения: ${m.f}">${m.name} ${m.fn}</span>`;
+      return `<a target="_blank" title="Эффект: ${m.d}\nВероятность выпадения: ${m.f}" href="${url}" class="no-line">${m.name} ${m.fn}</a>`;
     }else{
-      return `<span title="${m.fn}, эффект: ${m.d}, вероятность выпадения: ${m.f}">${m.name}</span>`;
+      return `<a target="_blank" title="${m.fn}\nЭффект: ${m.d}\nВероятность выпадения: ${m.f}" href="${url}" class="no-line">${m.name}</a>`;
     }
   }
 
@@ -1065,47 +1241,68 @@ function showTable(t){
 function getItemsData(update){
   var sections, name;
 
-  if($items.names == null || update){
+  if($items.art == null || update){
+    if(update){
+      $tabs.closeMenu();
+      if(!confirm("Обновить данные предметов?")) return true;
+    }
     $items = {
-      item: {},
+      art: {
+        sections: [],
+        items: {}
+      },
+      gos: {
+        sections: [],
+        items: {}
+      },
       names: {}
     };
+    getSections("art");
   }else{
     return true;
   }
   /////////////////////////////
 
-  sections = {
-    names: []
-  };
+  function getSections(type){
+    var url, text;
 
-  ajax("http://www.ganjawars.ru/shopc.php", "GET", null).then((r)=>{
-    $($answer)
-      .html(r.text)
-      .find('font:contains("Разделы")')
-      .up('table')
-      .find('a[href*="shopc.php"]')
-      .nodeArr()
-      .forEach((node)=>{
-        name = node.textContent;
-        sections[name] = node.href;
-        sections.names.push(name);
+    url = type == "art" ? "shopc.php" : "shop.php";
+    text = type == "art" ? "Hi-Tech" : "Государственного";
+
+    sections = {
+      names: [],
+      urls: []
+    };
+
+    ajax("http://www.ganjawars.ru/" + url, "GET", null).then((r)=>{
+      $($answer)
+        .html(r.text)
+        .find('font:contains("Разделы")')
+        .up('table')
+        .find(`a[href*="${url}"]`)
+        .each((node)=>{
+          name = node.textContent;
+          if(name == "" || name == "Магазин синдиката") return;
+
+          sections.names.push(name);
+          sections.urls.push(node.href);
+        });
+
+      $items[type].sections = sections.names;
+
+      progress.start(`Сбор новых данных предметов с ${text} магазина, разделы`, sections.names.length, 1250);
+      getData(0, sections.names.length, type);
     });
-
-    progress.start("Сбор новых данных предметов с Hi-Tech магазина, разделы", sections.names.length, 750);
-    getData(0, sections.names.length);
-  });
+  }
   /////////////////////////////
 
-  function getData(index, max){
-    var table, data, url;
+  function getData(index, max, type){
+    var table, data;
+    var id, name, section, cost, refund, exp, durability, level;
 
     if(progress.isWork(getData, arguments)) return;
     if(index < max){
-      url = sections.names[index];
-      url = sections[url];
-
-      ajax(url, "GET", null).then((r)=>{
+      ajax(sections.urls[index], "GET", null).then((r)=>{
         $($answer)
           .html(r.text)
           .find('td[width="800"]')
@@ -1113,94 +1310,129 @@ function getItemsData(update){
           .each((node)=>{
             table = $(node).up('table').node();
 
-            data = {};
-            data.id = getID(node);
-            data.name = getName();
-            data.section = getSection();
-            data.cost = getCost();
-            data.refund = getRefund();
-            data.durability = getDurability();
-            data.level = getLevel();
+            id = getID(node);
+            name = getName();
+            section = index;
+            cost = getCost(type);
+            durability = getDurability(type);
+            refund = getRefund(type, cost, section, durability);
+            exp = getExp(type, cost, durability);
+            level = getLevel();
 
-            $items.item[data.id] = data;
-            $items.names[data.name] = data.id;
+            data = type == "art" ?
+              [id, name, section, cost, refund, durability, level] :
+              [id, name, section, cost, refund, exp, durability, level];
+
+            $items[type].items[id] = data;
+            $items.names[name] = id;
           });
 
         progress.work(false, r.time);
         index++;
-        getData.gkDelay(750, null, [index, max]);
+        getData.gkDelay(1250, null, [index, max, type]);
       });
-      /////////////////////////////
-
-      function getID(node){
-        return node.href.split(/item_id=/)[1];
-      }
-      /////////////////////////////
-
-      function getName(){
-        return $(table).find('font').text();
-      }
-      /////////////////////////////
-
-      function getSection(){
-        return sections.names[index];
-      }
-      /////////////////////////////
-
-      function getCost(){
-        var cost;
-
-        cost = $(table).find('b:contains("Стоимость:")').next('b').text();
-        cost = cost.match(/(\d+)/)[1];
-        cost = Number(cost);
-
-        return cost;
-      }
-      /////////////////////////////
-
-      function getRefund(){
-        var refund;
-
-        if(data.section == "Аптека") return 0;
-
-        refund = data.cost / 10;
-        refund = data.cost % 10 ? parseInt(refund, 10) + 1 : refund;
-        refund = data.cost - refund;
-
-        return refund;
-      }
-      /////////////////////////////
-
-      function getDurability(){
-        var durability;
-
-        durability = $(table).find('b:contains("Прочность:")').node();
-        durability = durability.nextSibling.textContent;
-        durability = Number(durability);
-
-        return durability;
-      }
-      /////////////////////////////
-
-      function getLevel(){
-        var level;
-
-        level = $(table).find('font:contains("Минимальный боевой уровень:")');
-        if(level.length){
-          level = level.next('b').text();
-          level = Number(level);
-        }else{
-          level = 0;
-        }
-
-        return level;
-      }
-      /////////////////////////////
     }else{
+
       $ls.save("gk_acfd_items", $items);
-      //console.log(update);
-      update ? renderItemsTable() : createGUI();
+
+      if(type == "art"){
+        getSections.gkDelay(1000, null, ["gos"]);
+      }else{
+        if(update){
+          renderArtItemsTable();
+          renderGosItemsTable();
+        }else{
+          createGUI();
+        }
+      }
+
       progress.done();
+    }
+
+    /////////////////////////////
+
+    function getID(node){
+      return node.href.split(/item_id=/)[1];
+    }
+    /////////////////////////////
+
+    function getName(){
+      return $(table).find('font').text();
+    }
+    /////////////////////////////
+
+    function getCost(type){
+      var cost;
+
+      cost = $(table).find('b:contains("Стоимость:")').next('b').text();
+      cost = type == "art" ? cost.match(/(\d+)/)[1] : cost.replace(/,/g, "");
+      cost = Number(cost);
+
+      return cost;
+    }
+    /////////////////////////////
+
+    function getDurability(type){
+      var durability;
+
+      durability = $(table).find('b:contains("Прочность:")').node();
+      durability = durability.nextSibling.textContent;
+      durability = Number(durability);
+
+      if(type == "gos"){
+        durability = [durability, parseInt((durability / 100) * 60, 10)];
+        durability[2] = durability[0] - durability[1];
+      }
+
+      return durability;
+    }
+
+    /////////////////////////////
+
+    function getRefund(type, cost, s, d){
+      var refund;
+
+      if(type == "art"){
+        if(sections.names[s] == "Аптека") return 0;
+
+        refund = cost / 10;
+        refund = cost % 10 ? parseInt(refund, 10) + 1 : refund;
+        refund = cost - refund;
+      }else{
+        refund = [cost * 0.5, cost * 0.3];
+        refund[2] = parseInt((refund[0] - refund[1]) / d[2], 10);
+      }
+
+      return refund;
+    }
+
+    function getExp(type, cost, d){
+      var exp;
+
+      if(type == "art") return 0;
+      exp = [cost * 0.027, cost * 0.047];
+      exp[2] = (exp[1] - exp[0]) / d[2];
+
+      exp[0] = parseFloat(exp[0].toFixed(1));
+      exp[1] = parseFloat(exp[1].toFixed(1));
+      exp[2] = parseFloat(exp[2].toFixed(1));
+
+      return exp;
+    }
+    /////////////////////////////
+
+    function getLevel(){
+      var level;
+
+      level = $(table).find('font:contains("Минимальный боевой уровень:")');
+      if(level.length){
+        level = level.next('b').text();
+        level = Number(level);
+      }else{
+        level = 0;
+      }
+
+      return level;
     }
   }
 }
@@ -1208,7 +1440,7 @@ function getItemsData(update){
 
 function loadData(){
   $data = $ls.load("gk_acfd_data");
-  $prices = $ls.load("gk_acfd_stats");
+  $stats = $ls.load("gk_acfd_stats");
 
   if($data.time == null){
     $data = {
@@ -1220,12 +1452,23 @@ function loadData(){
     $ls.save("gk_acfd_data", $data);
   }
 
-  if($prices.time == null){
-    $prices = {
-      time: $c.getTimeNow(),
-      list: {}
+  if($stats.art == null){
+    $stats = {
+      art: {
+        list: {},
+        time: $c.getTimeNow()
+      },
+      gos: {
+        list: {},
+        time: $c.getTimeNow()
+      }
     };
 
-    $ls.save("gk_acfd_stats", $prices);
+    if($stats.time){
+      delete $stats.list;
+      delete $stats.time;
+    }
+
+    $ls.save("gk_acfd_stats", $stats);
   }
 }
