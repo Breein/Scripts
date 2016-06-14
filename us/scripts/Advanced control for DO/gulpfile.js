@@ -18,13 +18,13 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Advanced_control_for_DO_[GW]';
   userScriptName = 'Advanced_control_for_DO_[GW].user.js';
-  userScriptVersion = '1.32';
+  userScriptVersion = '1.4';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
     `// ==UserScript==
 // @name        Advanced control for DO [GW]
-// @namespace   гном убийца
+// @author      гном убийца
 // @description Улучшенное управление доской объявлений в gw (${nowDate})
 // @include     http://www.ganjawars.ru/forum.php
 // @version     ${userScriptVersion}
