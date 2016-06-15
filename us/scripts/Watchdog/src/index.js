@@ -418,7 +418,7 @@ function getData(index, list){
 
     status = $($answer).find('td:contains("Вооружение")').up('table').node();
     status = status.rows[5].cells[0].textContent;
-    if(status.indexOf("в заявке на бой") != -1) p.state.now = "В заявке на бой";
+    if(/Персонаж в заявке на бой/.test(status)) p.state.now = "В заявке на бой";
 
     if(p.sector.early.name != sn && !p.moved.now){
       p.sector.early.name = sn; p.sector.early.sx = sx; p.sector.early.sy = sy;

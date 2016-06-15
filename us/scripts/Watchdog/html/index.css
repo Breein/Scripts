@@ -56,6 +56,11 @@ td.a-item > a{
     font-weight: bold;
 }
 
+td.fs-11 > a{
+    font-size: 11px;
+    letter-spacing: -0.7px;
+}
+
 span.moved {
     font-weight: bold;
     color: red;
