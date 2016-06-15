@@ -94,7 +94,20 @@ td.name-sound{
 }
 
 img.weapon{
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border: none;
+}
+
+td.ct.gos{
+    background: transparent;
+}
+td.ct.art{
+    background: rgba(0, 119, 0, 0.15);
+}
+td.ct.gift{
+    background: rgba(68, 0, 170, 0.15);
+}
+td.ct.named{
+    background: rgba(102, 0, 0, 0.15);
 }

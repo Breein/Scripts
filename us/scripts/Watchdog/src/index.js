@@ -11,8 +11,15 @@ const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
 
 
-var $answer, $data, $setups, $map, $players, $title, $tmoved, $last, $sound;
+var $answer, $data, $setups, $map, $players, $title, $tmoved, $last, $sound, $types;
 var $work = false;
+
+$types = {
+  gos: "Обычное (гос)",
+  art: "Hi-Tech (арт)",
+  gift: "Подарочное",
+  named: "Именное"
+};
 
 $sound = [
   '[Без звука]',
@@ -356,13 +363,13 @@ function addPlayer(button){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getData(index, list){
-  var p, interval = $c.randomNumber(300, 600) * 10;
+  var p, interval = $c.randomNumber(285, 614) * 10;
 
   if(index < list.length && $work){
     p = $players[index];
     loadMap();
 
-    ajax(`http://www.ganjawars.ru/info.php?id=${p.id}`, 'GET', null).then((r)=>{
+    ajax(`http://www.ganjawars.ru/info.php?id=${p.id}&showattack=1`, 'GET', null).then((r)=>{
       $answer.innerHTML = r.text;
       parse();
       index++;
@@ -408,6 +415,10 @@ function getData(index, list){
 
     status = $($answer).find('b:contains("Действия")').up('td').next('td').next('td').text();
     p.state.now = status.length < 3 ? "Оффлайн" : status.replace('\n', '');
+
+    status = $($answer).find('td:contains("Вооружение")').up('table').node();
+    status = status.rows[5].cells[0].textContent;
+    if(/в заявке на бой/.test(status)) p.state.now = "В заявке на бой";
 
     if(p.sector.early.name != sn && !p.moved.now){
       p.sector.early.name = sn; p.sector.early.sx = sx; p.sector.early.sy = sy;
@@ -475,7 +486,7 @@ function getData(index, list){
   }
 
   function getWeapon(p, type){
-    var text, weapon, img, id, name;
+    var text, weapon, img, id, name, wt;
 
     text = type == "left" ? "~Левая рука:" : "~Правая рука:";
     weapon = $($answer).find(`td[align="right"]:contains("${text}")`);
@@ -487,11 +498,32 @@ function getData(index, list){
       img = id;
       if(/&/.test(weapon)) img = img.split('&')[0];
       name = weapon.textContent;
+      wt = weapon.style.color;
+
+      switch(wt){
+        case "rgb(0, 119, 0)":
+          wt = "art";
+          break;
+
+        case "rgb(68, 0, 170)":
+          wt = "gift";
+          break;
+
+        case "rgb(102, 0, 0)":
+          wt = "named";
+          break;
+
+        case "":
+        default:
+          wt = "gos";
+          break;
+      }
 
       if(p.weapons.id[type] != id){
         p.weapons.id[type] = id;
         p.weapons.img[type] = img;
         p.weapons.name[type] = name;
+        p.weapons.type[type] = wt;
         p.weapons.new = true;
       }else{
         p.weapons.new = false;
@@ -500,18 +532,23 @@ function getData(index, list){
       p.weapons.id[type] = null;
       p.weapons.name[type] = null;
       p.weapons.img[type] = null;
+      p.weapons.type[type] = "gos";
       p.weapons.new = true;
     }
   }
 
   function renderWeapons(p, row){
-    var weapon = "";
+    var weapon = "", lt, rt;
 
     if(!p.weapons.new) return;
+
+    lt = $types[p.weapons.type.left];
+    rt = $types[p.weapons.type.right];
     if(p.weapons.id.left) weapon += '@include: ./html/leftWeapon.html, true';
     if(p.weapons.id.right)weapon += '@include: ./html/rightWeapon.html, true';
 
     row.cells[3].innerHTML = weapon;
+    row.cells[3].className = "ct " +  p.weapons.type.right;
   }
 }
 
@@ -598,6 +635,10 @@ function generatePlayer(id, name, level){
       name: {
         left: null,
         right: null
+      },
+      type:{
+        left: "gos",
+        right: "gos"
       }
     },
     hp: {
