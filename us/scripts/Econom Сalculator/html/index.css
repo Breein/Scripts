@@ -1,0 +1,59 @@
+span.start-button{
+    cursor: pointer;
+}
+
+div.ec-content{
+    margin: auto;
+    height: 100%;
+}
+
+div.ec-content-scroll{
+    width: 100%;
+    max-height: 281px;
+    overflow-y: scroll;
+    margin: auto;
+}
+
+table.padding{
+    border-collapse: collapse;
+}
+table.padding td {
+    padding: 2px 5px 2px 5px;
+    border: solid 2px white;
+}
+table.padding tr.no-b-top td{
+    border-top-style: none;
+}
+table.padding tr.no-b-bottom td{
+    border-bottom-style: none;
+}
+table.no-border > tr > td,
+table.no-border > tbody > tr > td {
+    border: 0 none;
+}
+
+tr.light{
+    background-color: #d8e8d8;
+}
+tr.light:hover{
+    background-color: #beccbe;
+}
+
+input.ce-cost{
+    width: 100%;
+    text-align: center;
+}
+
+#ec-result{
+    height: 250px;
+    width: 100%;
+}
+
+td.check-all{
+    cursor: pointer;
+    width: 45px;
+}
+
+td.check-all.checked{
+    color: #990000;
+}
