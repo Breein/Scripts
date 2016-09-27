@@ -4,10 +4,12 @@ const setStyle = require('./../../../js/style.js');
 const shadow = require('./../../../js/shadow.js')();
 
 const $c = require('./../../../js/common.js')();
+const $ls = require('./../../../js/ls.js');
 
-var $items;
+var $items, $data;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+loadData();
 getItems();
 createCalculateWindow();
 createButton();
@@ -53,7 +55,8 @@ function createCalculateWindow(){
       bindEvent(input, 'onclick', calculating);
     });
 
-  bindEvent($('input.ce-cost'), 'onkeyup', calculating);
+  bindEvent($('input.ec-cost'), 'onkeyup', calculating);
+  bindEvent($('input.ec-cost-sell'), 'onkeyup', saveCostSell);
   bindEvent($(`td.check-all`), 'onclick', checkingAll);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,12 +82,31 @@ function checkingAll(button){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function calculating(){
-  var cost, price, _price, item, exp, result = "";
+function saveCostSell(input){
+  var cost;
 
-  cost = $('input.ce-cost').node().value;
+  cost = input.value;
   cost = Number(cost);
   if(isNaN(cost)) cost = 0;
+
+  if(cost != $data.costSell){
+    $data.costSell = cost;
+    saveData();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function calculating(input){
+  var cost, price, _price, item, exp, result = "";
+
+  cost = input.value;
+  cost = Number(cost);
+  if(isNaN(cost)) cost = 0;
+
+  if(cost != $data.cost){
+    $data.cost = cost;
+    saveData();
+  }
 
   _price = 0;
   exp = 0;
@@ -146,5 +168,20 @@ function getItems(){
       }
     }
   });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function loadData(){
+  $data = $ls.load('gk_EconomCalculator_data');
+
+  if($data.costSell == null){
+    $data.cost = 0;
+    $data.costSell = 0;
+    saveData();
+  }
+}
+
+function saveData(){
+  $ls.save('gk_EconomCalculator_data', $data);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

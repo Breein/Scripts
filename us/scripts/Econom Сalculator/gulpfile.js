@@ -18,14 +18,14 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Econom_Сalculator_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.01';
+  userScriptVersion = '1.05';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
     `// ==UserScript==
 // @name        Econom Сalculator [GW]
 // @author      гном убийца
-// @description (${nowDate})
+// @description Калькулятор для подсчета экономическго опыта и суммы вовзрата. (${nowDate})
 // @include     http://www.ganjawars.ru/items.php
 // @version     ${userScriptVersion}
 // @grant       none
