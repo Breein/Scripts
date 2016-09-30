@@ -30,12 +30,8 @@ function calculateReceived(){
   item = item.href.split('?')[1];
 
   id = item.split('&');
-  if(id){
-    id = id[0].split('=')[1];
-    mod = true;
-  }else{
-    id = item;
-  }
+  if(id.length > 1) mod = true;
+  id = id[0].match(/item_id=(.+)/)[1];
 
   item = items.items[id];
   if(!item) return;
@@ -51,7 +47,7 @@ function calculateReceived(){
   durability = Number(durability);
 
   refund = getRefund(durability, item);
-  if(mod != 0) refund[1] += 2000;
+  if(mod) refund[1] += 2000;
   expCost = getExpCost(price, refund[0], refund[1]);
 
   /////////////////////////////
