@@ -13,6 +13,94 @@ loadData();
 getItems();
 createCalculateWindow();
 createButton();
+calculateReceived();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function calculateReceived(){
+  var receive, item, items, id, mod, price, durability, refund, expCost, info, insert;
+
+  receive = $('b:contains("Получено")');
+  if(receive.length == 0) return;
+
+  items = $ls.load('gk_acfd_items').gos;
+  if(!items) return;
+
+  receive = receive.up('table').node();
+  item = $(receive).find('a[href*="item.php"]').node();
+  item = item.href.split('?')[1];
+
+  id = item.split('&');
+  if(id){
+    id = id[0].split('=')[1];
+    mod = true;
+  }else{
+    id = item;
+  }
+
+  item = items.items[id];
+  if(!item) return;
+
+  insert = $(receive).find('li:contains("~Прочность:")').node();
+
+  price = $(receive).find('li:contains("~Цена:")').text();
+  price = price.split('$')[1];
+  price = Number(price.replace(/,/g, ''));
+
+  durability = insert.textContent;
+  durability = durability.split('/')[1];
+  durability = Number(durability);
+
+  refund = getRefund(durability, item);
+  if(mod != 0) refund[1] += 2000;
+  expCost = getExpCost(price, refund[0], refund[1]);
+
+  /////////////////////////////
+
+  info = $('<span>').html(
+    `<li> Опыт: <b>${$c.convertID(refund[1])}</b> exp. по <b>$${expCost}</b> за ед.</li>
+     <li> Возврат: <b>$${$c.convertID(refund[0])}</b></li>`
+  ).node();
+  insert.parentNode.insertBefore(info, insert);
+
+  /////////////////////////////
+
+  function getRefund(dur, item){
+    var durability, refund, exp, durLeft;
+
+    refund = item[4];
+    exp = item[5];
+    durability = item[6];
+
+    durLeft = durability[0] - dur;
+
+    if(durLeft <= 0){
+      return [refund[0], exp[0]];
+    }
+
+    if(durLeft < durability[2]){
+      return [
+        parseInt(refund[0] - durLeft * refund[2], 10),
+        parseInt(durLeft * exp[2] + exp[0], 10)
+      ];
+    }
+
+    if(durLeft >= durability[2]){
+      return [refund[1], exp[1]];
+    }
+  }
+  /////////////////////////////
+
+  function getExpCost(price, refund, exp){
+    var cost;
+
+    cost = price - refund;
+    cost = cost / exp;
+    cost = cost.toFixed(1);
+    cost = parseFloat(cost);
+
+    return cost;
+  }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createButton(){
