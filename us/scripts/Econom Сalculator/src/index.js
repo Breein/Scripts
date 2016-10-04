@@ -17,7 +17,7 @@ calculateReceived();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function calculateReceived(){
-  var receive, item, items, id, mod, price, durability, refund, expCost, info, insert;
+  var receive, item, items, id, name, mod, price, durability, refund, expCost, info, insert;
 
   receive = $('b:contains("Получено")');
   if(receive.length == 0) return;
@@ -27,10 +27,16 @@ function calculateReceived(){
 
   receive = receive.up('table').node();
   item = $(receive).find('a[href*="item.php"]').node();
+  name = item.textContent;
   item = item.href.split('?')[1];
 
   id = item.split('&');
-  if(id.length > 1) mod = true;
+  if(id.length > 1){
+    mod = true;
+  }else{
+    mod = name.match(/\[[A-Za-z]+]/g);
+    mod = mod != null;
+  }
   id = id[0].match(/item_id=(.+)/)[1];
 
   item = items.items[id];
