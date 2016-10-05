@@ -1303,7 +1303,15 @@ function getItemsData(update){
 
   function getData(index, max, type){
     var table, data;
-    var id, name, section, cost, refund, exp, durability, level;
+    var id, name, section, cost, refund, exp, durability, level, excludeItems;
+
+    excludeItems = {
+      hk53: 1,
+      helmet2: 1,
+      heavyboots: 1,
+      tbelt: 1,
+      maskp: 1
+    };
 
     if(progress.isWork(getData, arguments)) return;
     if(index < max){
@@ -1315,7 +1323,7 @@ function getItemsData(update){
           .each((node)=>{
             table = $(node).up('table').node();
 
-            id = getID(node);
+            id = getID(node); if(excludeItems[id]) return;
             name = getName();
             section = index;
             cost = getCost(type);
