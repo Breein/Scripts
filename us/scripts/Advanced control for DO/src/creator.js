@@ -46,11 +46,12 @@ GeneratorData.prototype = {
   advert: function(a, i, s){
     return {
       id: i[0],
+      it: a.it,
       aid: i[0] + "-" + a.action,
       section: s[i[2]],
       name: i[1],
       mod: a.mod,
-      level: i[6],
+      level: i[7 - a.it],
       action: a.action,
       island: a.island,
       durNow: a.durNow,
