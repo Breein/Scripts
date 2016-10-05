@@ -21,6 +21,25 @@ $answer = $('<span>').node();
 $items = $ls.load("gk_acfd_items");
 $adverts = $ls.load("gk_acfd_adverts");
 
+//////// convert to new structure
+
+convertToNewStructure();
+
+function convertToNewStructure(){
+  var key;
+  Object.keys($adverts).forEach((advert)=>{
+    if($adverts[advert].it == null){
+      $adverts[advert].it = 1;
+      key = 1;
+    }
+  });
+
+  if(key) $ls.save("gk_acfd_adverts", $adverts);
+
+  console.log($adverts);
+}
+//////// end;
+
 $texts = {
   island: {
     "-1": "Не имеет значения",
@@ -153,8 +172,8 @@ function bindActionsContextMenu(){
   menu = $('#contextMenu').node();
 
   actions = {
-    addAdvert: (mode, text, list)=>{
-      openAdvertWindow(mode, text, list);
+    addAdvert: (mode, text, itemType, list)=>{
+      openAdvertWindow(mode, text, itemType, list);
     },
 
     analyzePrice: (add, all, list)=>{
@@ -505,7 +524,7 @@ function addAdvert(){
   window = $("#acfd_advertWindow").class("add", "hide").node();
   data = getValues(window);
 
-  $t.artItems.getCheckedContent(true).forEach((item)=>{
+  $t[data.it].getCheckedContent(true).forEach((item)=>{
     if(!$adverts[`${item.id}-${data.action}`]){
       list.push(item);
     }
@@ -517,7 +536,7 @@ function addAdvert(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function advertsAction(action, now, max, list, data){
-  var record, durability, aid, price;
+  var record, durability, aid, price, types;
 
   if(progress.isWork(advertsAction, arguments)) return;
   if(now < max){
@@ -525,6 +544,7 @@ function advertsAction(action, now, max, list, data){
 
     switch(action){
       case "add":
+        types = data.it == "gosItems" ? 0 : 1;
         durability = data.durability == "new" ? [record.durability, record.durability] : [0, 1];
         aid = `${record.id}-${data.action}`;
 
@@ -536,6 +556,7 @@ function advertsAction(action, now, max, list, data){
 
         $adverts[aid] = {
           id: record.id,
+          it: types,
           did: 0,
           mod: 0,
           action: data.action,
@@ -557,7 +578,21 @@ function advertsAction(action, now, max, list, data){
 
       case "reCalc":
         aid = `${record.id}-${record.action}`;
-        $adverts[aid].price = $items.art.items[record.id][data.key] * data.value;
+
+        if(data){
+          if($adverts[aid].it){
+            $adverts[aid].price = $items.art.items[record.id][data.key] * data.value;
+          }
+        }else{
+          if(!$adverts[aid].it){
+            types = ["gos", "art"];
+            price = $items[types[record.it]].items[record.id][3];
+            price = parseInt(((price / 100) * 65) / 29, 10);
+
+            $adverts[aid].price = price;
+            $adverts[aid].termRent = 29;
+          }
+        }
         break;
     }
 
@@ -728,16 +763,18 @@ function boardAdverts(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function extensionAdverts(){
-  var list, advert, count, date;
+  var list, advert, count, date, types, item;
 
   if(!$items.art) return;
 
   date = $c.getTimeNow();
+  types = ["gos", "art"];
   list = [];
 
   if(date - $data.time > 3600){
     Object.keys($adverts).forEach((id)=>{
-      advert = Create.advert($adverts[id], $items.art.items[$adverts[id].id], $items.art.sections);
+      item = $items[types[$adverts[id].it]];
+      advert = Create.advert($adverts[id], item.items[$adverts[id].id], item.sections);
       if(advert.autoPost && !advert.posted) list.push(advert);
     });
 
@@ -796,16 +833,17 @@ function getDurItems(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function openAdvertWindow(mode, text, list){
+function openAdvertWindow(mode, text, itemType, list){
   var window, hide;
 
   window = $("#acfd_advertWindow").node();
   hide = mode == "rent" ? "display: table-row;" : "display: none";
 
-  createSelectList();
+  createSelectList(mode, itemType);
 
   $(window).find('span[type="count"]').html(list.length);
   $(window).find('input[name="action"]').node().value = mode;
+  $(window).find('input[name="it"]').node().value = itemType;
   $(window).find('span[name="action"]').text(text);
   $(window).find('tr[type="rent"]').attr("style", hide);
   $(window).class("remove", "hide");
@@ -820,7 +858,18 @@ function openAdvertWindow(mode, text, list){
       code += `<option value="${list[i].id}">${i + 1}. ${list[i].name}</option>`;
     }
 
-    $(window).find('select[name="iid"]').html(code);
+    $(window).find('select[name="iid"]').html(code); code = "";
+
+    if(itemType == "artItems"){
+      if(mode == "sell"){
+        code = '<option value="sellEun">По курсу продажи</option>';
+      }else if(mode == "buy"){
+        code = '<option value="buyEun">По курсу покупки</option>';
+      }
+    }
+    code += '<option value="0">Не устанавливать</option>';
+
+    $(window).find('select[name="price"]').html(code);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -925,6 +974,7 @@ function renderBaseHTML(){
     level: [28, "number", "Минимальный уровень"],
     name: [-1, "check", "Название предмета"],
     mod: [50, "check|boolean", "Модификтор|с модом|тех что с модом"],
+    it: [28, "boolean", "Арт предмет|Hi-tech предметы|Hi-tech предметов"],
     action: [80, "multiple", "Тип объявления"],
     island: [130, "multiple", "Остров"],
     durNow: [60, "number|boolean", "Прочность (текущая)|новые предметы|новых предметов"],
@@ -1041,9 +1091,10 @@ function renderArtItemsTable(mode){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function renderAdvertsTable(mode){
-  var table, adverts;
+  var table, adverts, types, item;
 
   table = $t.adverts;
+  types = ["gos", "art"];
 
   if(mode == null){
     mode = "filter";
@@ -1051,7 +1102,8 @@ function renderAdvertsTable(mode){
     adverts = Object.keys($adverts);
 
     adverts.forEach((id)=>{
-      table.pushContent(Create.advert($adverts[id], $items.art.items[$adverts[id].id], $items.art.sections));
+      item = $items[types[$adverts[id].it]];
+      table.pushContent(Create.advert($adverts[id], item.items[$adverts[id].id], item.sections));
     });
   }
 
