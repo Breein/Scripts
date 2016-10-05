@@ -34,6 +34,16 @@ tr.footer-line{
     height: 5px;
     background-color: #d0eed0;
 }
+td.a-item{
+    text-indent: 5px;
+}
+td.a-item > a{
+    text-decoration: none;
+    font-weight: bold;
+}
+td.ct{
+    text-align: center;
+}
 
 /* Кнопки */
 input[type="button"]{
