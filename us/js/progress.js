@@ -127,7 +127,7 @@ ProgressDisplay.prototype = {
       this._data.main.now = count[0];
       this._data.main.max = count[1];
       this._data.max = max ? max : count[1];
-      this._data.time = this._data.max * (interval + 500);
+      this._data.time = interval == 50 ? this._data.max * (interval + 8) : this._data.max * (interval + 500);
       this._data.state = "work";
       this._timeUpdate();
     }else{
