@@ -6,7 +6,7 @@
   <td ${t.getWidth("price")} align="center">${$c.convertID(tr.price)}</td>
   <td ${t.getWidth("refund")} align="center">${$c.convertID(tr.refund)}</td>
   <td ${t.getWidth("exp")} align="center">${$c.convertNumber(tr.exp)}</td>
-  <td ${t.getWidth("expCost")} align="center">${tr.expCost}</td>
+  <td ${t.getWidth("expCost")} align="center">${tr.expCost > 1000 ? parseInt(tr.expCost / 1000) + " k" : tr.expCost}</td>
   <td ${t.getWidth("durMax")} align="center">${tr.durNow}/${tr.durMax}</td>
   <td ${t.getWidth("island")} align="center">${$texts.island[tr.island]}</td>
   <td ${t.getWidth("seller")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.seller[0]}">${tr.seller[1]}</a></td>
