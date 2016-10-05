@@ -438,14 +438,14 @@ function analyzePrice(type, now, max, list, all){
     durability = $items.gos.items[item.id][6];
     durLeft = durability[0] - dur;
 
-    if(durLeft == 0){
+    if(durLeft <= 0){
       return [item.refundNew, item.expNew];
     }
 
     if(durLeft < durability[2]){
       return [
-        durLeft * item.refundOne + item.refundBroken,
-        durLeft * item.expOne + item.expNew
+        parseInt(item.refundNew - durLeft * item.refundOne, 10),
+        parseInt(durLeft * item.expOne + item.expNew, 10)
       ];
     }
 
@@ -970,8 +970,8 @@ function renderBaseHTML(){
     mod: [40, "check|boolean", "Модификтор|с модом|что с модом"],
     price: [70, "number", "Цена предмета"],
     refund: [60, "number", "Возврат с продажи"],
-    exp: [55, "number", "Эконом с продажи"],
-    expCost: [40, "number", "Цена за 1 ед. эконома"],
+    exp: [60, "number", "Эконом с продажи"],
+    expCost: [45, "number", "Цена за 1 ед. эконома"],
     durMax: [60, "number", "Прочность максимальная"],
     island: [130, "multiple", "Остров"],
     seller: [150, "check", "Имя продавца"],
@@ -1208,8 +1208,13 @@ function showTable(t){
     var m, url;
 
     if(row.mod == 0) return "";
-    m = $mods(row.section)[row.mod];
-    if(m == null) return "";
+
+    m = $mods(row.section);
+    if(m == null) return "-1";
+
+    m = m[row.mod];
+    if(m == null) return "-2";
+
     url = `http://www.ganjawars.ru/item.php?item_id=${row.id}&m=${row.mod}`;
 
     if(short == null){
