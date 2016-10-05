@@ -145,23 +145,6 @@ span[type="checkAll"]{
     margin-right: 5px;
 }
 
-input[type="button"]{
-    font-weight: 500;
-    font-family: Verdana;
-    background-color: rgb(208,238,208);
-    font-size: 10px;
-    height: 20px;
-}
-input[type="text"].sf_hideInput{
-    font-weight: 500;
-    font-family: Verdana;
-    background-color: #f0fff0;
-    font-size: 12px;
-    text-align: center;
-    width: 50px;
-    border-style: none;
-}
-
 input.v-middle{
     vertical-align: -3px;
 }
