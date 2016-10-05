@@ -21,25 +21,6 @@ $answer = $('<span>').node();
 $items = $ls.load("gk_acfd_items");
 $adverts = $ls.load("gk_acfd_adverts");
 
-//////// convert to new structure
-
-convertToNewStructure();
-
-function convertToNewStructure(){
-  var key;
-  Object.keys($adverts).forEach((advert)=>{
-    if($adverts[advert].it == null){
-      $adverts[advert].it = 1;
-      key = 1;
-    }
-  });
-
-  if(key) $ls.save("gk_acfd_adverts", $adverts);
-
-  console.log($adverts);
-}
-//////// end;
-
 $texts = {
   island: {
     "-1": "Не имеет значения",
