@@ -145,13 +145,19 @@ module.exports = function(section){
     }
   };
 
+  mods["Снайперское оружие"] = mods["Снайперские винтовки"];
+  mods["Пистолеты"] = mods["Пистолеты-пулемёты"];
+
   switch(section){
     case "Штурмовые винтовки":
     case "Пулемёты":
     case "Снайперские винтовки":
+    case "Снайперское оружие":
     case "Пистолеты-пулемёты":
+    case "Пистолеты":
     case "Дробовики":
     case "Гранатометы":
+    case "Специальное оружие":
       m = mods.weapon;
       break;
     case "Броня":
@@ -160,6 +166,15 @@ module.exports = function(section){
     case "Тепловизоры":
       m = mods.armor;
       break;
+  }
+
+  if(section == "Специальное оружие"){
+    for(mod in mods["Снайперские винтовки"]) result[mod] = mods["Снайперские винтовки"][mod];
+    for(mod in mods["Штурмовые винтовки"]) result[mod] = mods["Штурмовые винтовки"][mod];
+    for(mod in mods["Пистолеты-пулемёты"]) result[mod] = mods["Пистолеты-пулемёты"][mod];
+    for(mod in mods["Пулемёты"]) result[mod] = mods["Пулемёты"][mod];
+    for(mod in m) result[mod] = m[mod];
+    return result;
   }
 
   if(mods[section] && m != null){
