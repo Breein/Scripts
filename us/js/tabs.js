@@ -177,6 +177,23 @@ Tabs.prototype = {
       $(this._menu).class("add", "hidden");
       this._menuOpen = false;
     }
+  },
+
+  /**
+   * @param {string} button
+   * @param {string} window
+   * @param {Shadow} shadow
+   */
+  menuBindOpenWindow: function(button, window, shadow){
+    var tabs = this;
+
+    button = "#" + tabs._button[button];
+    bindEvent($(button).class("remove", "hidden"), "onclick", openWindow);
+
+    function openWindow(){
+      shadow.open(window);
+      tabs.closeMenu();
+    }
   }
 };
 
