@@ -54,7 +54,7 @@ Table.prototype = {
 
     b = $('<div>')
       .class("set", "tab-content-scroll")
-      .html('<table align="center" type="padding" width="100%"></table>')
+      .html('<table align="center" class="padding" width="100%"></table>')
       .node();
 
     f = $('<div>')
