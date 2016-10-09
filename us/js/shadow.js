@@ -57,6 +57,9 @@ Shadow.prototype = {
   }
 };
 
+/**
+ * @returns {Shadow}
+ */
 module.exports = function(){
   setStyle('shadow.js', '@include: ./../../css/shadow.css, true');
   return new Shadow();
