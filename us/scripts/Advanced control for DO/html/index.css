@@ -71,16 +71,16 @@ span.start-button{
 
 /* Таблицы */
 
-table[type="padding"]{
+table.padding{
     border-collapse: collapse;
 }
-table[type="padding"] tr[type="no-b-top"] td{
+table.padding tr.no-b-top td{
     border-top-style: none;
 }
-table[type="padding"] tr[type="no-b-bottom"] td{
+table.padding tr.no-b-bottom td{
     border-bottom-style: none;
 }
-table[type="padding"] td {
+table.padding td {
     padding: 2px 5px 2px 5px;
     border: solid 2px white;
 }
@@ -105,13 +105,7 @@ tr.checked{
 tr.light:hover{
     background-color: #beccbe;
 }
-tr[type="header"] {
-    background-color: #d0eed0;
-    font-weight: bold;
-}
-tr[type="header"] td{
-    text-align: center;
-}
+
 tr[type="filters"]{
     background-color: #d0eed0;
     height: 28px;
