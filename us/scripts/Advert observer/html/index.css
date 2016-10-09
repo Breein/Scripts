@@ -13,6 +13,17 @@
     background-color: #f6e5e5;
 }
 
+table.padding{
+    border-collapse: collapse;
+}
+table.padding td {
+    padding: 2px 5px 2px 5px;
+    border: solid 2px white;
+}
+table.no-border td{
+    border: 0 none;
+}
+
 #ao_thread-window > table tr.row-indent{
     height: 28px;
 }
