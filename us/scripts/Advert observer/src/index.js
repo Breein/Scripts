@@ -182,8 +182,16 @@ function threadLight(){
   thread = Number(location.search.match(/(\d+)/)[1]);
   if(!$c.exist(thread, threads)) return;
 
-  $('td:contains("Тема")').up('table').find(`a:contains("${$name}")`).nodeArr().forEach((a)=>{
-    $(a).up('tr').attr('style', "background-color: #f2d5cb;");
+  $('td:contains("Тема")').up('table').find(`tr`).each((tr)=>{
+    if(tr.cells[0].textContent.match(/куплю|покупаю|купл/i)){
+      $(tr).attr('style', 'background-color: #cfdff2;');
+    }
+    if(tr.cells[0].textContent.match(/продам|продаю/i)){
+      $(tr).attr('style', 'background-color: #f2d5cb;');
+    }
+    if($(tr.cells[3]).find(`b:contains("${$name}")`).length > 0){
+      $(tr).attr('style', 'background-color: #f4f3ad;');
+    }
   });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
