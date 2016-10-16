@@ -12,14 +12,17 @@ const $c = require('./../../../js/common.js')();
 const $ls = require('./../../../js/ls.js');
 const $mods = require('./../src/mods.js');
 const Create = require('./../src/creator.js')();
+const $advertParser = require('./../src/advertParser.js')();
+const $showHelper = require('./../src/showHelper.js')();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-var $answer, $tabs, $items, $adverts, $stats, $t, $texts, $data;
+var $answer, $tabs, $items, $adverts, $scanner, $stats, $t, $texts, $data, $sr;
 
 $answer = $('<span>').node();
 
 $items = $ls.load("gk_acfd_items");
 $adverts = $ls.load("gk_acfd_adverts");
+$sr = { gos: {}, art: {}, id: 0};
 
 $texts = {
   island: {
@@ -69,6 +72,7 @@ function createGUI(){
 
   menu = {
     "Установить курс Eun": "acfd_setCostEUN",
+    "Авто-сканнер": "acfd_autoScanner",
     "Обновить данные предметов": "acfd_updateItems"
   };
 
@@ -95,17 +99,116 @@ function createGUI(){
   ch = (parseInt((ih - bh) / 28, 10)) * 28;
   setStyle('adfd-content.js ', `div.tab-content-scroll{height: ${ch}px; overflow-y: scroll; margin: auto}`);
 
-  bindEvent($('#acfd_setCostEUN').class("remove", "hidden"), "onclick", openSetCostEunWindow);
+  $tabs.menuBindOpenWindow("Установить курс Eun", "#acfd_costEunWindow", shadow);
+
+  bindEvent($('#acfd_autoScanner'), "onclick", openAutoScannerWindow);
   bindEvent($('#acfd_updateItems'), "onclick", getItemsData, [true]);
   bindEvent($("#acfd_addAdvert"), "onclick", addAdvert);
   bindEvent($("#acfd_editAdvert"), "onclick", editAdvert);
   bindEvent($("#acfd_getDurItems"), "onclick", getDurItems);
   bindEvent($('#acfd_saveCostEun'), "onclick", saveCostEun);
 
+  bindEvent($('#as-saveSettings'), "onclick", asListActions);
+  bindEvent($('#as-list-open'), "onclick", asListActions);
+  bindEvent($('#as-list-close'), "onclick", asListActions);
+  bindEvent($('#as-list-removeAll'), "onclick", asListActions);
+
+  bindEvent($('#as-work-button'), "onclick", actionScanner);
+
   renderTables();
   bidHideContextMenu();
   bindActionsContextMenu();
   bindMoneyInputs();
+  runScanner();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function openAutoScannerWindow(){
+  var w = $('#acfd_autoScannerWindow').node(), va, vg;
+  shadow.open(w);
+  $tabs.closeMenu();
+
+  va = $scanner.settings.art.island;
+  vg = $scanner.settings.gos.island;
+
+  $(w).find(`input[name="mode"][value="${$scanner.settings.mode}"]`).node().checked = true;
+  $(w).find('select[name="island-art"]').find(`option[value="${va}"]`).node().selected = true;
+  $(w).find('select[name="island-gos"]').find(`option[value="${vg}"]`).node().selected = true;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function asListActions(button){
+  var code, item, nb = " no-b-top";
+  var data, setup;
+
+  if(button.id == "as-list-open"){
+    code = "";
+
+    Object.keys($scanner.items).forEach((id)=>{
+      item = $scanner.items[id];
+      code += '@include: ./html/asListItemsRow.html, true';
+      if(nb != '') nb = '';
+    });
+
+    $('#as-row-list').html(code);
+    $('.as-remove-item').each((button)=>{
+      bindEvent(button, "onclick", removeItem);
+    });
+
+    $('#acfd_as_listItemsWindow').class("remove", "hide");
+    return;
+  }
+  /////////////////////////////
+
+  if(button.id == "as-list-close"){
+    $('#acfd_as_listItemsWindow').class("add", "hide");
+    return;
+  }
+  /////////////////////////////
+
+  if(button.id == "as-saveSettings"){
+    data = getValues('#acfd_autoScannerWindow');
+    setup = $scanner.settings;
+    data.costExp = parseFloat(data.costExp);
+
+    setup.art.island = Number(data["island-art"]);
+    setup.gos.island = Number(data["island-gos"]);
+    setup.mode = data.mode;
+    setup.art.costEun = Number(data.costEun);
+    if(!isNaN(data.costExp)) setup.gos.costExp = data.costExp;
+
+    $ls.save("gk_acfd_scanner", $scanner);
+    button.value = "Успешно сохранено";
+    button.disabled = true;
+    restoreSaveButton.gkDelay(2000, null, [button]);
+    return;
+  }
+  /////////////////////////////
+
+  if(button.id == "as-list-removeAll"){
+    if(!confirm("Удалить все предметы из списка?")) return;
+    $scanner.items = {};
+    $ls.save("gk_acfd_scanner", $scanner);
+    asListActions({id: "as-list-open"});
+  }
+  /////////////////////////////
+
+  function removeItem(button){
+    var id, row;
+
+    id = button.firstElementChild.value;
+    row = $(button).up('tr').node();
+
+    row.parentNode.removeChild(row);
+    delete $scanner.items[id];
+    $ls.save("gk_acfd_scanner", $scanner);
+  }
+  /////////////////////////////
+
+  function restoreSaveButton(button){
+    button.value = "Сохранить";
+    button.disabled = false;
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -133,11 +236,6 @@ function bindMoneyInputs(){
   });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-function openSetCostEunWindow(){
-  shadow.open('#acfd_costEunWindow');
-  $tabs.closeMenu();
-}
-
 function saveCostEun(){
   $('#acfd_costEunWindow').find('input[type="hidden"]').each((input)=>{
     $data[input.name] = Number(input.value);
@@ -181,8 +279,9 @@ function bindActionsContextMenu(){
       analyzePrice("gos", 0, list.length, list, true);
     },
 
-    updateItems: ()=>{
-      getItemsData(true);
+    autoScanner: (type, list)=>{
+      progress.start("Добавление предметов к авто-сканнеру", list.length, 50);
+      addAutoScannerItems(type, 0, list.length, list);
     },
 
     board: (action, list)=>{
@@ -311,24 +410,24 @@ function analyzePrice(type, now, max, list, all){
           if(/предложений других игроков не найдено/.test(tr.textContent)) return;
 
           index = `${n - 2}-${list[now].id}`;
-          price = getPrice(tr);
-          dur = getDurability(tr);
-          mod = getMod(tr);
-          island = getIsland(tr);
-          seller = getSeller(tr);
-          fast = getFast(tr);
+          price = $advertParser.getPrice(tr);
+          dur = $advertParser.getDurability(tr);
+          mod = $advertParser.getMod(tr);
+          island = $advertParser.getIsland(tr);
+          seller = $advertParser.getSeller(tr);
+          fast = $advertParser.getFast(tr);
 
           if(type == "art"){
-            rate = getRate(price, item.refund);
+            rate = $advertParser.getRate(price, item.refund);
             value = price <= $data.buyEun * item.cost;
 
             if(value || all){
               $stats.art.list[index] = [price, dur, mod, island, seller, fast, rate];
             }
           }else{
-            refund = getRefund(dur[1], item);
+            refund = $advertParser.getRefund(dur[1], $items.gos.items[item.id]);
             if(mod != 0) refund[1] += 2000;
-            expCost = getExpCost(price, refund[0], refund[1]);
+            expCost = $advertParser.getExpCost(price, refund[0], refund[1]);
 
             $stats.gos.list[index] = [price, dur, mod, island, seller, fast, refund[0], refund[1], expCost];
           }
@@ -352,118 +451,165 @@ function analyzePrice(type, now, max, list, all){
     }
     progress.done();
   }
-  /////////////////////////////
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function getPrice(row){
-    var price;
-
-    price = row.cells[0].textContent;
-    price = price.replace(/,|\$/g, "");
-    price = Number(price);
-
-    return price;
+function runScanner(){
+  if($scanner.work){
+    $('#as-work-button').class("add", "work").node().value = "Остановить";
+    $sr.id = scanner.gkDelay(250, null, [0]);
   }
-  /////////////////////////////
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  function getSeller(row){
-    var seller, id;
+function actionScanner(button){
+  var b = $(button);
 
-    seller = $(row).find('a[href*="info.php"]').node();
-    id = seller.href.match(/(\d+)/)[0];
-    id = Number(id);
+  if($scanner.work){
+    b.class("remove", "work");
+    button.value = "Запустить";
+    $scanner.work = false;
+    clearTimeout($sr.id);
+    $('td.as-status').html("");
+  }else{
+    b.class("add", "work");
+    button.value = "Остановить";
+    $scanner.work = true;
 
-    return [id, seller.textContent];
+    $sr.id = scanner.gkDelay(250, null, [0]);
   }
-  /////////////////////////////
 
-  function getDurability(row){
-    var durability;
+  $ls.save("gk_acfd_scanner", $scanner);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    durability = row.cells[1].textContent;
-    durability = durability.split("/");
-    durability = [Number(durability[0]), Number(durability[1])];
+function scanner(index){
+  var island, type, item, cell;
+  var fast, price, dur, mod, seller, refund, cost;
+  var list, max, id;
+  var result = {}, count = 0;
 
-    return durability;
-  }
-  /////////////////////////////
+  list = Object.keys($scanner.items);
+  max = list.length;
+  id = list[index];
 
-  function getIsland(row){
-    var island, isl;
+  if($scanner.work && max){
+    if($scanner.items[id]){
+      type = $scanner.items[id].it ? "art" : "gos";
+      island = $scanner.settings[type].island;
+      item = $items[type].items[id];
 
-    isl = {"[G]": 0, "[Z]": 1, "[P]": 4, "[G,Z,P]": -1, "[O]": 3};
-    island = row.cells[3].textContent;
+      $('td.as-status').html(`<b>${item[1]}</b> [${index + 1} из ${max}]`);
 
-    return isl[island];
-  }
-  /////////////////////////////
+      ajax(`http://www.ganjawars.ru/market.php?stage=2&item_id=${id}&action_id=1&island=${island}`, "GET", null).then((r)=>{
+        cell = $($answer).html(r.text).find('td:contains("Цена ")');
+        if(cell.length != 0){
+          cell.up('table').find('tr').each((tr)=>{
+            if(/предложений других игроков не найдено/.test(tr.textContent)) return;
 
-  function getMod(row){
-    var mod;
+            fast = $advertParser.getFast(tr);
+            if(!fast) return;
 
-    mod = $(row.cells[2]).find('a').node();
-    if(mod){
-      mod = mod.href.match(/(\d+)/g);
-      mod = mod[mod.length - 1];
-      mod = Number(mod);
+            price   = $advertParser.getPrice(tr);
+            dur     = $advertParser.getDurability(tr);
+            mod     = $advertParser.getMod(tr);
+            island  = $advertParser.getIsland(tr);
+            seller  = $advertParser.getSeller(tr);
+
+            if(type == "art"){
+              cost = $advertParser.getRate(price, item[4]);
+              if(price >= $scanner.settings.art.costEun * item[4]) return;
+            }else{
+              refund = $advertParser.getRefund(dur[1], item);
+              if(mod != 0) refund[1] += 2000;
+              cost = $advertParser.getExpCost(price, refund[0], refund[1]);
+              if(cost >= $scanner.settings.gos.costExp) return;
+            }
+
+            result[`${seller[0]}-${id}`] = [id, $items[type].sections[item[2]], item[1], mod, dur[0], dur[1], price, cost, island, fast, $c.getTimeNow()];
+            count++;
+          }, 3);
+
+          if(count) push(type, result);
+        }
+
+        nextItem();
+      });
     }else{
-      mod = 0;
+      nextItem();
     }
-
-    return mod;
   }
   /////////////////////////////
 
-  function getFast(row){
-    var fast;
+  function nextItem(){
+    var interval;
 
-    fast = $(row.cells[4]).find('a[href*="market-i.php"]').node();
-    if(fast){
-      fast = fast.href.match(/(\d+)/g)[1];
-      fast = Number(fast);
+    interval = $scanner.settings.mode == "slow" ? $c.randomNumber(100, 150) : $c.randomNumber(15, 23);
+    interval = interval * 100;
+
+    index++;
+    if(index >= max) index = 0;
+    $sr.id = scanner.gkDelay(interval, null, [index]);
+  }
+  /////////////////////////////
+
+  function push(type, data){
+    var time, key;
+
+    time = $c.getTimeNow();
+    key = false;
+
+    Object.keys(data).forEach((id)=>{
+      if($sr[type][id] == null){
+        $sr[type][id] = Create.sr(data[id]);
+        key = true;
+      }
+      if(time - $sr[type][id].time > 600) delete $sr[type][id];
+    });
+
+    if(key){
+      playSound(7);
+      openAutoScannerWindow();
+    }
+    render(type);
+  }
+  /////////////////////////////
+
+  function render(type){
+    var nb, tr, code = "", list;
+
+    list =  Object.keys($sr[type]);
+    list.forEach((id, index)=>{
+      tr = $sr[type][id];
+      nb = index == 0 ? ' no-b-top' : '';
+      code += '@include: ./html/autoScannerListRow.html, true';
+    });
+
+    if(list.length){
+      $(`#as-rows-${type}`)
+        .html(code)
+        .find('.as-remove-one')
+        .each((button)=>{
+          bindEvent(button, "onclick", removeOne, [type]);
+        });
     }else{
-      fast = 0;
-    }
-    return fast;
-  }
-
-  function getRate(price, cost){
-    if(cost == 0) return 0;
-    return parseInt(price / cost, 10);
-  }
-  /////////////////////////////
-
-  function getRefund(dur, item){
-    var durability, durLeft;
-
-    durability = $items.gos.items[item.id][6];
-    durLeft = durability[0] - dur;
-
-    if(durLeft <= 0){
-      return [item.refundNew, item.expNew];
-    }
-
-    if(durLeft < durability[2]){
-      return [
-        parseInt(item.refundNew - durLeft * item.refundOne, 10),
-        parseInt(durLeft * item.expOne + item.expNew, 10)
-      ];
-    }
-
-    if(durLeft >= durability[2]){
-      return [item.refundBroken, item.expBroken];
+      renderEmpty(type);
     }
   }
-  /////////////////////////////
 
-  function getExpCost(price, refund, exp){
-    var cost;
+  function removeOne(type, button){
+    var row, id;
 
-    cost = price - refund;
-    cost = cost / exp;
-    cost = cost.toFixed(1);
-    cost = parseFloat(cost);
+    id = button.firstElementChild.value;
+    row = $(button).up('tr').node();
+    row.parentNode.removeChild(row);
+    delete $sr[type][id];
 
-    return cost;
+    if($(`#as-rows-${type}`).find('tr').length == 0) renderEmpty(type);
+  }
+
+  function renderEmpty(type){
+    $(`#as-rows-${type}`).html('@include: ./html/autoScannerListEmpty.html, true');
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -495,6 +641,24 @@ function editAdvert(){
     //if(d > item.durability) d = item.durability;
 
     return d;
+  }
+}
+
+function addAutoScannerItems(type, now, max, list){
+  if(progress.isWork(addAutoScannerItems, arguments)) return;
+  if(now < max){
+
+    $scanner.items[list[now].id] = {
+      name: list[now].name,
+      it: type
+    };
+
+    $ls.save("gk_acfd_scanner", $scanner);
+    progress.work(false, 0);
+    now++;
+    addAutoScannerItems.gkDelay(50, null, [type, now, max, list]);
+  }else{
+    progress.done();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1164,7 +1328,7 @@ function showTable(t){
   html = "";
 
   for(i = 0, length = rows.length; i < length; i++){
-    b = i > 0 && i < length - 1 ? "" : (i == 0 ? 'type="no-b-top"' : 'type="no-b-bottom"');
+    b = i > 0 && i < length - 1 ? "" : (i == 0 ? ' no-b-top' : ' no-b-bottom');
     if(!n && i == 80){
       code[n] = html;
       html = "";
@@ -1215,63 +1379,6 @@ function showTable(t){
         return '@include: ./html/expTableRow.html, true';
         break;
     }
-  }
-  /////////////////////////////
-
-  function getClass(row){
-    return row.check ? "light checked" : "light";
-  }
-  /////////////////////////////
-
-  function getChecked(row){
-    return row.check ? "checked" : "";
-  }
-  /////////////////////////////
-
-  function getNameLink(row){
-    var href;
-
-    href = `http://www.ganjawars.ru/item.php?item_id=${row.id}`;
-    if(row.mod != 0) href += "&m=" + row.mod;
-    return `<a target="_blank" href="${href}">${row.name}</a>`;
-  }
-  /////////////////////////////
-
-  function getMod(row, short){
-    var m, url;
-
-    if(row.mod == 0) return "";
-
-    m = $mods(row.section);
-    if(m == null) return "-1";
-
-    m = m[row.mod];
-    if(m == null) return "-2";
-
-    url = `http://www.ganjawars.ru/item.php?item_id=${row.id}&m=${row.mod}`;
-
-    if(short == null){
-      return `<a target="_blank" title="Эффект: ${m.d}\nВероятность выпадения: ${m.f}" href="${url}" class="no-line">${m.name} ${m.fn}</a>`;
-    }else{
-      return `<a target="_blank" title="${m.fn}\nЭффект: ${m.d}\nВероятность выпадения: ${m.f}" href="${url}" class="no-line">${m.name}</a>`;
-    }
-  }
-
-  function getActionsLink(row){
-    var url, mod, style, title;
-
-    if(row.fast != 0){
-      url = `http://www.ganjawars.ru/market-i.php?stage=2&sell_id=${row.fast}`;
-      style = "fast-buy";
-      title = "Купить сейчас";
-    }else{
-      mod = row.mod == 0 ? "" : "+" + $mods(row.section)[row.mod].name;
-      url = `http://www.ganjawars.ru/sms-create.php?mailto=${row.seller[1]}&subject=[+Покупка+]+${row.name}${mod}+${row.durNow}/${row.durMax}`;
-      style = "send-mail";
-      title = "Написать письмо";
-    }
-
-    return `<a href="${url}" target="_blank" class="no-line ${style}" title="${title}">»»»</a>`;
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1484,9 +1591,34 @@ function getItemsData(update){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function playSound(id){
+  var audio;
+
+  if(id == 0) return;
+  audio = $('#acfd_playSound');
+
+  if(audio.length == 0){
+    audio = $('<audio>').node();
+    audio.id = "acfd_playSound";
+    audio.src = `http://www.ganjawars.ru/sounds/${id}.mp3`;
+    audio.autoplay = true;
+
+    document.body.appendChild(audio);
+  }else{
+    audio = audio.node();
+
+    if(audio.src != `http://www.ganjawars.ru/sounds/${id}.mp3`){
+      audio.src = `http://www.ganjawars.ru/sounds/${id}.mp3`;
+    }
+    audio.play();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function loadData(){
   $data = $ls.load("gk_acfd_data");
   $stats = $ls.load("gk_acfd_stats");
+  $scanner = $ls.load("gk_acfd_scanner");
 
   if($data.time == null){
     $data = {
@@ -1516,5 +1648,25 @@ function loadData(){
     }
 
     $ls.save("gk_acfd_stats", $stats);
+  }
+
+  if($scanner.items == null){
+    $scanner = {
+      items: {},
+      settings: {
+        art: {
+          island: "-1",
+          costEun: 0
+        },
+        gos: {
+          island: "-1",
+          costExp: 0
+        },
+        mode: "online"
+      },
+      work: false
+    };
+
+    $ls.save("gk_acfd_scanner", $scanner);
   }
 }
