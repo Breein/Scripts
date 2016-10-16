@@ -113,6 +113,22 @@ GeneratorData.prototype = {
     return a.action == "rent" ?
       `stage=3&action_id=3&item_id=${a.id}&island=${a.island}&price=${a.price}&mindays=${a.termRent}&modificator=${a.mod}&durability1=${a.durNow}&durability2=${a.durMax}&date_len=${a.termPost}` :
       `stage=3&action_id=${action[a.action]}&item_id=${a.id}&island=${a.island}&price=${a.price}&modificator=${a.mod}&durability1=${a.durNow}&durability2=${a.durMax}&date_len=${a.termPost}`;
+  },
+
+  sr: function(d){
+    return {
+      id: d[0],
+      section: d[1],
+      name: d[2],
+      mod: d[3],
+      durNow: d[4],
+      durMax: d[5],
+      price: d[6],
+      cost: d[7],
+      island: d[8],
+      fast: d[9],
+      time: d[10]
+    }
   }
 };
 
