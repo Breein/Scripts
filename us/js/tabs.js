@@ -183,8 +183,9 @@ Tabs.prototype = {
    * @param {string} button
    * @param {string} window
    * @param {Shadow} shadow
+   * @param {function=} f
    */
-  menuBindOpenWindow: function(button, window, shadow){
+  menuBindOpenWindow: function(button, window, shadow, f){
     var tabs = this;
 
     button = "#" + tabs._button[button];
@@ -193,6 +194,7 @@ Tabs.prototype = {
     function openWindow(){
       shadow.open(window);
       tabs.closeMenu();
+      if(f) f.apply();
     }
   }
 };
