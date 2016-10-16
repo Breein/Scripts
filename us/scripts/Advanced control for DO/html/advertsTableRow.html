@@ -1,8 +1,8 @@
-<tr height="28" class="${getClass(tr)}${border}">
+<tr height="28" class="${$showHelper.getClass(tr)}${border}">
   <td ${t.getWidth("section")} class="ct">${tr.section}</td>
   <td ${t.getWidth("level")} class="ct">${tr.level}</td>
-  <td ${t.getWidth("name")} class="a-item">${getNameLink(tr)}</td>
-  <td ${t.getWidth("mod")} class="ct">${getMod(tr, true)}</td>
+  <td ${t.getWidth("name")} class="a-item">${$showHelper.getNameLink(tr)}</td>
+  <td ${t.getWidth("mod")} class="ct">${$showHelper.getMod(tr, true)}</td>
   <td ${t.getWidth("it")} class="ct">${tr.it ? '√' : ''}</td>
   <td ${t.getWidth("action")} class="ct">${$texts.action[tr.action]}</td>
   <td ${t.getWidth("island")} class="ct">${$texts.island[tr.island]}</td>
@@ -13,5 +13,5 @@
   <td ${t.getWidth("price")} class="ct">${$c.convertID(tr.price)}</td>
   <td ${t.getWidth("posted")} class="ct">${tr.posted ? '√' : ''}</td>
   <td ${t.getWidth("autoPost")} class="ct">${tr.autoPost ? '√' : ''}</td>
-  <td ${t.getWidth("check", true)} class="ct"><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+  <td ${t.getWidth("check", true)} class="ct"><input type="checkbox" ${$showHelper.getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
 </tr>

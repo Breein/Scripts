@@ -1,16 +1,16 @@
-<tr height="28" class="${getClass(tr)}${border}">
-  <td ${t.getWidth("section")} align="center">${tr.section}</td>
-  <td ${t.getWidth("level")} align="center">${tr.level}</td>
-  <td ${t.getWidth("name")} class="a-item">${getNameLink(tr)}</td>
-  <td ${t.getWidth("mod")} align="center">${getMod(tr, true)}</td>
-  <td ${t.getWidth("price")} align="center">${$c.convertID(tr.price)}</td>
-  <td ${t.getWidth("refund")} align="center">${$c.convertID(tr.refund)}</td>
-  <td ${t.getWidth("exp")} align="center">${$c.convertNumber(tr.exp)}</td>
-  <td ${t.getWidth("expCost")} align="center">${tr.expCost > 1000 ? parseInt(tr.expCost / 1000) + " k" : tr.expCost}</td>
-  <td ${t.getWidth("durMax")} align="center">${tr.durNow}/${tr.durMax}</td>
-  <td ${t.getWidth("island")} align="center">${$texts.island[tr.island]}</td>
+<tr height="28" class="${$showHelper.getClass(tr)}${border}">
+  <td ${t.getWidth("section")} class="ct">${tr.section}</td>
+  <td ${t.getWidth("level")} class="ct">${tr.level}</td>
+  <td ${t.getWidth("name")} class="a-item">${$showHelper.getNameLink(tr)}</td>
+  <td ${t.getWidth("mod")} class="ct">${$showHelper.getMod(tr, true)}</td>
+  <td ${t.getWidth("price")} class="ct">${$c.convertID(tr.price)}</td>
+  <td ${t.getWidth("refund")} class="ct">${$c.convertID(tr.refund)}</td>
+  <td ${t.getWidth("exp")} class="ct">${$c.convertNumber(tr.exp)}</td>
+  <td ${t.getWidth("expCost")} class="ct">${tr.expCost > 1000 ? parseInt(tr.expCost / 1000) + " k" : tr.expCost}</td>
+  <td ${t.getWidth("durMax")} class="ct">${tr.durNow}/${tr.durMax}</td>
+  <td ${t.getWidth("island")} class="ct">${$texts.island[tr.island]}</td>
   <td ${t.getWidth("seller")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/info.php?id=${tr.seller[0]}">${tr.seller[1]}</a></td>
-  <td ${t.getWidth("fast")} align="center">${tr.fast ? '√' : ''}</td>
-  <td ${t.getWidth("actions")} align="center">${getActionsLink(tr)}</td>
-  <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+  <td ${t.getWidth("fast")} class="ct">${tr.fast ? '√' : ''}</td>
+  <td ${t.getWidth("actions")} class="ct">${$showHelper.getActionsLink(tr)}</td>
+  <td ${t.getWidth("check", true)}><input type="checkbox" ${$showHelper.getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
 </tr>

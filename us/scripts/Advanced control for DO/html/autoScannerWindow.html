@@ -1,0 +1,141 @@
+<div class="window center-screen hide" id="acfd_autoScannerWindow">
+  <div class="window-content">
+    <div>
+      <table width="900" class="padding">
+        <tr class="header red-color" height="35">
+          <td colspan="3">Авто-сканнер</td>
+        </tr>
+        <tr height="30" class="header no-b-bottom">
+          <td width="33%">Общие</td>
+          <td width="33%">Hi-tech предметы</td>
+          <td width="33%">Гос. предметы</td>
+        </tr>
+        <tr class="lbg">
+          <td>
+            Онлайн режим: <input type="radio" class="v-middle" name="mode" value="online" />
+          </td>
+          <td>
+            <span class="as-text">Остров:</span>
+            <select name="island-art">
+              <option value="-1">Не имеет значения</option>
+              <option value="0">[G] Ganja Island</option>
+              <option value="1">[Z] Z-Land</option>
+              <option value="3">[O] Outland</option>
+              <option value="4">[P] Palm Island</option>
+            </select>
+          </td>
+          <td>
+            <span class="as-text">Остров:</span>
+            <select name="island-gos">
+              <option value="-1">Не имеет значения</option>
+              <option value="0">[G] Ganja Island</option>
+              <option value="1">[Z] Z-Land</option>
+              <option value="3">[O] Outland</option>
+              <option value="4">[P] Palm Island</option>
+            </select>
+          </td>
+        </tr>
+        <tr class="lbg">
+          <td>
+            Тихий режим: <input type="radio" class="v-middle" name="mode" value="slow" />
+          </td>
+          <td>
+            <span class="as-text">Курс EUN:</span>
+            <span class="money-input">
+              <input type="text" name="costEun" value="${$c.convertID($scanner.settings.art.costEun)}" maxlength="9" />
+              <input type="hidden" name="costEun" value="${$scanner.settings.art.costEun}">
+            </span>
+          </td>
+          <td>
+            <span class="as-text">Цена эконома:</span>
+            <input type="text" name="costExp" style="text-align: center;" value="${$scanner.settings.gos.costExp}" />
+          </td>
+        </tr>
+        <tr height="30" class="lbg">
+          <td colspan="3" align="center">
+            <span id="as-list-open">[список предметов]</span>
+          </td>
+        <tr height="30" class="header">
+          <td colspan="3" align="center">
+            <input id="as-saveSettings" type="button" value="Сохранить" />
+          </td>
+        </tr>
+        <tr height="10" class="no-b-bottom">
+          <td colspan="3"></td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <table width="900" class="padding">
+        <tr class="header" height="30">
+          <td colspan="7">Hi-tech предметы</td>
+        </tr>
+        <tr class="header" height="30">
+          <td>Предмет</td>
+          <td width="50">Мод</td>
+          <td width="54" class="durability"></td>
+          <td width="75">Цена</td>
+          <td width="65">Курс</td>
+          <td width="130">Остров</td>
+          <td width="52">»»»</td>
+        </tr>
+      </table>
+    </div>
+    <div class="as-row">
+      <table align="center" style="width: 100%;" class="padding" id="as-rows-art">
+        <tr class="light no-b-top" height="30">
+          <td>-</td>
+          <td width="50"></td>
+          <td width="54"></td>
+          <td width="75"></td>
+          <td width="65"></td>
+          <td width="130"></td>
+          <td width="33"></td>
+        </tr>
+      </table>
+    </div>
+    <div class="as-space"></div>
+    <div>
+      <table width="900" class="padding">
+        <tr class="header" height="30">
+          <td colspan="7">Гос. предметы</td>
+        </tr>
+        <tr class="header" height="30">
+          <td>Предмет</td>
+          <td width="50">Мод</td>
+          <td width="54" class="durability"></td>
+          <td width="75">Цена</td>
+          <td width="65">Ед.эко</td>
+          <td width="130">Остров</td>
+          <td width="52">»»»</td>
+        </tr>
+      </table>
+    </div>
+    <div class="as-row">
+      <table align="center" style="width: 100%;" class="padding" id="as-rows-gos">
+        <tr class="light no-b-top" height="30">
+          <td>-</td>
+          <td width="50"></td>
+          <td width="54"></td>
+          <td width="75"></td>
+          <td width="65"></td>
+          <td width="130"></td>
+          <td width="33"></td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <table width="900" class="padding no-border lr">
+        <tr height="20"><td class="as-status"></td></tr>
+        <tr height="35">
+          <td align="center">
+            <input type="button" value="Запустить" id="as-work-button" />
+          </td>
+        </tr>
+        <tr class="footer-line">
+          <td></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,15 +1,15 @@
-<tr height="28" class="${getClass(tr)}${border}">
-  <td ${t.getWidth("section")} align="center">${tr.section}</td>
-  <td ${t.getWidth("level")} align="center">${tr.level}</td>
+<tr height="28" class="${$showHelper.getClass(tr)}${border}">
+  <td ${t.getWidth("section")} class="ct">${tr.section}</td>
+  <td ${t.getWidth("level")} class="ct">${tr.level}</td>
   <td ${t.getWidth("name")} class="a-item"><a target="_blank" href="http://www.ganjawars.ru/item.php?item_id=${tr.id}">${tr.name}</a></td>
-  <td ${t.getWidth("durability")} align="center">${tr.durability}</td>
-  <td ${t.getWidth("cost")} align="center">${$c.convertID(tr.cost)}</td>
-  <td ${t.getWidth("refundNew")} align="center">${$c.convertID(tr.refundNew)}</td>
-  <td ${t.getWidth("refundBroken")} align="center">${$c.convertID(tr.refundBroken)}</td>
-  <td ${t.getWidth("expNew")} align="center">${$c.convertNumber(tr.expNew)}</td>
-  <td ${t.getWidth("expBroken")} align="center">${$c.convertNumber(tr.expBroken)}</td>
-  <td ${t.getWidth("sell")} align="center">${tr.sell ? '√' : ''}</td>
-  <td ${t.getWidth("buy")} align="center">${tr.buy ? '√' : ''}</td>
-  <td ${t.getWidth("rent")} align="center">${tr.rent ? '√' : ''}</td>
-  <td ${t.getWidth("check", true)}><input type="checkbox" ${getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
+  <td ${t.getWidth("durability")} class="ct">${tr.durability}</td>
+  <td ${t.getWidth("cost")} class="ct">${$c.convertID(tr.cost)}</td>
+  <td ${t.getWidth("refundNew")} class="ct">${$c.convertID(tr.refundNew)}</td>
+  <td ${t.getWidth("refundBroken")} class="ct">${$c.convertID(tr.refundBroken)}</td>
+  <td ${t.getWidth("expNew")} class="ct">${$c.convertNumber(tr.expNew)}</td>
+  <td ${t.getWidth("expBroken")} class="ct">${$c.convertNumber(tr.expBroken)}</td>
+  <td ${t.getWidth("sell")} class="ct">${tr.sell ? '√' : ''}</td>
+  <td ${t.getWidth("buy")} class="ct">${tr.buy ? '√' : ''}</td>
+  <td ${t.getWidth("rent")} class="ct">${tr.rent ? '√' : ''}</td>
+  <td ${t.getWidth("check", true)}><input type="checkbox" ${$showHelper.getChecked(tr)} value="${tr.id}"/><div type="checkbox"></div></td>
 </tr>

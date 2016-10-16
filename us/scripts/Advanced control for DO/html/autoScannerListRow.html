@@ -1,0 +1,9 @@
+<tr class="light${nb}" height="30">
+  <td class="a-item">${$showHelper.getNameLink(tr)} <span class="as-remove-one" title="Убрать">[x]<input type="hidden" value="${id}" /></span></td>
+  <td width="50" class="ct">${$showHelper.getMod(tr, true)}</td>
+  <td width="54" class="ct">${tr.durNow}/${tr.durMax}</td>
+  <td width="75" class="ct">${$c.convertID(tr.price)}</td>
+  <td width="65" class="ct">${$c.convertID(tr.cost)}</td>
+  <td width="130" class="ct">${$texts.island[tr.island]}</td>
+  <td width="33" class="ct">${$showHelper.getActionsLink(tr)}</td>
+</tr>
