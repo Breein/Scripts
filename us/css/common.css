@@ -54,6 +54,10 @@ input[type="button"]{
     height: 20px;
 }
 
+input[type="button"]:disabled{
+    background-color: #d4e5d4;
+}
+
 span.money-input input[type="text"]{
     text-align: center;
 }
