@@ -4,23 +4,30 @@ var bindEvent = require('./../../../js/events.js');
 var setStyle = require('./../../../js/style.js');
 
 
-var $answer;
+var $answer, $name, $keys;
 
 $answer = $('<span>').node();
+$name = getCharacterName();
+$keys = {
+  "гном убийца": "418ff",
+  "Гыжик": "dcaa3",
+  "ГЫХ": "67199"
+};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 addStyle();
 addButtons();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addStyle(){
   setStyle('common.js', '@include: ./../../css/common.css, true');
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addButtons(){
-  var td, sid,
-    //key = "418ff"; // гном
-    //key = "dcaa3";  // гыж
-    key = "67199";  // гыж мульт
+  var td, sid, key;
 
+  key = $keys[$name];
 
   $('a:contains("Купить сейчас")').each((button)=>{
     button.innerHTML = '<img width="12" border="0" height="10" src="http://images.ganjawars.ru/i/home/bank.gif">';
@@ -33,6 +40,7 @@ function addButtons(){
     bindEvent($(td).find('input[type="button"]'), "onclick", buyItem, [sid, key, td.parentNode]);
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function buyItem(sid, key, row, button){
   var data, result;
@@ -49,3 +57,9 @@ function buyItem(sid, key, row, button){
     }
   });
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getCharacterName(){
+  return $('a[href*="info.php"]').text();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
