@@ -3,20 +3,16 @@ var ajax = require('./../../../js/request.js');
 var bindEvent = require('./../../../js/events.js');
 var setStyle = require('./../../../js/style.js');
 
+const $ls = require('./../../../js/ls.js');
 
-var $answer, $name, $keys;
+var $answer, $name, $data;
 
 $answer = $('<span>').node();
 $name = getCharacterName();
-$keys = {
-  "гном убийца": "418ff",
-  "Гыжик": "dcaa3",
-  "ГЫХ": "67199"
-};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 addStyle();
-addButtons();
+loadData();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addStyle(){
@@ -24,10 +20,37 @@ function addStyle(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function loadData(){
+  var time, key;
+
+  $data = $ls.load("gk_doShoppingFaster");
+  time = getTimeNow();
+  key = $data[$name];
+
+  if($data.time == null) $data.time = 0;
+  if(time - $data.time > 3600 || key == null){
+    ajax("http://www.ganjawars.ru/market-i.php", "GET", null).then((r)=>{
+      key = $($answer).html(r.text)
+          .find('input[type="hidden"][name="lpt"]')
+          .node()
+          .value;
+
+      $data.time = time;
+      $data[$name] = key;
+
+      $ls.save("gk_doShoppingFaster", $data);
+      addButtons();
+    });
+  }else{
+    addButtons();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 function addButtons(){
   var td, sid, key;
 
-  key = $keys[$name];
+  key = $data[$name];
 
   $('a:contains("Купить сейчас")').each((button)=>{
     button.innerHTML = '<img width="12" border="0" height="10" src="http://images.ganjawars.ru/i/home/bank.gif">';
@@ -61,5 +84,9 @@ function buyItem(sid, key, row, button){
 
 function getCharacterName(){
   return $('a[href*="info.php"]').text();
+}
+
+function getTimeNow(){
+  return parseInt(new Date().getTime() / 1000, 10);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
