@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Do_shopping_faster_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.01';
+  userScriptVersion = '1.02';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
