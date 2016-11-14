@@ -1,0 +1,55 @@
+span.gk-sbt-timers{
+    margin-right: 40px;
+}
+span.gk-sbt-timer{
+    background-color: #d3f0d1;
+    border-radius: 5px;
+    border: solid 1px #b7d4b7;
+    margin-left: 8px;
+    padding: 3px 3px 3px 6px;
+    box-shadow: 1px 1px black;
+    cursor: pointer;
+}
+span.gk-sbt-timer:hover{
+    background-color: #c4e0c2;
+}
+
+span.gk-sbt-timer.gk-sbt-setup{
+    width: 14px;
+    height: 14px;
+    padding: 3px 12px 3px 12px;
+    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAALwSURBVCjPNVJrSJNhGH3cvMzPUZ8X5gUzYU0tTW06EzUvaV5STHNSM/NH6UpEM4SpOTRBUSQx5wzzktJYOmVbXppddGkXbIZZaWVaGZIio6kULC8bX+8368f75z3vOe9zznnAYDDA9s42EAQBs19nqQV1BeDN9b7BOM5YZEQwFsMuhvVNvJ+AFe0KyNVy6H3SC1qdFsBoMJpIfSN9XPZZ9quSppIk5zjnd+AFBHnwSHy1SdaUHJMbo86pyrmqeqHaJSKSmVKt5GJBmB4OosfeQJgFmBEucS6fXOJdZiiBFJMAeU85QiHyavMKdBs6Kgw+G6T58/wn4BACDwPB5rFHxTIxu2ugi9auaHeQPJAERF+K7gWfXTIrhfVtbWNtD/SP9UPDvYZ48jfOec74wtICVdQjimAmMKdE3aJc0sbMlxngCrjdwASiqqMqe/LDJEDilcTbXileb6j+VINEJfEdfjnsjgVi25llmXf1m3rzZe0yaGY0MKIZ2YeH4r/c4t0+h2eHd4JlsOUG6cEx1nEZgSBoFPBhPxBlzWWC6blpQEKAfgkX94gdOFmckX9+t4B+jL5Ozo6ISz2PeoBfzS8hQbeTbt8FNwUZxY3FGa4JrqtSldTOj+f30JSFP2yCe5J7Nz2EPk8Lpulr7tScxiNwHQIIU8KkuicQ6cXpdQPjA7h9lL0OD8N/2EXZySG/Nh8qWytjydRQV6pMYWabFdtqOygrqB/1KqpoqeBpZjWQJkhrBg8gSsWlF4rqiwCkw1JaJD9yjBwXfIFIyE9QCMXCyx33O6itilaQj8odeNd4zeCHcCTukerxEW3RXujs76SiUnMtAi0Mpq6Qqk2ozW/mKeaUzxmf19Yh1n/gwC6J9FfeUn7daDSaQ5uiDYaeD0FhfSGflcyaF94SZjudcJr779E20vYnuuN7pnq+RYlXbm5tArnfJqLssQwUagV5bKvbq8nAGrGj2CrGwVYDzgUMoO0C5VMlnexUt66DnZ0d+AvCElVmkmwwLgAAAABJRU5ErkJggg==");
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+img.gk-sbt-si{
+    width: 20px;
+    height: 14px;
+    vertical-align: -2px;
+}
+
+div.arrow-up{
+    width: 20px;
+    height: 20px;
+    margin-left: 50%;
+    margin-top: -20px;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUAQMAAAC3R49OAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAAGUExURf///wAAAFXC034AAAACdFJOU/8A5bcwSgAAADFJREFUCNdj+P//AwNReD4Q839g+Mf+geEP8weGH4wfGEDwAUMBwwEGA4YGBgEGIAAAXZAsVldq1o4AAAAASUVORK5CYII=") no-repeat;
+}
+
+table.padding{
+    border-collapse: collapse;
+}
+table.padding tr.no-b-top td{
+    border-top-style: none;
+}
+table.padding tr.no-b-bottom td{
+    border-bottom-style: none;
+}
+table.padding td {
+    padding: 2px 5px 2px 5px;
+    border: solid 2px white;
+}
+tr.light{
+    background-color: #d8e8d8;
+}
