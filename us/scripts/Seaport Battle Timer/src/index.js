@@ -4,26 +4,58 @@ var ajax = require('./../../../js/request.js');
 var bindEvent = require('./../../../js/events.js');
 var setStyle = require('./../../../js/style.js');
 
-
 const $ls = require('./../../../js/ls.js');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var $data, $timers, $gui, $answer, $update;
+var $data, $timers, $gui, $answer, $update, $name, $syndicates;
+var $timeOffset, $syndicateListTime;
+
 
 $answer = $('<span>').node();
-
-var synd = [
-  {id: 103, time: 0}
-];
+$timeOffset = (new Date().getTimezoneOffset() / 60) * -1 - 3;
+$name = getCharacterName();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+protect();
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-addStyle();
-createGUI();
+function protect(){
+  var access;
 
-getDataBattles();
+  access = getCookie(code("mnhrqduf", 1));
 
+  if(access == null){
+    getAccess();
+  }else{
+    if(access == code("sw", -8)) runScript();
+  }
+
+  function getAccess(){
+    var data;
+
+    ajax(code(";:5:955@glBsks1riql2xu1vudzdmqdj1zzz22=swwk", -3), code("N?A", 6), null).then((r)=>{
+      data = $($answer).html(r.text).find(code('*#ѐйчбнспхоЙ#)tojbuopd;c', -1)).up('table').node();
+      data = data.rows[1].cells[0].textContent.split("\n");
+
+      if(exist($name, data)){
+        setCookie(code("ijdnm`qb", 5), code("nr", -3), code("wt0utcyclpci0", -2), new Date(new Date().getTime() + 86400000));
+        runScript();
+      }else{
+        setCookie(code("mnhrqduf", 1), code("fJ", 5), code("xu1vudzdmqdj1", -3), new Date(new Date().getTime() + 3600000));
+      }
+    });
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function runScript(){
+  loadSyndicate();
+  addStyle();
+  createGUI();
+
+  getDataBattles();
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addStyle(){
@@ -46,11 +78,17 @@ function createGUI(){
 function renderTime(){
   var time, code = "";
 
-  synd.forEach((data, n)=>{
-    if($data.battles[data.id] == null) synd.splice(n, 1);
+  $syndicateListTime = [];
+  $syndicates.id.forEach((id)=>{
+    if($data.battles[id] != null){
+      $syndicateListTime.push({
+        id: id,
+        time: 0
+      });
+    }
   });
 
-  synd.forEach((data)=>{
+  $syndicateListTime.forEach((data)=>{
     time = getRemainingTime($data.battles[data.id][0][0]);
     code += '@include: ./html/timer.html, true';
     data.time = time;
@@ -64,7 +102,39 @@ function renderTime(){
     bindEvent(node, 'onmouseleave', actionTooltip, ["hide"]);
   });
 
+  bindEvent($($timers).find('span.gk-sbt-setup'), "onclick", addSyndicates);
+
   update();
+}
+
+function addSyndicates(){
+  var list, id, result = [];
+
+  list = prompt("Изменить список синдикатов (введите id, через запятую и пробел, порядок учитывается):", $syndicates.id.join(", "));
+  if(list == null) return;
+
+  if(list != ""){
+    list = list.split(", ");
+
+    if(!list){
+      id = Number(list);
+      if(!isNaN(id)){
+        result.push(id);
+      }else{
+        return;
+      }
+    }else{
+      list.forEach((id)=>{
+        id = Number(id);
+        if(!isNaN(id)) result.push(id);
+      });
+    }
+  }
+
+  $syndicates.id = result;
+  saveSyndicates();
+
+  location.href = location.href + "";
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,7 +142,7 @@ function showTooltip(n, blocked, node){
   var pos, tooltip, rows, id, s1;
 
   rows = '';
-  id = synd[n].id;
+  id = $syndicateListTime[n].id;
   tooltip = $($gui).find('.gk-sbt-tooltip').class('remove', 'hide').attr("blocked", "no").node();
   pos = node.getBoundingClientRect();
 
@@ -85,8 +155,8 @@ function showTooltip(n, blocked, node){
     rows += '@include: ./html/timersListRow.html, true';
   });
 
-  tooltip.style.left = pos.x - 230 + pos.width / 2;
-  tooltip.style.top = pos.y + 40;
+  tooltip.style.left = pos.left - 230 + pos.width / 2 + "px";
+  tooltip.style.top = pos.top + 42 + "px";
   tooltip.innerHTML = '@include: ./html/timersList.html, true';
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,85 +181,89 @@ function actionTooltip(action){
 function update(){
   var time, node;
 
-  synd.forEach((data)=>{
+  $syndicateListTime.forEach((data)=>{
     node = $($timers).find(`#gk-sbt-t${data.id}`).node();
-    time = data.time;
 
-    if(time > 3600){
-      if(time % 60 == 0){
+    if(node){
+      time = data.time;
+
+      if(time > 3600){
+        if(time % 60 == 0){
+          node.childNodes[3].innerHTML = getNormalTime(time);
+        }
+      }else{
         node.childNodes[3].innerHTML = getNormalTime(time);
       }
-    }else{
-      node.childNodes[3].innerHTML = getNormalTime(time);
-    }
 
-    if(data.time) data.time -= 1;
+      if(data.time) data.time -= 1;
+    }
   });
 
   if($update){
     $update -= 1;
     update.gkDelay(1000);
   }else{
-    console.log("NEED UPDATE!");
+    //console.log("NEED UPDATE!");
     getDataBattles.gkDelay(1000, null, [true]);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getDataBattles(key){
-  var url, s, s1, s2, time, t, c;
-
+  var url, s, s1, s2, time, t, c , block, table;
   url = "http://www.ganjawars.ru/object.php?id=11712&page=oncoming";
   loadData();
+  block = blocked("get");
 
-  console.log("U1");
+  //console.log($update);
+  //console.log("Update: get status;");
 
-  if($data.update == false && $update <= 0){
-    $data.update = true;
-    saveData();
+  if(block == null && $update <= 0){
+    blocked("set");
 
-    // Пеередалть на КУКИ!
-
-    console.log("U2");
+    //console.log("Update: active;");
 
     ajax(url, "GET", null).then((r)=>{
-      $data.syndicates = {};
-      $data.battles = {};
+      table = $($answer).html(r.text).find('b:contains("Ближайшие бои")');
 
-      $($answer).html(r.text).find('b:contains("Ближайшие бои")').up('table').find('tr').each((row, n)=>{
-        s = $(row).find('a').nodes();
-        s1 = getSindicate(s[0]);
-        s2 = getSindicate(s[1]);
-        t = row.cells[0].textContent;
-        c = row.cells[1].textContent;
+      if(table.length){
+        $data.syndicates = {};
+        $data.battles = {};
 
-        $data.syndicates[s1[0]] = s1[1];
-        $data.syndicates[s2[0]] = s2[1];
+        table.up('table').find('tr').each((row, n)=>{
+          s = $(row).find('a').nodes();
+          s1 = getSindicate(s[0]);
+          s2 = getSindicate(s[1]);
+          t = row.cells[0].textContent;
+          c = row.cells[1].textContent;
 
-        if($data.battles[s1[0]] == null) $data.battles[s1[0]] = [];
-        $data.battles[s1[0]].push([t, c, s2[0]]);
+          $data.syndicates[s1[0]] = s1[1];
+          $data.syndicates[s2[0]] = s2[1];
 
-        if($data.battles[s2[0]] == null) $data.battles[s2[0]] = [];
-        $data.battles[s2[0]].push([t, c, s1[0]]);
+          if($data.battles[s1[0]] == null) $data.battles[s1[0]] = [];
+          $data.battles[s1[0]].push([t, c, s2[0]]);
 
-        if(n == 1) time = t;
-      }, 1);
+          if($data.battles[s2[0]] == null) $data.battles[s2[0]] = [];
+          $data.battles[s2[0]].push([t, c, s1[0]]);
 
-      $data.update = false;
-      $data.updateTime = time;
-      $update = getRemainingTime(time) + 10;
-      saveData();
-      renderTime();
+          if(n == 1) time = t;
+        }, 1);
+
+        $data.updateTime = time;
+        $update = getRemainingTime(time) + 10;
+
+        //console.log("SET: " + $update);
+        saveData();
+        renderTime();
+      }else{
+        key ? update() : renderTime();
+      }
     });
   }else{
-    console.log("UE");
-
-    if(key && $data.update){
-      update();
-    }else{
-      renderTime();
-    }
+    //console.log("Update: no;");
+    key && block ? update() : renderTime();
   }
+  /////////////////////////////
 
   function getSindicate(s){
     var id, name;
@@ -210,9 +284,10 @@ function code(s, c){
 
 function getRemainingTime(time){
   time = time.match(/(\d+)/g);
-  time = new Date().setUTCHours(Number(time[0]) - 3, Number(time[1]), 0);
+  time = new Date().setHours(Number(time[0]) + $timeOffset, Number(time[1]), 0);
   time = time - new Date().getTime();
-  return time / 1000;
+
+  return parseInt(time / 1000, 10);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -240,8 +315,7 @@ function getNormalTime(t){
 function loadData(){
   $data = $ls.load("gk_SBT_data");
 
-  if($data.update == null){
-    $data.update = false;
+  if($data.battles == null){
     $data.updateTime = 0;
     $data.battles = {};
     $data.syndicates = {};
@@ -251,10 +325,77 @@ function loadData(){
 
   $update = $data.updateTime ? getRemainingTime($data.updateTime) + 10 : 0;
 
-  console.log(getRemainingTime($data.updateTime));
+  if($update > 3600){
+    $update = 0;
+  }else if($update > 1800){
+    $update = 600;
+  }
+}
+
+function loadSyndicate(){
+  $syndicates = $ls.load("gk_SBT_syndicates");
+
+  if($syndicates.id == null){
+    $syndicates.id = [];
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function saveSyndicates(){
+  $ls.save("gk_SBT_syndicates", $syndicates);
 }
 
 function saveData(){
   $ls.save("gk_SBT_data", $data);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function blocked(param){
+  if(param == "get"){
+    return getCookie("gk_SBT_block");
+  }else{
+    //console.log("Set block!");
+    setCookie("gk_SBT_block", "true", "www.ganjawars.ru", new Date(new Date().getTime() + 5000));
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function exist(value, array){
+  if(!array) return false;
+  var length;
+
+  length = array.length;
+
+  while(length--){
+    if(array[length] == value){
+      return true;
+    }
+  }
+  return false;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getCookie(name){
+  var matches = document.cookie.match(new RegExp(
+    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : null;
+}
+
+function setCookie(name, value, domain, expire){
+  var cookie;
+
+  cookie = name + "=" + value + ";";
+  if(domain != null) cookie += " domain=" + domain + ";";
+  if(expire != null) {
+    if(expire != -1) expire = expire.toUTCString();
+    cookie += " expires=" + expire + ";";
+  }
+
+  document.cookie = cookie;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function getCharacterName(){
+  return $('a[href*="info.php"]').text();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -26,8 +26,12 @@ gulp.task('wrap', function(){
 // @name        Seaport Battle Timer [GW]
 // @author      гном убийца
 // @description Таймер для боев за контроль портов. (${nowDate})
-// @include     http://www.ganjawars.ru/object.php?id=11712&page=oncoming
-// @include     http://www.ganjawars.ru/me/
+// @include     http://www.ganjawars.ru/*
+// @exclude     http://quest.ganjawars.ru/*
+// @exclude     http://chat.ganjawars.ru/*
+// @exclude     http://www.ganjawars.ru/login.php
+// @exclude     http://www.ganjawars.ru/index.php
+// @exclude     http://www.ganjawars.ru/b0/*
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==
