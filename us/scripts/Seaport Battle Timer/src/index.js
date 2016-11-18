@@ -69,7 +69,9 @@ function createGUI(){
 
   $gui = $('<span>').attr('id', 'gk-sbt-gui').html('@include: ./html/gui.html, true').node();
   $timers = $('<span>').class('set', 'gk-sbt-timers').node();
-  node = $('td[class="txt"]:contains("~игроков онлайн")').node();
+  node = $('td[class="txt"]:contains("~игроков онлайн")');
+  if(!node.length)
+    node = $('div[style="float:right;margin-top: 6px;padding-right:10px"]:contains("~игроков онлайн")').node();
   node.insertBefore($timers, node.firstChild);
   document.body.appendChild($gui);
 }
@@ -106,6 +108,7 @@ function renderTime(){
 
   update();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addSyndicates(){
   var list, id, result = [];
@@ -231,22 +234,26 @@ function getDataBattles(key){
         $data.battles = {};
 
         table.up('table').find('tr').each((row, n)=>{
-          s = $(row).find('a').nodes();
-          s1 = getSindicate(s[0]);
-          s2 = getSindicate(s[1]);
           t = row.cells[0].textContent;
-          c = row.cells[1].textContent;
 
-          $data.syndicates[s1[0]] = s1[1];
-          $data.syndicates[s2[0]] = s2[1];
+          if(t != "(отсутствуют)"){
+            s = $(row).find('a').nodes();
+            s1 = getSindicate(s[0]);
+            s2 = getSindicate(s[1]);
 
-          if($data.battles[s1[0]] == null) $data.battles[s1[0]] = [];
-          $data.battles[s1[0]].push([t, c, s2[0]]);
+            c = row.cells[1].textContent;
 
-          if($data.battles[s2[0]] == null) $data.battles[s2[0]] = [];
-          $data.battles[s2[0]].push([t, c, s1[0]]);
+            $data.syndicates[s1[0]] = s1[1];
+            $data.syndicates[s2[0]] = s2[1];
 
-          if(n == 1) time = t;
+            if($data.battles[s1[0]] == null) $data.battles[s1[0]] = [];
+            $data.battles[s1[0]].push([t, c, s2[0]]);
+
+            if($data.battles[s2[0]] == null) $data.battles[s2[0]] = [];
+            $data.battles[s2[0]].push([t, c, s1[0]]);
+
+            if(n == 1) time = t;
+          }
         }, 1);
 
         $data.updateTime = time;
@@ -385,7 +392,7 @@ function getCookie(name){
 function setCookie(name, value, domain, expire){
   var cookie;
 
-  cookie = name + "=" + value + ";";
+  cookie = name + "=" + value + ";path=/;";
   if(domain != null) cookie += " domain=" + domain + ";";
   if(expire != null) {
     if(expire != -1) expire = expire.toUTCString();
