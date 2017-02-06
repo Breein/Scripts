@@ -414,7 +414,8 @@ function getData(index, list){
     sx = sector[0]; sy = sector[1];
 
     status = $($answer).find('b:contains("Действия")').up('td').next('td').next('td').text();
-    p.state.now = status.length < 3 ? "Оффлайн" : status.replace('\n', '');
+    status = status.split('function')[0];
+    p.state.now = status.length < 5 ? "Оффлайн" : status.replace('\n', '');
 
     status = $($answer).find('td:contains("Вооружение")').up('table').node();
     status = status.rows[5].cells[0].textContent;
