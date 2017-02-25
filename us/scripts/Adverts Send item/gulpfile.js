@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Adverts._Send_item_[GW]';
   userScriptName = 'Adverts._Send_item_[GW].user.js';
-  userScriptVersion = '1.13';
+  userScriptVersion = '1.131';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
