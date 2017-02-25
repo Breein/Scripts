@@ -27,7 +27,7 @@ if(location.pathname == "/home.senditem.php"){
 function getAdvertIntoMail(){
   var subject, name, itemName, sendName, sp, ep, id, advert, action, url, island;
 
-  subject = $('div:contains("~Тема:")').find('b').text();
+  subject = $('td[class="greenbg"]:contains("~Тема:")').find('b').text();
   subject = subject.replace(/&quot;|&quot|&quo|&qu|&q|&/g, '"');
 
   if(subject.match(/\[ Покупка ] (.+)|\[ Аренда ] (.+)/)){
