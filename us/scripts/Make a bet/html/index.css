@@ -1,0 +1,16 @@
+table.padding{
+    border-collapse: collapse;
+}
+table.padding td {
+    padding: 2px 5px 2px 5px;
+    border: solid 2px white;
+}
+tr.light{
+    background-color: #d8e8d8;
+}
+td.ct{
+    text-align: center;
+}
+input.v-middle-2{
+    vertical-align: -2px;
+}
