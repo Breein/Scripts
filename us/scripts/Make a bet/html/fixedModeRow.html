@@ -1,0 +1,16 @@
+<tr class="light" height="28">
+  <td class="ct select-bet" title="Выбрать ставку">
+    ${getNameBet(bet.bet)}
+  </td>
+  <td width="154">
+        <span class="money-input">
+          <input type="text" value="${convertID(bet.money)}" maxlength="6" style="width: 110px;" class="v-middle-2"/>
+          <input type="hidden" value="${bet.money}">
+        </span>
+    <input type="button" value="Ok" class="save-money" />
+    <input type="hidden" value="${id}">
+  </td>
+  <td width="28" class="remove-bet" title="Удалить">
+    <input type="hidden" value="${id}">
+  </td>
+</tr>

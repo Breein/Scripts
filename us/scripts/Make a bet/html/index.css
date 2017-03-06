@@ -1,3 +1,6 @@
+#mb_gui{
+    width: 640px;
+}
 table.padding{
     border-collapse: collapse;
 }
@@ -11,6 +14,22 @@ tr.light{
 td.ct{
     text-align: center;
 }
+td.rt{
+    text-align: right;
+}
 input.v-middle-2{
     vertical-align: -2px;
+}
+td.remove-icon,
+td.remove-bet{
+    cursor: pointer;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcAgMAAAAPYzcHAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAAJUExURatOTpkAAAAAAPfYbIEAAAADdFJOU///ANfKDUEAAABdSURBVAjXjY6xCcAwDAS/SOXSkCU0isuA90nhCbSBO3FTpjAy6ZJvDh7p/8WSvnlLMsHZe28iGuBi2uKgUFxUajRXNMY01zTmgWtAXC+mn3f5t3MyN3uyd+/4tfsBj0ZqSWX8dkcAAAAASUVORK5CYII=") center center no-repeat;
+    background-size: 20px 20px;
+}
+
+td.select-bet{
+    cursor: pointer;
+}
+td.select-bet.active{
+    background-color: #efc2c2;
 }

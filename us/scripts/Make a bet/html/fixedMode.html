@@ -1,0 +1,20 @@
+<div class="tab-content">
+  <table class="padding" align="center" width="100%" id="mab_fixedTable">
+    <tr class="header" height="35">
+      <td>Ставка</td>
+      <td width="154">Сумма ставки</td>
+      <td width="28" class="remove-icon"></td>
+    </tr>
+    ${rows}
+    <tr class="light" height="28">
+      <td class="rt" colspan="3">
+        <input type="button" value="+" id='mab_fixedAddBet' title="Добавить ставку" />
+      </td>
+    </tr>
+    <tr class="header" height="35">
+      <td class="ct" colspan="3">
+        <input type="button" value="${$data.fixed.work ? 'Остановить' : 'Запустить'}" id="mab_fixedWork" />
+      </td>
+    </tr>
+  </table>
+</div>

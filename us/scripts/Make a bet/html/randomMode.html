@@ -1,0 +1,30 @@
+<div class="tab-content">
+  <table class="padding" align="center" width="100%" id="mab_randomTable">
+    <tr class="header">
+      <td rowspan="2">Сумма ставки</td>
+      <td rowspan="2">Выпавшее</td>
+      <td colspan="4">Ставки</td>
+    </tr>
+    <tr class="header" height="28">
+      <td colspan="2">Текущая</td>
+      <td colspan="2">Прошлая</td>
+    </tr>
+    <tr class="light" height="28" id="mab_data">
+      <td width="154">
+        <span class="money-input">
+          <input type="text" value="${convertID($data.random.money)}" maxlength="6" style="width: 110px;" class="v-middle-2" id="mab_randomBet" />
+          <input type="hidden" value="${$data.random.money}">
+        </span>
+        <input type="button" value="Ok" id="mab_saveRandomBet" />
+      </td>
+      <td class="ct">${$data.random.last}</td>
+      <td class="ct" width="50">${$data.random.bets.now[0]}</td>
+      <td class="ct" width="50">${$data.random.bets.now[1]}</td>
+      <td class="ct" width="50">${$data.random.bets.old[0]}</td>
+      <td class="ct" width="50">${$data.random.bets.old[1]}</td>
+    </tr>
+    <tr class="header" height="35">
+      <td colspan="6" class="ct"><input type="button" value="${$data.random.work ? 'Остановить' : 'Запустить'}" id="mab_randomWork" /></td>
+    </tr>
+  </table>
+</div>
