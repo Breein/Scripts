@@ -139,8 +139,8 @@ Tabs.prototype = {
 
     if(this._button){
       pos = $(node).find('td.tab-button').node().getBoundingClientRect();
-      this._menu.style.left = pos.left - 1;
-      this._menu.style.top = pos.top + pos.height - 1;
+      this._menu.style.left = pos.left - 1 + window.scrollX;
+      this._menu.style.top = pos.top + pos.height - 1 + window.scrollY;
       node.appendChild(this._menu);
     }
   },
