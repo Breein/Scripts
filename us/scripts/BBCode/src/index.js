@@ -6,11 +6,10 @@ const setStyle = require('./../../../js/style.js');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var $data, $address, $node, $ISKey;
+var $data, $address, $node, $ISKey, $SMSKey;
 
 getData();
 $address = location.pathname;
-$ISKey = false;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -22,6 +21,14 @@ if($address == "/messages.php" || $address == "/object-messages.php"){
     createBBCode_GUI($node, "");
   }
   replaceBBCode();
+}
+
+if($address == "/sms-read.php" || $address == "/sms-create.php"){
+  $SMSKey = true;
+  $node = $('td:contains("~Быстрый ответ для")').node();
+
+  if($node == null) $node = $('td:contains("Сообщение:")').node();
+  if($node) createBBCode_GUI($node, "");
 }
 
 if($address == "/threads-new.php"){
@@ -69,7 +76,10 @@ function createBBCode_GUI(node, extraHTML){
     html += '<input type="button" value="red" title="Красный" class="bb-bc" />';
     html += '<input type="button" value="green" title="Зеленый" class="bb-bc" />';
     html += '<input type="button" value="blue" title="Синий" class="bb-bc" />';
-    html += '<input type="button" value="Space" title="Неубиваемый пробел" name="bb-sb" class="bb-bc" />';
+  }
+
+  if($ISKey || $SMSKey){
+    html += ' | <input type="button" value="Space" title="Неубиваемый пробел" name="bb-sb" class="bb-bc-m" />';
     html += '<input type="button" value="©" title="Копирайт" name="bb-sb" class="bb-bc" />';
     html += '<input type="button" value="®" title="Охрана товара" name="bb-sb" class="bb-bc" />';
     html += '<input type="button" value="—" title="Тире" name="bb-sb" class="bb-bc" />';
@@ -109,7 +119,7 @@ function createBBCode_GUI(node, extraHTML){
 function insertBBCode(open, close){
   var input, text, clearText, start, stop, begin, cur;
 
-  input = $('textarea[name="message"],[name="about"],[name="synd_desc"]').node();
+  input = $('textarea[name="message"],[name="about"],[name="synd_desc"],[name="msg"]').node();
 
   if(open == "[@]"){
     setData();
@@ -130,6 +140,11 @@ function insertBBCode(open, close){
     }else{
       text = clearText.substring(start, stop);
     }
+  }
+
+  if(open == "[q]"){
+    text = window.getSelection();
+    text = text.toString();
   }
 
   start = clearText.substring(0, start);
