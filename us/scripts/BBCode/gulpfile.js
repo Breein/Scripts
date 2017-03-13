@@ -18,19 +18,21 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'BBCode_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '2.00';
+  userScriptVersion = '2.05';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
     `// ==UserScript==
 // @name        BBCode [GW]
 // @author      гном убийца
-// @description BB-коды на форуме, о себе, инфо синдиката. Два режима: продвинутый и упрощенный. (${nowDate})
+// @description BB-коды на форуме, о себе, инфо синдиката, почта. Два режима: продвинутый и упрощенный. (${nowDate})
 // @include     http://www.ganjawars.ru/object-messages.php*
 // @include     http://www.ganjawars.ru/threads-new.php*
 // @include     http://www.ganjawars.ru/messages.php*
 // @include     http://www.ganjawars.ru/info.edit.php*
 // @include     http://www.ganjawars.ru/syndicate.edit.php*
+// @include     http://www.ganjawars.ru/sms-read.php*
+// @include     http://www.ganjawars.ru/sms-create.php*
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==
