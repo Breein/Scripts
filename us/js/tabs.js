@@ -2,20 +2,40 @@ const setStyle = require('./style.js');
 const bindEvent = require('./events');
 var $ = require('./dom');
 
-function Tabs(tabs, active, menu){
+function Tabs(tabs, name, menu){
   this._tabs = tabs;
   this._tabsNodes = [];
-  this._active = active ? active : 0;
+  this._active = 0;
   this._header = null;
   this._content = null;
   this._menu = null;
   this._menuOpen = false;
+  this._name = name;
   this._button = menu;
+  this._data = {};
 
+  this._loadActiveTab();
   this._create();
 }
 
 Tabs.prototype = {
+  _loadActiveTab: function(){
+    var data;
+
+    data = localStorage.getItem("gk_tabs-settings");
+    if(data == null){
+      this._saveActiveTab();
+    }else{
+      this._data = JSON.parse(data);
+      this._active = this._data[this._name];
+    }
+  },
+
+  _saveActiveTab: function(){
+    this._data[this._name] = this._active;
+    localStorage.setItem("gk_tabs-settings", JSON.stringify(this._data));
+  },
+
   _create: function(){
     var code, Tabs = this;
 
@@ -122,6 +142,7 @@ Tabs.prototype = {
     filter = $('#filtersWindow').node();
     if(filter) filter.style.visibility = "hidden";
     this.closeMenu();
+    this._saveActiveTab();
   },
 
   _showMenu: function(){
@@ -201,11 +222,11 @@ Tabs.prototype = {
 
 /**
  * @param {[string, ...]}tabs
- * @param {number=} active
+ * @param {string} name
  * @param {object=} menu
  * @returns {Tabs}
  */
-module.exports = function(tabs, active, menu){
+module.exports = function(tabs, name, menu){
   setStyle('tabs.js', '@include: ./../../css/tabs.css, true');
-  return new Tabs(tabs, active, menu);
+  return new Tabs(tabs, name, menu);
 };
