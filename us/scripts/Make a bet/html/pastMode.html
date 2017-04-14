@@ -1,0 +1,27 @@
+<div class="tab-content">
+  <table class="padding" align="center" width="100%" id="mab_pastTable">
+    <tr class="header">
+      <td colspan="4">Результы прошлых игр</td>
+      <td rowspan="2" height="70">Ставка</td>
+      <td rowspan="2" width="154" height="70">Сумма ставки</td>
+      <td rowspan="2" width="28" class="remove-icon"></td>
+    </tr>
+    <tr class="header">
+      <td class="ct" width="80">Сдвиг</td>
+      <td class="ct">Число</td>
+      <td class="ct" width="80">Сдвиг</td>
+      <td class="ct">Число</td>
+    </tr>
+    ${rows}
+    <tr class="light" height="28">
+      <td class="rt" colspan="7">
+        <input type="button" value="+" id='mab_pastAddBet' title="Добавить ставку" />
+      </td>
+    </tr>
+    <tr class="header" height="35">
+      <td class="ct" colspan="7">
+        <input type="button" value="${$data.past.work ? 'Остановить' : 'Запустить'}" id="mab_pastWork" />
+      </td>
+    </tr>
+  </table>
+</div>

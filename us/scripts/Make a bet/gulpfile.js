@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Make_a_bet_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.51';
+  userScriptVersion = '2.00';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
