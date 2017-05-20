@@ -25,8 +25,8 @@ gulp.task('wrap', function(){
     `// ==UserScript==
 // @name        Advanced stats sinds [GW]
 // @author      гном убийца
-// @description (${nowDate})
-// @include
+// @description Продвинтуая статистика по синдикату. (${nowDate})
+// @include     http://www.ganjawars.ru/syndicate.log.php?id=*
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==
