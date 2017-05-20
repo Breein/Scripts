@@ -98,6 +98,11 @@ Tabs.prototype = {
       }
     });
 
+    if(Tabs._active >= Tabs._tabs.length){
+      Tabs._active = 0;
+      Tabs._saveActiveTab();
+    }
+
     this._tabs.forEach(function(tab, index){
       active = Tabs._active == index ? " active" : "";
       if(type == "tab-top"){
