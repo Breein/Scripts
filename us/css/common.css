@@ -27,7 +27,7 @@ tr.header{
     font-weight: bold;
     text-align: center;
 }
-tr.red-color td{
+tr.red-color *{
     color: #990000;
 }
 tr.footer-line{
@@ -43,6 +43,9 @@ td.a-item > a{
 }
 td.ct{
     text-align: center;
+}
+td.cu-p{
+    cursor: pointer;
 }
 
 /* Кнопки */
