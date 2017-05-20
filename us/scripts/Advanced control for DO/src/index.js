@@ -80,7 +80,8 @@ function createGUI(){
   gui = $('<span>').attr("type", "gui").html('@include: ./html/baseGUI.html, true').node();
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td').html('').node();
 
-  $tabs = tabs(["Гос. предметы", "Арт. предметы", "Объявления", "Анализ цен", "Анализ эконома"], 2, menu);
+  //$tabs = tabs(["Гос. предметы", "Арт. предметы", "Объявления", "Анализ цен", "Анализ эконома"], 2, menu);
+  $tabs = tabs(["Гос. предметы", "Арт. предметы", "Объявления", "Анализ цен", "Анализ эконома"], "advanced-control-for-do", menu);
   $tabs.append(td);
   document.body.appendChild(gui);
 
@@ -732,7 +733,8 @@ function advertsAction(action, now, max, list, data){
           if(!$adverts[aid].it){
             types = ["gos", "art"];
             price = $items[types[record.it]].items[record.id][3];
-            price = parseInt(((price / 100) * 65) / 29, 10);
+            //price = parseInt(((price / 100) * 60) / 29, 10);
+            price = parseInt((price / 100) * 60, 10);
 
             $adverts[aid].price = price;
             $adverts[aid].termRent = 29;
