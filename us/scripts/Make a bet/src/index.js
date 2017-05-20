@@ -9,7 +9,7 @@ const setStyle = require('./../../../js/style.js');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var $answer, $data, $password, $tabs, $selectBet;
+var $answer, $data, $password, $tabs, $selectBet, $game;
 
 $password = "";
 $selectBet = null;
@@ -18,24 +18,28 @@ $selectBet = null;
 
 loadData();
 createGUI();
+getGameNow();
 
 if($data.fixed.work || $data.random.work || $data.past.work){
   run.gkDelay(randomNumber(10, 30) * 100);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function run(){
-  var url, game, timeout;
+function getGameNow(){
+  var url;
 
   url = $('a:contains("~Результат прошлой игры")').node();
-  timeout = 50;
+  if(url) $game = Number(url.href.match(/(\d+)/)[1]);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if(url){ // ссылка на прошлую игру есть
-    game = Number(url.href.match(/(\d+)/)[1]);
+function run(){
+  var timeout = 50;
 
-    if($data.game != game){ // у нас новая игра. обнуляем все данные
+  if($game){ // ссылка на прошлую игру есть
+    if($data.game != $game){ // у нас новая игра. обнуляем все данные
       //console.log("New game!");
-      $data.game = game;
+      $data.game = $game;
       $data.random.make = [false, false];
       $data.fixed.bets.forEach((bet)=>{bet.make = false});
       $data.past.bets.forEach((bet)=>{
@@ -49,6 +53,7 @@ function run(){
       // собираем новые данные
 
       if($data.random.work){
+        //console.log("Get last game result. Random-mode.");
         getLastGameResult();
         timeout = 750;
 
@@ -58,8 +63,15 @@ function run(){
         }
       }
 
-      if($data.past.work)
+      if($data.past.work){
+        //console.log("Get last games result. Past-mode.");
         getPastModeResults.gkDelay(timeout, null, [0, $data.past.bets.length]);
+      }
+
+      if(!$data.random.work && !$data.past.work){
+        //console.log("Prepare make.");
+        prepareMakeBets.gkDelay(randomNumber(13, 27) * 100);
+      }
 
     }else{
       //console.log("Prepare make.");
@@ -161,8 +173,7 @@ function makeBet(betLink, bid){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createGUI(){
-  var node, gui, hidden, value, tg;
-
+  var node, gui, hidden, value;
 
   setStyle('common.js', '@include: ./../../css/common.css, true');
   setStyle('make_a_bet.js', '@include: ./html/index.css, true');
@@ -171,24 +182,41 @@ function createGUI(){
   node = $('td[valign="top"]:contains("~Максимальная сумма ставок")').find('table').node(2);
   node.parentNode.insertBefore(gui, node.nextElementSibling);
 
-  //$tabs = tabs(["Постоянные ставки", "Случайные ставки"], "make-a-bet");
-  $tabs = tabs(["Постоянные ставки", "Ставки со сдвигом"], "make-a-bet");
+  $tabs = tabs(["Постоянные ставки", "Случайные ставки", "Ставки со сдвигом"], "make-a-bet");
   $tabs.append(gui);
 
-  tg = $(gui).find('table[class="tabs-content"]').node();
-
   renderFixedModeGUI();
-  //renderRandomModeGUI();
+  renderRandomModeGUI();
   renderPastModeGUI();
 
   /////////////////////////////
 
   function renderRandomModeGUI(){
-    tg.rows[1].cells[0].innerHTML = '@include: ./html/randomMode.html, true';
+    $tabs.insert('Случайные ставки', '@include: ./html/randomMode.html, true');
 
     bindEvent($("#mab_randomBet"), 'onkeyup', bindMoneyInputs);
     bindEvent($('#mab_saveRandomBet'), "onclick", saveBetMoney, ["random"]);
     bindEvent($('#mab_randomWork'), "onclick", changeState, ["random"]);
+
+    bindEvent($('#mab_ch-rn-0'), "onclick", changeRandomBetNow, [0]);
+    bindEvent($('#mab_ch-rn-1'), "onclick", changeRandomBetNow, [1]);
+
+    /////////////////////////////
+
+    function changeRandomBetNow(n, node){
+      var value;
+
+      value = prompt("Введите число от 1 до 36:");
+      if(value == null) return;
+      value = Number(value);
+      if(isNaN(value)) return alert("Введено не число!");
+      if(value < 1) return alert("Число не может быть меньше 1");
+      if(value > 36) return alert("Число не может быть меньше 36");
+
+      $data.random.bets.now[n] = value;
+      node.innerHTML = value;
+      saveData();
+    }
   }
   /////////////////////////////
 
@@ -198,7 +226,8 @@ function createGUI(){
     $data.fixed.bets.forEach((bet, id)=>{
       rows += '@include: ./html/fixedModeRow.html, true';
     });
-    tg.rows[0].cells[0].innerHTML = '@include: ./html/fixedMode.html, true';
+
+    $tabs.insert('Постоянные ставки', '@include: ./html/fixedMode.html, true');
 
     bindEvent($('#mab_fixedAddBet'), "onclick", addBet, ["fixed"]);
     bindEvent($('#mab_fixedWork'), "onclick", changeState, ["fixed"]);
@@ -256,7 +285,8 @@ function createGUI(){
     $data.past.bets.forEach((bet, id)=>{
       rows += '@include: ./html/pastModeRow.html, true';
     });
-    tg.rows[1].cells[0].innerHTML = '@include: ./html/pastMode.html, true';
+
+    $tabs.insert('Ставки со сдвигом', '@include: ./html/pastMode.html, true');
 
     bindEvent($('#mab_pastAddBet'), "onclick", addBet);
     bindEvent($('#mab_pastWork'), "onclick", changeState, ["past"]);
@@ -348,7 +378,6 @@ function createGUI(){
       case "past":
         id = Number(button.nextElementSibling.value);
         $data.past.bets[id].money = money;
-        //console.log(money);
         break;
     }
 
@@ -373,23 +402,33 @@ function createGUI(){
   }
   /////////////////////////////
 
-  window.putbet = function(bet) {
-    if(document.forms.rform && $selectBet == null){
-      document.forms.rform.betn.value = bet;
-      document.forms.rform.bettype.value = getNameBet(bet);
-      return true;
-    }else{
+  $('img[onclick*="putbet"]').each((img)=>{
+    var bet;
+
+    bet = img.getAttribute("onclick");
+    bet = Number(bet.match(/(\d+)/)[1]);
+
+    bindEvent(img, "onclick", selectBetFixedMode, [bet]);
+  });
+  /////////////////////////////
+
+  function selectBetFixedMode(bet){
+    if($selectBet != null){
       $data.fixed.bets[$selectBet].bet = bet;
       $selectBet = null;
       saveData();
       renderFixedModeGUI();
+
+      document.forms.rform.betn.value = 0;
+      document.forms.rform.bettype.value = "";
     }
-  };
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function getGameResult(bid, rid){
   var url, game, result, cell;
+  var results;
 
   game = $data.past.bets[bid].res[rid];
   cell = rid ? 3 : 1;
@@ -405,19 +444,29 @@ function getGameResult(bid, rid){
   url = 'http://www.ganjawars.ru/rouinfo.php?id=';
   url = url + ($data.game - game.id);
 
-  ajax(url, "GET", null).then((r)=>{
-    result = $($answer)
-      .html(r.text)
-      .find('div.m1:contains("~Игра ")')
-      .find('b')
-      .text();
-    result = Number(result);
-    game.r = result;
-    cell.innerHTML = result;
+  results = $ls.load('gk_rh_game')[0];
+
+  if(results && results == $game){
+    game.r = JSON.parse(localStorage.getItem("gk_rh_data"))[game.id];
+    cell.innerHTML = game.r;
 
     saveData();
     calculateBetPastMode(bid);
-  });
+  }else{
+    ajax(url, "GET", null).then((r)=>{
+      result = $($answer)
+        .html(r.text)
+        .find('div.m1:contains("~Игра ")')
+        .find('b')
+        .text();
+      result = Number(result);
+      game.r = result;
+      cell.innerHTML = result;
+
+      saveData();
+      calculateBetPastMode(bid);
+    });
+  }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -489,9 +538,6 @@ function calculateBetPastMode(bid){
   betCell.innerHTML = bet;
   saveData();
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function loadData(){
