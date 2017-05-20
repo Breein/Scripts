@@ -5,6 +5,7 @@ var $ = require('./dom');
 function Tabs(tabs, name, menu){
   this._tabs = tabs;
   this._tabsNodes = [];
+  this._tabNodeNames = {};
   this._active = 0;
   this._header = null;
   this._content = null;
@@ -27,7 +28,12 @@ Tabs.prototype = {
       this._saveActiveTab();
     }else{
       this._data = JSON.parse(data);
-      this._active = this._data[this._name];
+
+      if(this._data[this._name] == null){
+       this._saveActiveTab();
+      }else{
+        this._active = this._data[this._name];
+      }
     }
   },
 
@@ -77,10 +83,20 @@ Tabs.prototype = {
   },
 
   _createTabs: function (type){
-    var content, code, active, width, Tabs = this;
+    var content, code, active, width, index, Tabs = this;
 
     code = type == "tab-top" ? `<tr><td class="tab-top"></td>` : `<tr><td class="tab-begin-end" width="15"></td>`;
     if(Tabs._button) code += type == "tab-top" ? `<td class="tab-top"></td>` : `<td class="tab-button" width="70">Меню</td>`;
+    index = 0;
+
+    Tabs._tabs.forEach((tab, i)=>{
+      if(tab.charAt(0) == "!"){
+        Tabs._tabs.splice(i, 1);
+      }else{
+        Tabs._tabNodeNames[tab] = index;
+        index++;
+      }
+    });
 
     this._tabs.forEach(function(tab, index){
       active = Tabs._active == index ? " active" : "";
@@ -173,6 +189,19 @@ Tabs.prototype = {
     node.appendChild(this._header);
     node.appendChild(this._content);
     this._appendMenu(node);
+  },
+
+  /**
+   * @param {string} tabNme
+   * @param {string} code
+   */
+  insert: function(tabNme, code){
+    var index, Tabs = this;
+
+    index = Tabs._tabNodeNames[tabNme];
+
+    if(index != null)
+      Tabs._content.rows[index].cells[0].innerHTML = code;
   },
 
   /**
