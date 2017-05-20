@@ -1,7 +1,5 @@
 var $ = require('./../../../js/dom');
-
 const $ls = require('./../../../js/ls.js');
-const $c = require('./../../../js/common.js')();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 if(location.href == "http://sidio.ru/rul/last.php?s=72"){
