@@ -29,17 +29,18 @@ Common.prototype = {
 
   /**
    *
-   * @param {number} date
+   * @param {Number|String} date
    * @param {boolean=} full
+   * @param {boolean=} utc
    * @returns {object}
    */
-  getNormalDate: function (date, full){
+  getNormalDate: function (date, full, utc){
     if(isNaN(date)) return {d: date, t: '-'};
     if(date == 0) return {d: '', t: '-'};
 
     date = date * 1000;
     date = new Date(date);
-    date = date.toLocaleString();
+    date = utc != null ? date.toLocaleString('ru-RU', {timeZone: "UTC"}) : date.toLocaleString();
 
     date = date.match(/(\d+).(\d+).(\d+), (\d+):(\d+):(.+)/);
     if(date[4] < 10) date[4] = "0" + date[4];
