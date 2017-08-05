@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Player_sind_watcher_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.2';
+  userScriptVersion = '1.21';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =

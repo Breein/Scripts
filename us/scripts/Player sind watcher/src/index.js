@@ -79,11 +79,11 @@ function getSindicateList(){
 
   $data.list = [];
 
-  ajax("http://www.ganjawars.ru/srating.php?page_id=" + $data.page, "GET", null).then((r)=>{
+  ajax("http://www.ganjawars.ru/srating.php?rid=0page_id=" + $data.page, "GET", null).then((r)=>{
     $($answer).html(r.text)
       .find('b:contains("Синдикат")')
       .up('table')
-      .find('a:contains("[i]")')
+      .find('a[href*="/syndicate.php?id="]')
       .each((a)=>{
         id = a.href.match(/id=(\d+)/)[1];
         id = Number(id);
@@ -92,6 +92,7 @@ function getSindicateList(){
       });
 
     if($data.list.length == 0) $data.rating = null;
+
     saveData();
     nextSindicate.gkDelay($c.randomNumber(1000, 2000));
   });
