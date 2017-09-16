@@ -28,6 +28,8 @@ function getAdvertIntoMail(){
   var subject, name, itemName, sendName, sp, ep, id, advert, action, url, island;
 
   subject = $('td[class="greenbg"]:contains("~Тема:")').find('b').text();
+  subject = subject.replace(/&laquo;/g, '«');
+  subject = subject.replace(/&raquo;|&raquo|&raqu|&raq|&ra|&r/g, '»');
   subject = subject.replace(/&quot;|&quot|&quo|&qu|&q|&/g, '"');
 
   if(subject.match(/\[ Покупка ] (.+)|\[ Аренда ] (.+)/)){
