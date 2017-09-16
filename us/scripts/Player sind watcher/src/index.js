@@ -79,7 +79,7 @@ function getSindicateList(){
 
   $data.list = [];
 
-  ajax("http://www.ganjawars.ru/srating.php?rid=0page_id=" + $data.page, "GET", null).then((r)=>{
+  ajax("http://www.ganjawars.ru/srating.php?rid=0&page_id=" + $data.page, "GET", null).then((r)=>{
     $($answer).html(r.text)
       .find('b:contains("Синдикат")')
       .up('table')
