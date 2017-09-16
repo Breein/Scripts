@@ -1,6 +1,6 @@
 require('./../../../js/protoDelay.js')();
 var $ = require('./../../../js/dom.js');
-var bindEvent = require('./../../../js/events.js');
+var bindEvent = require('./../../../js/bindEvents.js');
 var ajax = require('./../../../js/request.js');
 var createTable = require('./../../../js/table.js');
 var setStyle = require('./../../../js/style.js');
@@ -80,7 +80,6 @@ function createGUI(){
   gui = $('<span>').attr("type", "gui").html('@include: ./html/baseGUI.html, true').node();
   td = $('b[style="color: #990000"]:contains("Форум")').up('table').up('td').html('').node();
 
-  //$tabs = tabs(["Гос. предметы", "Арт. предметы", "Объявления", "Анализ цен", "Анализ эконома"], 2, menu);
   $tabs = tabs(["Гос. предметы", "Арт. предметы", "Объявления", "Анализ цен", "Анализ эконома"], "advanced-control-for-do", menu);
   $tabs.append(td);
   document.body.appendChild(gui);
@@ -108,6 +107,7 @@ function createGUI(){
   bindEvent($("#acfd_editAdvert"), "onclick", editAdvert);
   bindEvent($("#acfd_getDurItems"), "onclick", getDurItems);
   bindEvent($('#acfd_saveCostEun'), "onclick", saveCostEun);
+  bindEvent($('#acfd_saveCorrectorPrice'), "onclick", correctPrices);
 
   bindEvent($('#as-saveSettings'), "onclick", asListActions);
   bindEvent($('#as-list-open'), "onclick", asListActions);
@@ -314,6 +314,14 @@ function bindActionsContextMenu(){
       openEditAdvertWindow(list[0]);
     },
 
+    correctorPrices: (list, table)=>{
+      var window;
+
+      window = $('#acfd_correctorPricesWindow').node();
+      shadow.open(window);
+      $(window).find('input').node().focus();
+    },
+
     //termPostEditAdvert:(list)=>{
     //  list.forEach((advert)=>{
     //    if(advert.termPost == 3)
@@ -363,8 +371,8 @@ function bindActionsContextMenu(){
     var func, args, index, array;
 
     index = Number($(menu).attr('index'));
-    array = table.getCheckedContent();
-    if(array.length == 0) array = table.getContentOnIndex(index);
+    array = table.getCheckedContent('all');
+    //if(array.length == 0) array = table.getContentOnIndex(index);
 
     args = JSON.parse($(item).attr("action"));
     func = args.shift();
@@ -644,6 +652,26 @@ function editAdvert(){
     return d;
   }
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function correctPrices(){
+  var window, values, list, count;
+
+  window = $('#acfd_correctorPricesWindow').node();
+  values =  getValues(window);
+
+  if(values.negative)
+    values.price = '-' + values.price;
+  values.price = Number(values.price);
+
+  list = $t.adverts.getCheckedContent('all');
+  count = list.length;
+
+  shadow.close();
+  progress.start("Корректировка выбранных цен", count, 50);
+  advertsAction("correctPrice", 0, count, list, values);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function addAutoScannerItems(type, now, max, list){
   if(progress.isWork(addAutoScannerItems, arguments)) return;
@@ -728,6 +756,7 @@ function advertsAction(action, now, max, list, data){
         if(data){
           if($adverts[aid].it){
             $adverts[aid].price = $items.art.items[record.id][data.key] * data.value;
+            $adverts[aid].update = $c.getTimeNow();
           }
         }else{
           if(!$adverts[aid].it){
@@ -738,9 +767,16 @@ function advertsAction(action, now, max, list, data){
 
             $adverts[aid].price = price;
             $adverts[aid].termRent = 29;
+            $adverts[aid].update = $c.getTimeNow();
           }
         }
         break;
+
+      case "correctPrice":
+        aid = `${record.id}-${record.action}`;
+        $adverts[aid].price = $adverts[aid].price + data.price;
+        $adverts[aid].update = $c.getTimeNow();
+      break;
     }
 
     $ls.save("gk_acfd_adverts", $adverts);
