@@ -46,7 +46,7 @@ Table.prototype = {
     var h, b, f;
 
     if(typeof node == "number")
-      node = $('table[class="tabs-content"]').node().rows[node].cells[0];
+      node = $('table.tabs-content').node().rows[node].cells[0];
 
     h = $('<div>')
       .class("set", "tab-content")
@@ -118,7 +118,7 @@ Table.prototype = {
 
   _setCountCheck: function(){
     $(this._footer).find('b[type="countCheck"]').html(
-      $(this._body).find('tr[class="light checked"]').length
+      $(this._body).find('tr.light.checked').length
     );
   },
 
@@ -337,12 +337,15 @@ Table.prototype = {
   },
 
   /**
-   * @param {number} index
+   * @param {number=} index
    * @param {boolean=}render
    * @returns {*[]}
    */
   getContentOnIndex: function(index, render){
     var content;
+
+    if(index == null)
+      index = Number($(this._ctxMenu).attr('index'));
 
     content = render == null ? this._renderContent : this._content;
     this._onIndexContent = content[index];
@@ -357,11 +360,11 @@ Table.prototype = {
   getCheckedContent: function(all){
     var result = [];
 
-    $(this._body).find('tr[class="light checked"]').each((tr)=>{
+    $(this._body).find('tr.light.checked').each((tr)=>{
       result.push(this._renderContent[tr.rowIndex]);
     });
 
-    return all && result.length == 0 ? [this._onIndexContent] : result;
+    return all && result.length == 0 ? this.getContentOnIndex() : result;
   },
 
   /**
