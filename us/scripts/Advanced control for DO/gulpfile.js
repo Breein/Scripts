@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Advanced_control_for_DO_[GW]';
   userScriptName = 'Advanced_control_for_DO_[GW].user.js';
-  userScriptVersion = '1.53';
+  userScriptVersion = '1.54';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =

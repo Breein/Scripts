@@ -577,7 +577,11 @@ function scanner(index){
     });
 
     if(key){
-      playSound(7);
+      if(type == 'art'){
+        playSound(19);
+      }else{
+        playSound(7);
+      }
       openAutoScannerWindow();
     }
     render(type);
