@@ -14,10 +14,11 @@ var fs = require('fs');
 var userScriptHeader =
   `// ==UserScript==
 // @name           Meters [GW]
-// @namespace      гном убийца
-// @description    Счетчики опыта и умений (26.12.14.1508)
-// @version        2.0
+// @author         гном убийца
+// @description    Счетчики опыта и умений (25.09.17.1612)
+// @version        2.001
 // @grant          none
+// @include        http://www.ganjawars.ru/me.php
 // @include        http://www.ganjawars.ru/me/
 // ==/UserScript==
 (function(){`;

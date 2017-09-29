@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Watchdog_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.033';
+  userScriptVersion = '1.034';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
@@ -30,6 +30,7 @@ gulp.task('wrap', function(){
 // @include     http://www.ganjawars.ru/map.php*
 // @include     http://www.ganjawars.ru/map.moving.php
 // @include     http://www.ganjawars.ru/me/*
+// @include     http://www.ganjawars.ru/me.php*
 // @version     ${userScriptVersion}
 // @grant       none
 // ==/UserScript==

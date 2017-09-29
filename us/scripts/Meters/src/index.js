@@ -1,10 +1,10 @@
-var $ = require('./../../../lib/dom');
-var bindEvent = require('./../../../lib/events');
+const $ = require('./../../../js/dom.js');
+const bindEvent = require('./../../../js/bindEvents.js');
 
 
 var $tb_skills, $tb_levels, $sMeter;
 
-if(location.pathname == "/me/"){
+if(location.pathname == "/me.php" || location.pathname == "/me/"){
   if(typeof(localStorage) === 'undefined' ){
     alert('Meters [GW]: Ваш браузер не поддерживает LocalStorage(), обновите барузер или удалите скрипт.');
   }else{

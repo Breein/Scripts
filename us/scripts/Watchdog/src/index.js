@@ -66,7 +66,7 @@ $tmoved = [
   }
 ];
 
-if(location.pathname == "/me/"){
+if(location.pathname == "/me/" || location.pathname == "/me.php"){
   addStartButton();
 }
 

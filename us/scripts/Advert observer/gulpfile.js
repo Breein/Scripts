@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Advert_observer_[GW]';
   userScriptName = 'Advert_observer_[GW].user.js';
-  userScriptVersion = '1.01';
+  userScriptVersion = '1.011';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
@@ -27,6 +27,7 @@ gulp.task('wrap', function(){
 // @author      гном убицйца
 // @description Следилка за темами игрока в ТФ, подсветка тем в ТФ. (${nowDate})
 // @include     http://www.ganjawars.ru/me/
+// @include     http://www.ganjawars.ru/me.php
 // @include     http://www.ganjawars.ru/threads.php?fid=*
 // @version     ${userScriptVersion}
 // @grant       none
