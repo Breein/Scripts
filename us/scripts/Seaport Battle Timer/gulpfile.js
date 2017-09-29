@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Seaport_Battle_Timer_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.00';
+  userScriptVersion = '1.01';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =

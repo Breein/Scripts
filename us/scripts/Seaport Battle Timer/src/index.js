@@ -69,8 +69,8 @@ function createGUI(){
 
   $gui = $('<span>').attr('id', 'gk-sbt-gui').html('@include: ./html/gui.html, true').node();
   $timers = $('<span>').class('set', 'gk-sbt-timers').node();
-  node = $('td[class="txt"]:contains("~игроков онлайн")');
-  if(!node.length)
+  node = $('td[class="txt"]:contains("~игроков онлайн")').node();
+  if(!node)
     node = $('div[style="float:right;margin-top: 6px;padding-right:10px"]:contains("~игроков онлайн")').node();
   node.insertBefore($timers, node.firstChild);
   document.body.appendChild($gui);
