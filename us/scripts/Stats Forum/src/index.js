@@ -890,6 +890,8 @@ function getMembersList(){
     return $idb.getFew(`members_${$forum.id}`).then((members)=>{
       members.forEach((member)=>{
         member.i = 0;
+        member._ch = true;
+
         $idb.add(`members_${$forum.id}`, member);
       });
     });
