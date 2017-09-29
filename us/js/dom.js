@@ -77,6 +77,8 @@ Api.prototype = {
    * @returns {Api|string} - Строка HTML исходного кода или объект API
    */
   html: function (param, add) {
+    if(this.length == 0) return this.nodeNull();
+
     if (param != null) {
       if(add){
         this.nodeList[0].innerHTML += param;
@@ -94,10 +96,27 @@ Api.prototype = {
    * @returns {string|Api}
    */
   text: function (param){
+    if(this.length == 0) return this.nodeNull();
+
     if(param != null){
       this.html(param);
     }else{
       return this.nodeList[0] ? this.nodeList[0].textContent : "This node is null. Selector: " + this.selector;
+    }
+  },
+
+  /**
+   * @param {*=} param - Без параметра для получения, с параметром для вставки
+   * @returns {string|Api}
+   */
+  value: function(param){
+    if(this.length == 0) return this.nodeNull();
+
+    if(param != null){
+      this.nodeList[0].value = param;
+      return this;
+    }else{
+      return this.nodeList[0].value;
     }
   },
 
@@ -273,9 +292,11 @@ Api.prototype = {
   },
 
   nodeNull: function(){
-    this.nodeList[0] = null;
-    this.length = 0;
-    console.log(this.selector);
+    if(this.nodeList[0] != null){
+      this.nodeList[0] = null;
+      this.length = 0;
+    }
+    console.log("Node is null! Selector: " + this.selector);
 
     return this;
   }
