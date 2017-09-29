@@ -23,3 +23,11 @@ tr.light{
 tr.light:hover{
     background-color: #beccbe;
 }
+
+td.a-item{
+    text-indent: 5px;
+}
+td.a-item > a{
+    text-decoration: none;
+    font-weight: bold;
+}

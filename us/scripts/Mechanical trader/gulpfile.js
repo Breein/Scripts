@@ -29,6 +29,7 @@ gulp.task('wrap', function(){
 // @include     http://www.ganjawars.ru/me/
 // @include     http://www.ganjawars.ru/market-i.php
 // @include     http://www.ganjawars.ru/object.php?id=*
+// @include     http://www.ganjawars.ru/item.php?item_id=*
 // @include     http://www.ganjawars.ru/market.php?stage=2&item_id=*&action_id=1&island=*
 // @include     http://www.ganjawars.ru/market-i.php?stage=4&item_tid=*&item_uid=*
 // @version     ${userScriptVersion}

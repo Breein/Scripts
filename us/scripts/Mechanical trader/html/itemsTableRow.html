@@ -1,8 +1,11 @@
 <tr class="light no-b-top">
-  <td>Тест</td>
-  <td width="100"><input type="text" value="50000" style="width: 98px;"/></td>
-  <td width="50" align="center"><input type="text" class="interval" value="1"/></td>
-  <td width="130" align="center">от <input type="text" class="interval" maxlength="2" value="5"/> до <input type="text" class="interval" maxlength="2" value="20" /></td>
-  <td width="28" align="center"><input type="checkbox" /></td>
-  <td width="28" align="center">Х</td>
+  <td class="a-item">
+    <a href="http://www.ganjawars.ru/item.php?item_id=${id}" target="_blank">${item.name}</a>
+    <input type="hidden" name="id" value="${id}">
+  </td>
+  <td width="100"><input type="text" value="${item.price}" style="width: 98px;" name="price"/></td>
+  <td width="50" align="center"><input type="text" class="interval" name="count" value="${item.count}"/></td>
+  <td width="130" align="center">от <input type="text" class="interval" maxlength="2" value="${item.interval[1]}"/> до <input type="text" class="interval" maxlength="2" value="${item.interval[1]}" /></td>
+  <td width="28" align="center"><input type="checkbox" name="status" /></td>
+  <td width="31" align="center"><input type="button" value="X" name="remove-item" title="Удалить предмет" /></td>
 </tr>

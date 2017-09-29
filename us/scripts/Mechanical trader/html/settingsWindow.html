@@ -1,4 +1,4 @@
-<div class="window center-screen hide" id="mt_settingsWindow">
+<div class="window center-screen" id="mt_settingsWindow">
   <table width="700" class="no-border window-content" type="padding">
     <tr class="header" height="35">
       <td style="color: #990000;" colspan="2">Mechanical trader [GW]: Настройки</td>
@@ -68,7 +68,7 @@
               <td width="50">Кол-во</td>
               <td width="130">Интервал (мин.)</td>
               <td width="28">@</td>
-              <td width="45">Х</td>
+              <td width="48">Х</td>
             </tr>
           </table>
         </div>
@@ -80,12 +80,14 @@
 
     <tr>
       <td align="center" colspan="2" height="35">
-        <input type="button" id="pa_saveSettings" value="Сохранить">
+        <input type="button" id="mt_saveSettings" value="Сохранить">
       </td>
     </tr>
 
-    <tr height="5" bgcolor="#d0eed0">
-      <td colspan="2"></td>
+    <tr>
+      <td align="center" colspan="2" height="35" bgcolor="#d0eed0">
+        <input type="button" id="mt_changeStatus" value="${state}">
+      </td>
     </tr>
   </table>
 </div>

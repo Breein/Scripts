@@ -29,27 +29,141 @@ $data = {};
 loadData();
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-if(location.pathname == "/me/"){
-  createSettingsGUI();
-}else{
-  if($data.status == "wait") checkItems();
-  if($data.status == "post-on-sell") checkItems();
-  if($data.status == "get-price") getCurrentPrice();
-  if($data.status == "remove-item") checkRemoveItem();
-  if($data.status == "get-items") getItemAnObject();
-  if($data.status == "get-items: done") goToSell();
+
+switch(location.pathname){
+  case "/me/":
+    createSettingsGUI();
+    break;
+
+  case "/item.php":
+    createAddItemGUI();
+    break;
+
+  case "/object.php":
+  case "/market.php":
+  case "/market-i.php":
+    switch($data.status){
+      case "off":
+        waitScriptIsOn();
+        break;
+
+      case "wait":
+      case "post-on-sell":
+        checkItems();
+        break;
+
+      case "get-price":
+        getCurrentPrice();
+        break;
+
+      case "remove-item":
+        checkRemoveItem();
+        break;
+
+      case "get-items":
+        getItemAnObject();
+        break;
+
+      case "get-items: done":
+        goToSell();
+        break;
+    }
+    break;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createSettingsGUI(){
-  var gui;
+function createAddItemGUI(){
+  var gui, row, ra, rn;
+  var id, name;
 
   setStyle('common.js', '@include: ./../../css/common.css, true');
   setStyle('mt.js', '@include: ./html/index.css, true');
 
-  gui = $('<span>').attr("type", "mt_gui").html('@include: ./html/gui.html, true').node();
+  id = location.search.match(/\?item_id=(.+)/)[1];
+  if(/&/.test(id)) id = id.split('&')[0];
+  name = $('b:contains("Вес:")').up('table').find('font[color="#990000"]').text();
+
+  rn = '@include: ./html/addItemRow.html, true';
+  ra = '@include: ./html/addItemRow-added.html, true';
+  row = $settings.items[id] == null ? rn : ra;
+  gui = $('<span>').attr("type", "mt_gui").html('@include: ./html/addItem-gui.html, true').node();
   document.body.appendChild(gui);
+
+  bindEvent($(gui).find('input[value="Добавить"]'), 'onclick', addItem, [gui]);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function createSettingsGUI(){
+  var gui, state;
+
+  setStyle('common.js', '@include: ./../../css/common.css, true');
+  setStyle('mt.js', '@include: ./html/index.css, true');
+
+  state = $data.status != "off" ? "Отключить скрипт" : "Включить скрипт";
+  gui = $('<span>').attr("type", "mt_gui").html('@include: ./html/base-gui.html, true').node();
+  document.body.appendChild(gui);
+
+  showItems();
+
+  bindEvent($('#mt_changeStatus'), 'onclick', changeScriptStatus);
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function addItem(node){
+  var data, values, i, c, p;
+
+  data = getValues(node);
+
+  i = [Number(data.ot), Number(data.do)];
+  if(isNaN(i[0]) || isNaN(i[0])) return;
+  c = Number(data.count);
+  if(isNaN(c)) return;
+  p = Number(data.price);
+  if(isNaN(p)) return;
+
+  values = {
+    name: data.name,
+    time: $c.getTimeNow(),
+    interval: i,
+    auto: false,
+    count: c,
+    price: p
+  };
+
+  $settings.items[data.id] = values;
+  saveSettings();
+  location.href = location.href.toString();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function removeItem(node){
+  var id;
+
+  id = $(node).up('tr').find('[name="id"]').node().value;
+
+  if($data.item == id){
+    $data.item = null;
+    $data.island = 1;
+    $data.price = 0;
+  }
+
+  delete $settings.items[id];
+  saveSettings();
+  saveData();
+  showItems();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function changeScriptStatus(button){
+  var state, text;
+
+  text = $data.status == "off" ? "Отключить скрипт" : "Включить скрипт";
+  state = $data.status != "off" ? "off" : "wait";
+
+  button.value = text;
+  $data.status = state;
+  saveData();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,6 +172,25 @@ function goToSell(){
   go.gkDelay(intervalRandom($i.goSell[0], $i.goSell[1]), null, ["http://www.ganjawars.ru/market-i.php"]);
   $data.status = "post-on-sell";
   saveData();
+}
+
+function showItems(){
+  var id, result, items, item;
+
+  result = "";
+  items = $settings.items;
+
+  for(id in items){
+    item = items[id];
+    result += '@include: ./html/itemsTableRow.html, true';
+  }
+
+  $('#mt_items-table')
+    .html(result)
+    .find('[name="remove-item"]')
+    .each((button)=>{
+      bindEvent(button, 'onclick', removeItem);
+    });
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -72,6 +205,11 @@ function checkRemoveItem(){
 
 function checkItems(){
   var time = $c.getTimeNow(), item, interval;
+
+  loadData();
+
+  if($data.status == "off")
+    return waitScriptIsOn();
 
   if($data.item == null){
     Object.keys($settings.items).forEach((id)=>{
@@ -94,7 +232,7 @@ function checkItems(){
       saveData();
     }
     if($data.status == "get-price"){
-      go.gkDelay(intervalRandom($i.getCost[0], $i.getCost[1]), null, [`http://www.ganjawars.ru/market.php?stage=2&item_id=${$data.item}&action_id=1&island=${$settings.items[$data.item].island}`]);
+      go.gkDelay(intervalRandom($i.getCost[0], $i.getCost[1]), null, [`http://www.ganjawars.ru/market.php?stage=2&item_id=${$data.item}&action_id=1&island=${$data.island}`]);
     }
     if($data.status == "post-on-sell"){
       postOnSellItem();
@@ -106,6 +244,16 @@ function checkItems(){
   }else{
     console.log("Working...");
     checkItems.gkDelay(intervalRandom($i.main[0], $i.main[1]));
+  }
+}
+
+function waitScriptIsOn(){
+  loadData();
+
+  if($data.status == "off"){
+    waitScriptIsOn.gkDelay(120000);
+  }else{
+    location.href = location.href.toString();
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +285,7 @@ function getCurrentPrice(){
 
   if(position.my == 0){
     goToSell();
-  }else if(position.my > position.other && $data.price < $settings.items[$data.item].price){
+  }else if(position.my > position.other && $data.price > $settings.items[$data.item].price){
     remove = $(table).find('a[href*="/market-i.php?stage=4"]').node().href;
     go.gkDelay(intervalRandom($i.removeAdvert[0], $i.removeAdvert[1]), null, [remove]);
     $data.status = "remove-item";
@@ -176,26 +324,26 @@ function getItemAnObject(){
   if($('font[color="#990000"]:contains("Склад")').length == 0) return;
   count = $settings.items[$data.item].count;
 
-  $('b:contains("~можете забрать")')
-    .up('table')
-    .next('div')
-    .find(`input[type="checkbox"][value$="${$data.item}"]`)
-    .each((box)=>{
-      console.log(box);
-      box.checked = true;
-      get = true;
+  checkAndGet.gkDelay(2000);
 
-      console.log(box.checked);
-  }, 0, count);
+  function checkAndGet(){
+    $('b:contains("~можете забрать")')
+      .up('table')
+      .next('div')
+      .find(`input[type="checkbox"][value$="${$data.item}"]`)
+      .each((box)=>{
+        console.log(box);
+        box.checked = true;
+        get = true;
 
-  //console.log($('input[type="submit"][value="Забрать отмеченные"]').node());
+        console.log(box.checked);
+      }, 0, count);
 
-  if(get){
-    //$i.getItem[0]
-    console.log(intervalRandom(155, 180));
-    go.gkDelay(intervalRandom(155, 180), null, [$('input[type="submit"][value="Забрать отмеченные"]').node()]);
-    //$data.status = "get-items: done";
-    //saveData();
+    if(get){
+      go.gkDelay(intervalRandom($i.getItem[0], $i.getItem[1]), null, [$('input[type="submit"][value="Забрать отмеченные"]').node()]);
+      $data.status = "get-items: done";
+      saveData();
+    }
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,4 +425,27 @@ function loadData(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function intervalRandom(min, max){return Number($c.randomNumber(min, max) + "" + $c.randomNumber(10, 99));}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getValues(element){
+  var result = {};
+
+  $(element).find('input[type="text"],input[type="hidden"]').each((input)=>{
+    result[input.name] = input.value;
+  });
+  $(element).find('input[type="checkbox"]').each((input)=>{
+    result[input.name] = input.checked;
+  });
+  $(element).find('input[type="radio"]:checked').each((input)=>{
+    result[input.name] = input.value;
+  });
+  $(element).find('select').each((select)=>{
+    result[select.name] = $(select).find('option:checked').node().value;
+  });
+  $(element).find('textarea').each((textarea)=>{
+    result[textarea.name] = textarea.value;
+  });
+
+  return result;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
