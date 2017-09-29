@@ -1,0 +1,39 @@
+/* common css */
+tr.header{
+    background-color: #d0eed0;
+    font-weight: bold;
+    text-align: center;
+}
+tr.red-color *{
+    color: #990000;
+}
+td.ct{
+    text-align: center;
+}
+
+/* script css */
+.ads-bc{
+    background-color: #d0eed0;
+}
+.ads-a-market{
+    text-decoration: none;
+}
+.ads-stack{
+    font-weight: bold;
+    color: #990000;
+    cursor: pointer;
+}
+.ads-input{
+    width: 66px;
+    text-align: center;
+}
+.ads-input:disabled{
+    opacity: 0.6;
+}
+.mainbutton:disabled{
+    cursor: auto;
+    background: #bad4ba linear-gradient(to bottom, #a9c3a9 5%, #d0e1d0 100%);
+    color: #696969;
+    position: relative;
+    top: 1px;
+}
