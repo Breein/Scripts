@@ -34,34 +34,39 @@ $data = {
 };
 
 $sectors = {
-  "Nou Lake" :      {x: 0, y: 3},
-  "Shoretale":      {x: 0, y: 4},
-  "Sector SA98":    {x: 1, y: 1},
-  "Ejection Point": {x: 1, y: 2},
-  "Dangerous Xith": {x: 1, y: 3},
-  "Second Path":    {x: 1, y: 4},
-  "West Cape":      {x: 2, y: 0},
-  "Raged Land":     {x: 2, y: 1},
-  "Spherix point":  {x: 2, y: 2},
-  "Eye of Glory":   {x: 2, y: 3},
-  "Chelby":         {x: 2, y: 4},
-  "Tiger Lairs":    {x: 2, y: 5},
-  "South Tibet":    {x: 2, y: 6},
-  "North Beach":    {x: 3, y: 0},
-  "Alpha Three":    {x: 3, y: 1},
-  "Aikon":          {x: 3, y: 2},
-  "Thordendal":     {x: 3, y: 3},
-  "Tracid Line":    {x: 3, y: 4},
-  "Hypercube":      {x: 3, y: 5},
-  "Abbey road":     {x: 4, y: 0},
-  "Army Base":      {x: 4, y: 1},
-  "South Normand":  {x: 4, y: 2},
-  "Por Eso One":    {x: 4, y: 3},
-  "Freestates":     {x: 4, y: 4},
-  "World`s Corner": {x: 4, y: 5},
-  "Threeforce":     {x: 5, y: 0},
-  "Overlord Point": {x: 5, y: 1},
-  "East Cape":      {x: 5, y: 2}
+  "Nou Lake" :      {x: 0, y: 3, map: 'outland'},
+  "Shoretale":      {x: 0, y: 4, map: 'outland'},
+  "Sector SA98":    {x: 1, y: 1, map: 'outland'},
+  "Ejection Point": {x: 1, y: 2, map: 'outland'},
+  "Dangerous Xith": {x: 1, y: 3, map: 'outland'},
+  "Second Path":    {x: 1, y: 4, map: 'outland'},
+  "West Cape":      {x: 2, y: 0, map: 'outland'},
+  "Raged Land":     {x: 2, y: 1, map: 'outland'},
+  "Spherix point":  {x: 2, y: 2, map: 'outland'},
+  "Eye of Glory":   {x: 2, y: 3, map: 'outland'},
+  "Chelby":         {x: 2, y: 4, map: 'outland'},
+  "Tiger Lairs":    {x: 2, y: 5, map: 'outland'},
+  "South Tibet":    {x: 2, y: 6, map: 'outland'},
+  "North Beach":    {x: 3, y: 0, map: 'outland'},
+  "Alpha Three":    {x: 3, y: 1, map: 'outland'},
+  "Aikon":          {x: 3, y: 2, map: 'outland'},
+  "Thordendal":     {x: 3, y: 3, map: 'outland'},
+  "Tracid Line":    {x: 3, y: 4, map: 'outland'},
+  "Hypercube":      {x: 3, y: 5, map: 'outland'},
+  "Abbey road":     {x: 4, y: 0, map: 'outland'},
+  "Army Base":      {x: 4, y: 1, map: 'outland'},
+  "South Normand":  {x: 4, y: 2, map: 'outland'},
+  "Por Eso One":    {x: 4, y: 3, map: 'outland'},
+  "Freestates":     {x: 4, y: 4, map: 'outland'},
+  "World`s Corner": {x: 4, y: 5, map: 'outland'},
+  "Threeforce":     {x: 5, y: 0, map: 'outland'},
+  "Overlord Point": {x: 5, y: 1, map: 'outland'},
+  "East Cape":      {x: 5, y: 2, map: 'outland'},
+
+  "Army Base U/1":  {x: 2, y: 1, map: 'underground'},
+  "Army Base U/2":  {x: 2, y: 0, map: 'underground'},
+  "Army Base U/3":  {x: 1, y: 0, map: 'underground'},
+  "Army Base U/4":  {x: 0, y: 0, map: 'underground'}
 };
 
 function some(){
@@ -71,8 +76,16 @@ function some(){
 
   $ds = {
     sector: 98,
-    w: 588,
-    h: 686
+
+    outland:{
+      w: 588,
+      h: 696
+    },
+
+    underground:{
+      w: 294,
+      h: 196
+    }
   };
 
   $sector = getSector();
@@ -85,7 +98,7 @@ function some(){
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function render(){
-    var mapWindow, mapContent, map, marks, header, resize, scale;
+    var mapWindow, mapContent, map, marks, header, resize, scale, box;
 
     mapWindow = $('<div>').attr('id', 'mapWindow').html('@include: ./html/mapWindow.html, true').node();
 
@@ -94,11 +107,12 @@ function some(){
       .attr('style', `width: ${$data.window.w}px; height: ${$data.window.h}px;`)
       .node();
 
-    map = $(mapContent).find('.map-outland').node();
+    map = $(mapContent).find('.map-layer').class('add', $sid.map).node();
     header = $(mapWindow).find('.map-header').node();
     resize = $(mapWindow).find('.map-resize').node();
     scale = $(mapWindow).find('#map-scale').node();
     marks = $(mapWindow).find('#map-marks').node();
+    box = $(mapWindow).find('input[type="checkbox"]').node();
 
     calculatesMapPosition(map);
     createMarks(marks);
@@ -114,6 +128,7 @@ function some(){
 
     bindEvent(mapContent, 'onwheel', scaleMap, [scale], null, true);
     bindEvent(map, "onmousedown", moveMap, [], null, true);
+    bindEvent(box, 'onclick', setFollow, [mapWindow, 'auto']);
 
     $dd(mapWindow, 'mapWindow', header).bind();
     $resize(mapContent, 'mapContent', resize).bind([moveLayers, map]);
@@ -129,26 +144,15 @@ function some(){
 
     if(gps){
       $marks.push({
-        x: 35, //gps.x,
-        y: 65, //gps.y,
-        name: 'North Beach',//$sector,
+        x: gps.x,
+        y: gps.y,
+        name: $sector,
         info: "Я здесь",
         type: 'me'
       });
 
       code += `<div class="position-me" title="Я здесь"></div>`;
     }
-
-
-    $marks.push({
-      x: 35, //gps.x,
-      y: 65, //gps.y,
-      name: 'North Beach',//$sector,
-      info: "Я здесь",
-      type: 'safe'
-    });
-
-    code += `<div class="position-safe" title="Я здесь"></div>`;
 
     safes = $('td:contains("~ лежит Сейф ")');
 
@@ -226,7 +230,9 @@ function some(){
         left = $data.map.left;
         top = $data.map.top;
 
-        scale = $mod / $ds.sector;
+        //scale = $mod / $ds.sector;
+        scale = $data.scale;
+
         $data.point.x = trimNumber((($data.window.w / 2) - left) / scale);
         $data.point.y = trimNumber((($data.window.h / 2) - top) / scale);
 
@@ -240,7 +246,7 @@ function some(){
     var map, speed;
 
     event.preventDefault();
-    map = $(node).find('.map-outland').node();
+    map = $(node).find('.map-layer').node();
 
     speed = 0.05;
     if($data.scale >= 1.5) speed = 0.1;
@@ -262,18 +268,23 @@ function some(){
         calculatesMarkPosition(mark, $marks[index]);
     });
   }
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   function setFollow(window, mode){
-    var box, state;
+    var box, state, map;
 
-    box = $(window).find('input[type="checkbox"]').node();
+    box = $(window).find('div[type="checkbox"]').node();
     state = mode == 'auto' ? !box.checked : mode;
 
     box.checked = state;
     $data.point.follow = state;
 
     if(mode == "auto"){
-      //calculatesMapPosition(map);
+      if(state){
+        map = $(window).find('.map-layer').node();
+        $data.point.follow = true;
+        calculatesMapPosition(map);
+      }
     }
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,17 +292,20 @@ function some(){
   function calculatesMapPosition(map){
     var width, height, left, top, backgroundSize, scale;
 
-    width = $ds.w * $data.scale;
-    height = $ds.h * $data.scale;
+    width = $ds[$sid.map].w * $data.scale;
+    height = $ds[$sid.map].h * $data.scale;
 
-    $mod = $data.scale < 1 ? width / 6 * $data.scale : $ds.sector * $data.scale;
+    //$mod = $data.scale < 1 ? width / 6 * $data.scale : $ds.sector * $data.scale;
+    $mod = $ds.sector * $data.scale;
 
     if($data.point.follow){
       $data.point.x = $sid.x * 98 + 49;
       $data.point.y = $sid.y * 98 + 49;
     }
 
-    scale = $mod / $ds.sector;
+    //scale = $mod / $ds.sector;
+    scale = $data.scale;
+
     left = ($data.window.w / 2) - ($data.point.x * scale);
     top = ($data.window.h / 2) - ($data.point.y * scale);
 
@@ -302,7 +316,7 @@ function some(){
     $data.map.h = trimNumber(height);
     $data.map.left = trimNumber(left);
     $data.map.top = trimNumber(top);
-    $data.map.bs = trimNumber(backgroundSize);
+    //$data.map.bs = trimNumber(backgroundSize);
 
     map.setAttribute('style', `left: ${$data.map.left}px; top: ${$data.map.top}px; width: ${$data.map.w}px; height: ${$data.map.h}px; background-size: ${$data.map.bs}%`);
   }
@@ -311,15 +325,14 @@ function some(){
   function calculatesMarkPosition(nodeMark, mark){
     var left, top, scale;
 
-    console.log(mark);
-
-    scale = $mod / $ds.sector;
+    //scale = $mod / $ds.sector;
+    scale = $data.scale;
 
     left = $sectors[mark.name].x * $mod;
     top = $sectors[mark.name].y * $mod;
 
-    left = left + mark.x * scale - 7;
-    top = top + mark.y * scale - 7;
+    left = left + mark.x * scale - 7.5; // 7
+    top = top + mark.y * scale - 22;    // 7
 
     left = trimNumber(left);
     top = trimNumber(top);
@@ -336,7 +349,9 @@ function some(){
 
     map = nodes[0];
 
-    scale = $mod / $ds.sector;
+    //scale = $mod / $ds.sector;
+    scale = $data.scale;
+
     left = ($data.window.w / 2) - ($data.point.x * scale);
     top = ($data.window.h / 2) - ($data.point.y * scale);
 
@@ -355,12 +370,15 @@ function some(){
 
     for(name in $sectors){
       sector = $sectors[name];
-      left = trimNumber(sector.x * $mod);
-      top = trimNumber(sector.y * $mod);
 
-      style = `style="left: ${left}px; top: ${top}px; width: ${$mod}px; height: ${$mod}px;"`;
+      if(sector.map == $sid.map){
+        left = trimNumber(sector.x * $mod);
+        top = trimNumber(sector.y * $mod);
 
-      labels += `<div class="map-label" ${style}><span>${name}</span></div>`;
+        style = `style="left: ${left}px; top: ${top}px; width: ${$mod}px; height: ${$mod}px;"`;
+
+        labels += `<div class="map-label" ${style}><span>${name}</span></div>`;
+      }
     }
 
     $(map).find('#map-labels').html(labels);
