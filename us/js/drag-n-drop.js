@@ -36,10 +36,12 @@ DragNDrop.prototype = {
   },
 
   _drag: function(node, event){
+    var body = document.querySelector('body');
+
     if(!this._inDrag) return;
 
-    this._left = ( window.document.body.scrollLeft + ( event.x || event.clientX ) - this._x );
-    this._top = ( window.document.body.scrollTop  + ( event.y || event.clientY ) - this._y );
+    this._left = ( body.scrollLeft + ( event.x || event.clientX ) - this._x );
+    this._top = ( body.scrollTop  + ( event.y || event.clientY ) - this._y );
 
     this._setCoordinates();
   },
