@@ -1265,7 +1265,7 @@ function renderArtItemsTable(mode){
     items = Object.keys($items.art.items);
 
     items.forEach((id)=>{
-      if(missing[id]) return;
+      //if(missing[id]) return;
       table.pushContent(Create.artItem($items.art.items[id], $adverts, $items.art.sections));
     });
   }
