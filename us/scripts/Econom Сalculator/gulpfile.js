@@ -18,7 +18,7 @@ gulp.task('wrap', function(){
 
   userScriptDir = 'Econom_Сalculator_[GW]';
   userScriptName = userScriptDir + '.user.js';
-  userScriptVersion = '1.11';
+  userScriptVersion = '1.15';
 
   nowDate = new Date(new Date().getTime()).toLocaleString();
   userScriptHeader =
