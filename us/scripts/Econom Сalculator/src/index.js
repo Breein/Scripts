@@ -18,11 +18,12 @@ calculateReceived();
 
 function calculateReceived(){
   var receive, item, items, id, name, mod, price, durability, refund, expCost, info, insert;
+  var art, eunCost;
 
   receive = $('b:contains("Получено")');
   if(receive.length == 0) return;
 
-  items = $ls.load('gk_acfd_items').gos;
+  items = $ls.load('gk_acfd_items');
   if(!items) return;
 
   receive = receive.up('table').node();
@@ -39,8 +40,12 @@ function calculateReceived(){
   }
   id = id[0].match(/item_id=(.+)/)[1];
 
-  item = items.items[id];
-  if(!item) return;
+  item = items.gos.items[id];
+  if(!item){
+    item = items.art.items[id];
+    art = true;
+    if(!item) return;
+  }
 
   insert = $(receive).find('li:contains("~Прочность:")').node();
 
@@ -52,19 +57,30 @@ function calculateReceived(){
   durability = durability.split('/')[1];
   durability = Number(durability);
 
-  refund = getRefund(durability, item);
-  if(mod) refund[1] += 2000;
-  expCost = getExpCost(price, refund[0], refund[1]);
+  if(!art){
+    refund = getRefund(durability, item);
+    if(mod) refund[1] += 2000;
+    expCost = getExpCost(price, refund[0], refund[1]);
 
-  /////////////////////////////
-
-  info = $('<span>').html(
-    `<li> Опыт: <b>${$c.convertID(refund[1])}</b> exp. по <b>$${expCost}</b> за ед.</li>
+    /////////////////////////////
+    info = $('<span>').html(
+      `<li> Опыт: <b>${$c.convertID(refund[1])}</b> exp. по <b>$${expCost}</b> за ед.</li>
      <li> Возврат: <b>$${$c.convertID(refund[0])}</b></li>`
-  ).node();
-  insert.parentNode.insertBefore(info, insert);
+    ).node();
+    insert.parentNode.insertBefore(info, insert);
+    /////////////////////////////
 
-  /////////////////////////////
+  }else{
+    eunCost = parseInt(price / item[4], 10);
+
+    /////////////////////////////
+    info = $('<span>').html(
+      `<li> Стоимость: <b>${item[3]}</b> EUN</li>
+     <li> Возврат: <b>${item[4]}</b> EUN по курсу <b>$${$c.convertID(eunCost)}</b> за 1 EUN</li>`
+    ).node();
+    insert.parentNode.insertBefore(info, insert);
+    /////////////////////////////
+  }
 
   function getRefund(dur, item){
     var durability, refund, exp, durLeft;
