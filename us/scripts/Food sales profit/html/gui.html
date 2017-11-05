@@ -1,0 +1,34 @@
+<div class="window center-screen" id="fsp_gui_window">
+  <table width="800" class="padding window-content">
+    <tr class="header red-color" height="35">
+      <td colspan="2">
+        Прибыльность продаж лута
+      </td>
+    </tr>
+
+    <tr height="50" class="lbg">
+      <td class="ct" style="font-size: 10px;">
+        <span class="days-profit">$0</span><br>
+        за <span class="days-counter">${textDays($data.day)}</span>
+      </td>
+      <td class="wrap" rowspan="3" width="600" height="320"></td>
+    </tr>
+
+    <tr class="header" height="30">
+      <td>Временной интервал:</td>
+    </tr>
+
+    <tr class="lbg">
+      <td class="ct">
+        <div class="range-wrap">
+          ${createCheckLines(30)}
+          <input type="range" min="1" max="30" step="1" value="${$data.day}" />
+        </div>
+      </td>
+    </tr>
+
+    <tr class="footer-line">
+      <td colspan="2"></td>
+    </tr>
+  </table>
+</div>
