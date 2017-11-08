@@ -75,47 +75,15 @@ $lootCode = {
 };
 
 $pid = getPlayerID();
-loadData();
-
 $day = new Date().toLocaleDateString('en-US') + ' 12:00';
 $day = Date.parse($day) / 1000;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function getPlayerID(){
-  var id;
-
-  id = $('a[href*="info.php?id="]').node().href;
-  id = id.match(/(\d+)/)[1];
-  return id;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function loadData(){
-  $gData = $ls.load('gk_fsp-data');
-
-  if($gData[$pid] == null){
-    $gData[$pid] = {
-      day: 1,
-      profit: 0,
-      timestamp: {},
-      stop: '',
-      money: 0
-    };
-    saveData();
-  }
-
-  $data = $gData[$pid];
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function saveData(){
-  $ls.save('gk_fsp-data', $gData);
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+loadData();
 createGUI();
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function checkToChangeMoney(node){
   var money;
@@ -125,7 +93,7 @@ function checkToChangeMoney(node){
 
   if($data.money != money){
     $data.money = money;
-    getLogData(0, '');
+    getLogData(0, $data.stop);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,8 +112,11 @@ function createGUI(){
   gui = $('<span>').html('@include: ./html/gui.html, true').node();
   document.body.appendChild(gui);
 
-  bindEvent($('.sync-button'), 'onclick', getLogData, [0, '']);
-  bindEvent($('#fst-profit'), 'onclick', openWindow, [gui.firstElementChild]);
+  if(navigator.userAgent.match(/Chrome/i) != null)
+    $(gui).find('div.range-wrap').class('add', "ua-chrome");
+
+  bindEvent($('.sync-button'), 'onclick', getLogData, [0, $data.stop]);
+  bindEvent($('#fst-profit'), 'onclick', shadow.open, [gui.firstElementChild], shadow);
 
   rangeEvents();
   chartColumns($data.day);
@@ -155,16 +126,19 @@ function createGUI(){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function createCheckLines(count){
-  var code, offset, c, s, t;
-  var i, k = 1;
+  var code, offset, c, t;
+  var i, k, mark;
 
   code = '<div class="check-lines-wrap">';
   offset = (211 - count) / count;
   offset = offset.toFixed(2);
 
-  for(i = 0; i < count; i++, k++){
+  for(i = 0, k = 1; i < count; i++, k++){
+    mark = i + 1;
     c = k % 5 == 0 || i == 0 ? ' check-max' : '';
-    t = c != '' ? `<div style="position: absolute; margin-top: -7px;">${i + 1}           ${i + 1}</div>` : '';
+
+    if(c != '') t = '@include: ./html/marks.html, true';
+    else t  = '';
 
     code += `<div class="check-line${c}" style="margin-top: ${offset}px;">${t}</div>`;
   }
@@ -172,11 +146,6 @@ function createCheckLines(count){
   code += '</div>';
 
   return code;
-}
-
-function openWindow(w){
-  $(w).class('remove', 'hide');
-  shadow.open();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -238,15 +207,25 @@ function getLogData(page, text){
 
     if(proceed){
       page++;
-      getLogData.gkDelay(1000, null, [page, text]);
+      getLogData.gkDelay($c.randomNumber(10, 25) * 100, null, [page, text]);
     }else{
       $data.stop = text;
+      restriction(30);
       saveData();
       calculateProfit();
       chartColumns($data.day);
-      $('.sync-button-rotate').class('set', 'sync-button');
+      stopAnimate(r.time);
     }
   });
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function stopAnimate(time){
+  time = time > 600 ? 600 - (time % 600) : 600 - time;
+
+  setTimeout(()=>{
+    $('.sync-button-rotate').class('set', 'sync-button');
+  }, time);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -321,7 +300,7 @@ function chartColumns(value){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function rangeEvents(){
-  var node, value, action, counter;
+  var node, value, action = [], counter;
 
   value = 0;
   node = $('input[type="range"]').node();
@@ -331,8 +310,8 @@ function rangeEvents(){
   bindEvent(node, 'onchange', change);
 
   function down(input){
-    action = bindEvent(input, 'onmousemove', change);
-    bindEvent(input, 'onmouseup', up);
+    action[0] = bindEvent(input, 'onmousemove', change);
+    action[1] = bindEvent(input, 'onmouseup', up);
   }
 
   function change(input){
@@ -347,7 +326,34 @@ function rangeEvents(){
   }
 
   function up(){
-    action.unBind();
+    action[0].unBind();
+    action[1].unBind();
+  }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function restriction(max){
+  var keys, count, key;
+
+  keys = Object.keys($data.timestamp);
+  count = keys.length;
+
+  if(count > max){
+    keys.sort((i, j)=>{
+      i = Number(i);
+      j = Number(j);
+
+      if(i < j) return 1;
+      else if(i > j) return -1;
+      else return 0;
+    });
+
+    count = count - max;
+
+    while(count--){
+      key = keys.pop();
+      delete $data.timestamp[key];
+    }
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,5 +370,36 @@ function textDays(value){
   }
 
   return value + text;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function getPlayerID(){
+  var id;
+
+  id = $('a[href*="info.php?id="]').node().href;
+  id = id.match(/(\d+)/)[1];
+  return id;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function loadData(){
+  $gData = $ls.load('gk_fsp-data');
+
+  if($gData[$pid] == null){
+    $gData[$pid] = {
+      day: 1,
+      profit: 0,
+      timestamp: {},
+      stop: '',
+      money: 0
+    };
+    saveData();
+  }
+
+  $data = $gData[$pid];
+}
+
+function saveData(){
+  $ls.save('gk_fsp-data', $gData);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

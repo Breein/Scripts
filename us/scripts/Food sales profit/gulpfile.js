@@ -25,7 +25,7 @@ gulp.task('wrap', function(){
     `// ==UserScript==
 // @name        Food sales profit [GW]
 // @author      гном убийца
-// @description (${nowDate})
+// @description Подсчет прибыли от продажи лута и ее наглядное отображение. (${nowDate})
 // @include     http://www.ganjawars.ru/me.php*
 // @version     ${userScriptVersion}
 // @grant       none
